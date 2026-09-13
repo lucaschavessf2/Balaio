@@ -1,0 +1,85 @@
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--fonte), system-ui, sans-serif;
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.titulo-pagina {
+  @apply text-titulo mb-1.5;
+}
+
+.subtitulo-pagina {
+  @apply text-tinta-suave mb-6 max-w-[68ch];
+}
+
+.secao {
+  @apply mt-10;
+}
+
+.secao-titulo {
+  @apply text-grande mb-4;
+}
+
+.secao-titulo::after {
+  content: "";
+  display: block;
+  width: 34px;
+  height: 3px;
+  margin-top: 6px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--barro), var(--amarelo));
+}
+
+.secao-titulo-icone {
+  @apply flex gap-2.5 items-center;
+}
+
+h1,
+h2,
+.titulo-pagina,
+.secao-titulo {
+  font-family: var(--font-titulo);
+  font-weight: 400;
+  letter-spacing: 0.015em;
+}
+
+.texto-longo .secao-titulo {
+  font-size: 18px;
+}
+
+@media (min-width: 700px) {
+  .texto-longo .secao-titulo {
+    font-size: 20px;
+  }
+}
+
+.texto-historia p {
+  @apply mb-[14px] text-tinta-suave;
+}
+
+.texto-longo section {
+  margin-bottom: 26px;
+}
+
+.texto-longo section:last-of-type {
+  margin-bottom: 16px;
+}
+
+.texto-longo p {
+  color: var(--tinta-suave);
+  margin-bottom: 12px;
+  max-width: 74ch;
+}
+
+.texto-historia p:first-of-type::first-letter {
+  font-family: var(--fonte-titulo), Georgia, serif;
+  font-size: 3em;
+  float: left;
+  line-height: 0.9;
+  padding-right: 8px;
+  color: var(--barro-tinta);
+}

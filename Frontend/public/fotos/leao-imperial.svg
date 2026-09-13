@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600" role="img">
+<defs>
+<linearGradient id="ceu" gradientTransform="rotate(182)">
+<stop offset="0%" stop-color="#f0d9c0"/>
+<stop offset="100%" stop-color="#d9a273"/>
+</linearGradient>
+<radialGradient id="vinheta" cx="50%" cy="44%" r="74%">
+<stop offset="58%" stop-color="#000" stop-opacity="0"/>
+<stop offset="100%" stop-color="#000" stop-opacity="0.32"/>
+</radialGradient>
+<clipPath id="corte"><rect width="800" height="600"/></clipPath>
+</defs>
+<g clip-path="url(#corte)">
+<rect width="800" height="600" fill="url(#ceu)"/>
+<rect x="355" y="97" width="281" height="7" rx="3" fill="#e6b384" opacity="0.22"/>
+<rect x="77" y="131" width="194" height="7" rx="3" fill="#e6b384" opacity="0.22"/>
+<rect x="95" y="161" width="365" height="7" rx="3" fill="#e6b384" opacity="0.22"/>
+<rect x="242" y="186" width="273" height="7" rx="3" fill="#e6b384" opacity="0.22"/>
+<path d="M0 460h800v140H0z" fill="#b5713f"/>
+<ellipse cx="400" cy="460" rx="320" ry="26" fill="#8f4d22" opacity="0.5"/>
+<g>
+<ellipse cx="478" cy="390" rx="142" ry="72" fill="#c2703c"/>
+<rect x="408" y="430" width="32" height="64" rx="14" fill="#8f4d22"/>
+<rect x="530" y="430" width="32" height="64" rx="14" fill="#8f4d22"/>
+<path d="M614 372q54 -26 34 -84" stroke="#c2703c" stroke-width="17" fill="none" stroke-linecap="round"/>
+<circle cx="492.0" cy="262.0" r="29.0" fill="#8f4d22"/>
+<circle cx="482.9" cy="301.9" r="29.0" fill="#8f4d22"/>
+<circle cx="457.4" cy="333.9" r="29.0" fill="#8f4d22"/>
+<circle cx="420.5" cy="351.7" r="29.0" fill="#8f4d22"/>
+<circle cx="379.5" cy="351.7" r="29.0" fill="#8f4d22"/>
+<circle cx="342.6" cy="333.9" r="29.0" fill="#8f4d22"/>
+<circle cx="317.1" cy="301.9" r="29.0" fill="#8f4d22"/>
+<circle cx="308.0" cy="262.0" r="29.0" fill="#8f4d22"/>
+<circle cx="317.1" cy="222.1" r="29.0" fill="#8f4d22"/>
+<circle cx="342.6" cy="190.1" r="29.0" fill="#8f4d22"/>
+<circle cx="379.5" cy="172.3" r="29.0" fill="#8f4d22"/>
+<circle cx="420.5" cy="172.3" r="29.0" fill="#8f4d22"/>
+<circle cx="457.4" cy="190.1" r="29.0" fill="#8f4d22"/>
+<circle cx="482.9" cy="222.1" r="29.0" fill="#8f4d22"/>
+<circle cx="400" cy="262" r="84" fill="#c2703c"/>
+<ellipse cx="370" cy="246" rx="11" ry="13" fill="#5c2c11"/>
+<ellipse cx="430" cy="246" rx="11" ry="13" fill="#5c2c11"/>
+<path d="M400 270l-15 18h30z" fill="#5c2c11"/>
+<path d="M374 306q26 22 52 0" stroke="#5c2c11" stroke-width="7" fill="none" stroke-linecap="round"/>
+<path d="M338 200q16 -24 34 -6" stroke="#5c2c11" stroke-width="6" fill="none" stroke-linecap="round"/>
+<path d="M462 200q-16 -24 -34 -6" stroke="#5c2c11" stroke-width="6" fill="none" stroke-linecap="round"/>
+</g>
+<rect width="800" height="600" fill="url(#vinheta)"/>
+</g>
+</svg>

@@ -1,0 +1,57 @@
+@theme {
+  --color-azul: var(--azul);
+  --color-azul-escuro: var(--azul-escuro);
+  --color-verde: var(--verde);
+  --color-verde-escuro: var(--verde-escuro);
+  --color-amarelo: var(--amarelo);
+  --color-vermelho: var(--vermelho);
+  --color-branco: var(--branco);
+  --color-tinta-fixa: var(--tinta-fixa);
+  --color-fundo: var(--fundo);
+  --color-superficie: var(--superficie);
+  --color-tinta: var(--tinta);
+  --color-tinta-suave: var(--tinta-suave);
+  --color-linha: var(--linha);
+  --color-destaque: var(--destaque);
+  --color-destaque-suave: var(--destaque-suave);
+  --color-verde-tinta: var(--verde-tinta);
+  --color-vermelho-tinta: var(--vermelho-tinta);
+  --color-aviso-fundo: var(--aviso-fundo);
+  --color-barro: var(--barro);
+  --color-barro-claro: var(--barro-claro);
+  --color-barro-tinta: var(--barro-tinta);
+  --color-barro-fundo: var(--barro-fundo);
+  --color-acao: var(--acao);
+  --color-acao-forte: var(--acao-forte);
+  --color-cabecalho-fundo: var(--cabecalho-fundo);
+  --color-cabecalho-tinta: var(--cabecalho-tinta);
+  --color-nav-fundo: var(--nav-fundo);
+  --color-nav-linha: var(--nav-linha);
+  --color-nav-tinta: var(--nav-tinta);
+  --color-nav-tinta-suave: var(--nav-tinta-suave);
+
+  --radius-caixa: var(--raio-s);
+  --radius-media: var(--raio);
+  --radius-grande: var(--raio-g);
+  --radius-video: var(--raio-video);
+  --radius-pilula: var(--raio-pilula);
+
+  --text-mini: var(--texto-mini);
+  --text-pequeno: var(--texto-pequeno);
+  --text-corpo: var(--texto-corpo);
+  --text-medio: var(--texto-medio);
+  --text-grande: var(--texto-grande);
+  --text-maior: var(--texto-maior);
+  --text-titulo: var(--texto-titulo);
+
+  --breakpoint-sm: 560px;
+  --breakpoint-md: 700px;
+  --breakpoint-lg: 900px;
+  --breakpoint-xl: 1000px;
+
+  --default-transition-duration: 220ms;
+  --default-transition-timing-function: cubic-bezier(0.2, 0.6, 0.2, 1);
+
+  --font-corpo: var(--fonte), system-ui, sans-serif;
+  --font-titulo: var(--fonte-titulo), Optima, Candara, system-ui, sans-serif;
+}

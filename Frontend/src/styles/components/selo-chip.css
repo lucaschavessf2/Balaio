@@ -1,0 +1,57 @@
+.chip-categoria {
+  @apply flex-none min-h-11 inline-flex items-center px-4 rounded-pilula border border-linha bg-superficie text-tinta font-semibold text-pequeno whitespace-nowrap;
+}
+
+.chip-categoria:hover {
+  @apply border-acao text-destaque no-underline;
+}
+
+.chip-desconto {
+  @apply bg-verde text-branco text-mini font-bold py-0.5 px-2 rounded-pilula whitespace-nowrap;
+}
+
+.chip-beneficio {
+  @apply bg-destaque-suave text-destaque text-[13px] font-semibold py-[3px] px-2 rounded-caixa whitespace-nowrap;
+}
+
+.selo {
+  @apply inline-flex items-center gap-1.5 rounded-pilula py-[5px] px-3 text-mini font-bold tracking-[0.04em] uppercase whitespace-nowrap;
+}
+
+.selo-sobre-foto {
+  @apply absolute top-3 left-3 z-[2] pointer-events-none border border-[rgba(255,255,255,0.45)] shadow-[0_2px_10px_rgba(17,22,37,0.35)];
+}
+
+.selo-disponivel {
+  @apply bg-verde text-branco;
+}
+
+.selo-encomenda {
+  @apply bg-amarelo text-tinta-fixa;
+}
+
+.selo-unica {
+  @apply bg-vermelho text-branco;
+}
+
+.selo-neutro {
+  @apply bg-destaque-suave text-destaque;
+}
+
+.etiqueta-desconto {
+  @apply inline-flex items-center gap-[5px] bg-amarelo text-tinta-fixa text-mini font-bold tracking-[0.04em] uppercase py-[5px] px-2.5 rounded-caixa whitespace-nowrap;
+}
+
+.etiqueta-desconto-sobre-foto {
+  @apply absolute left-3 bottom-3 z-[2] pl-4 rounded-r-caixa pointer-events-none;
+  clip-path: polygon(11px 0, 100% 0, 100% 100%, 11px 100%, 0 50%);
+  filter: drop-shadow(0 2px 6px rgba(17, 22, 37, 0.3));
+}
+
+.economia {
+  @apply text-[13px] font-semibold text-verde-tinta whitespace-nowrap;
+}
+
+.selo-ponto {
+  @apply w-[7px] h-[7px] rounded-full bg-current flex-none;
+}

@@ -1,0 +1,308 @@
+.capa-mapa {
+  @apply text-branco rounded-media py-8 px-6;
+  background-image: linear-gradient(135deg, var(--mapa-capa-a), var(--mapa-capa-b));
+}
+
+.capa-mapa .titulo-pagina,
+.capa-mapa .subtitulo-pagina {
+  color: var(--branco);
+  opacity: 0.92;
+}
+
+.capa-mapa .selo-neutro {
+  background: rgba(255, 255, 255, 0.18);
+  color: var(--branco);
+}
+
+@media (min-width: 1000px) {
+  .capa-mapa {
+    padding: 44px 40px;
+  }
+}
+
+.mapa-territorio {
+  @apply h-[150px] rounded-caixa flex items-center justify-center font-semibold text-center p-4;
+  background: var(--mapa-fundo);
+  color: var(--mapa-tinta);
+}
+
+.mapa-eventos {
+  @apply relative isolate overflow-hidden rounded-grande border border-linha bg-fundo shadow-(--sombra);
+}
+
+.mapa-eventos-destaque {
+  @apply h-80 md:h-[400px];
+}
+
+.mapa-eventos-mini {
+  @apply h-60;
+}
+
+.mapa-eventos-escolha {
+  @apply h-[300px] mt-2;
+}
+
+.mapa-tela {
+  @apply w-full h-full;
+}
+
+.mapa-carregando {
+  @apply flex items-center justify-center w-full h-full m-0 text-pequeno text-tinta-suave bg-fundo;
+  background-image: var(--textura-trama);
+}
+
+.mapa-nota {
+  @apply mt-2 text-mini text-tinta-suave;
+}
+
+.mapa-eventos .leaflet-container {
+  font-family: var(--fonte), system-ui, sans-serif;
+  font-size: 13px;
+  background: var(--fundo);
+}
+
+.mapa-eventos .tiles-tema-escuro {
+  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%) saturate(70%);
+}
+
+.mapa-eventos .leaflet-popup-content-wrapper {
+  background: var(--superficie);
+  color: var(--tinta);
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  box-shadow: var(--sombra-alta);
+}
+
+.mapa-eventos .leaflet-popup-tip {
+  background: var(--superficie);
+  border: 1px solid var(--linha);
+}
+
+.mapa-eventos .leaflet-popup-content {
+  margin: 12px 14px;
+}
+
+.popup-evento {
+  @apply grid gap-1 min-w-44;
+}
+
+.popup-evento strong {
+  @apply font-titulo text-corpo leading-snug;
+}
+
+.popup-evento span {
+  @apply text-mini text-tinta-suave;
+}
+
+.popup-evento a {
+  @apply text-mini font-bold text-destaque;
+}
+
+.mapa-eventos .leaflet-bar {
+  border-color: var(--linha);
+  box-shadow: var(--sombra);
+}
+
+.mapa-eventos .leaflet-bar a {
+  background: var(--superficie);
+  color: var(--tinta);
+  border-color: var(--linha);
+}
+
+.mapa-eventos .leaflet-bar a:hover {
+  background: var(--fundo);
+  color: var(--tinta);
+}
+
+.mapa-eventos .leaflet-control-attribution {
+  background: var(--superficie);
+  color: var(--tinta-suave);
+  font-size: 12px;
+}
+
+.mapa-eventos .leaflet-control-attribution a {
+  color: var(--destaque);
+}
+
+.pino-envoltorio {
+  background: transparent;
+  border: 0;
+}
+
+.pino-evento {
+  @apply block relative w-7 h-7 mx-auto mt-0.5;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  background: var(--acao);
+  border: 2px solid var(--branco);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.pino-evento::after {
+  content: "";
+  @apply absolute inset-0 m-auto w-2.5 h-2.5 rounded-pilula;
+  background: var(--branco);
+}
+
+.pino-evento-proprio {
+  background: var(--barro);
+}
+
+.pino-usuario {
+  @apply block w-4 h-4 rounded-pilula;
+  background: var(--acao);
+  border: 3px solid var(--branco);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--acao) 30%, transparent);
+}
+
+@keyframes pulso-localizacao {
+  0% {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--acao) 45%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 14px transparent;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pino-usuario {
+    animation: pulso-localizacao 2s ease-out infinite;
+  }
+}
+
+.mapa-agenda {
+  @apply mb-3;
+}
+
+.mapa-eventos-agenda {
+  height: 46dvh;
+  min-height: 300px;
+}
+
+@media (min-width: 700px) {
+  .mapa-eventos-agenda {
+    height: min(56dvh, 520px);
+  }
+}
+
+.agenda-cabeca .mapa-nota {
+  @apply mb-4;
+}
+
+.mapa-dica-toque {
+  @apply absolute bottom-3 left-1/2 -translate-x-1/2 z-[1100] pointer-events-none inline-flex items-center rounded-pilula bg-superficie text-tinta border border-linha py-1.5 px-3.5 text-mini font-semibold shadow-(--sombra-alta) whitespace-nowrap;
+}
+
+.hero-figura-mapa {
+  @apply block relative bg-fundo;
+}
+
+.hero-figura-mapa .mapa-eventos {
+  @apply block w-full h-full border-0 rounded-none shadow-none;
+}
+
+.hero-figura-mapa .leaflet-container {
+  cursor: pointer;
+}
+
+.cartao-evento {
+  @apply flex items-start gap-3 h-full p-4 bg-superficie border border-linha rounded-media shadow-(--sombra) text-inherit transition;
+}
+
+.cartao-evento:hover {
+  @apply no-underline shadow-(--sombra-alta);
+  border-color: var(--barro-claro);
+}
+
+.cartao-evento-nome {
+  @apply font-titulo font-semibold text-corpo leading-snug text-tinta;
+}
+
+.cartao-evento-meta {
+  @apply block text-pequeno text-tinta-suave;
+}
+
+.chip-distancia {
+  @apply inline-flex items-center gap-1 self-start ml-auto rounded-pilula bg-destaque-suave text-destaque py-1 px-2.5 text-mini font-bold whitespace-nowrap;
+}
+
+.grade-eventos {
+  @apply list-none m-0 p-0 grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3;
+}
+
+.grade-eventos > li {
+  @apply min-w-0;
+}
+
+.cartao-evento-agenda {
+  @apply flex-col items-stretch gap-1;
+}
+
+.cartao-evento-selos {
+  @apply flex items-center gap-2 flex-wrap mb-2;
+}
+
+.cartao-evento-rodape {
+  @apply flex justify-between items-center gap-3 flex-wrap mt-auto pt-3 border-t border-linha;
+}
+
+.cartao-evento-entrada {
+  @apply font-semibold text-tinta;
+}
+
+.agenda-acao {
+  @apply mt-1 mb-8;
+}
+
+.grade-participantes {
+  @apply grid gap-3 sm:grid-cols-2;
+}
+
+.cartao-participante {
+  @apply flex items-center gap-3 p-3 border border-linha rounded-caixa text-inherit transition;
+}
+
+.cartao-participante:hover {
+  @apply no-underline bg-fundo;
+  border-color: var(--barro-claro);
+}
+
+.cartao-participante .encolhivel {
+  @apply grid gap-0.5;
+}
+
+.lista-passos-evento {
+  @apply list-decimal m-0 pl-5 grid gap-2.5 text-pequeno text-tinta-suave;
+}
+
+.lista-participantes {
+  @apply grid gap-2 mt-2 sm:grid-cols-2;
+}
+
+.opcao-participante {
+  @apply flex items-center gap-2.5 p-2.5 border border-linha rounded-caixa cursor-pointer transition;
+}
+
+.opcao-participante:has(input:checked),
+.opcao-radio:has(input:checked) {
+  border-color: var(--acao);
+  background: var(--destaque-suave);
+}
+
+.opcao-participante .encolhivel {
+  @apply grid gap-0.5;
+}
+
+.lista-radios {
+  @apply grid gap-2 mt-2;
+}
+
+.opcao-radio {
+  @apply flex items-center gap-2.5 p-3 border border-linha rounded-caixa cursor-pointer text-pequeno text-tinta transition;
+}
+
+.opcao-participante input,
+.opcao-radio input {
+  @apply flex-none w-[18px] h-[18px] m-0;
+  accent-color: var(--acao);
+}

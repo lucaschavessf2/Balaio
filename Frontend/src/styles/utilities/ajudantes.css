@@ -1,0 +1,63 @@
+.esconde-mobile {
+  @apply hidden md:inline-flex;
+}
+
+.encolhivel {
+  @apply min-w-0;
+}
+
+.texto-direita {
+  @apply text-right;
+}
+
+.texto-suave {
+  @apply text-tinta-suave;
+}
+
+.texto-forte {
+  @apply font-bold;
+}
+
+.sem-margem {
+  @apply m-0;
+}
+
+.linha-flex {
+  @apply flex items-center flex-wrap gap-3;
+}
+
+.linha-entre {
+  @apply justify-between;
+}
+
+.acima-2 {
+  @apply mt-2;
+}
+
+.acima-3 {
+  @apply mt-3;
+}
+
+.acima-4 {
+  @apply mt-4;
+}
+
+.acima-5 {
+  @apply mt-6;
+}
+
+.abaixo-2 {
+  @apply mb-2;
+}
+
+.abaixo-3 {
+  @apply mb-3;
+}
+
+.abaixo-4 {
+  @apply mb-4;
+}
+
+.abaixo-5 {
+  @apply mb-6;
+}

@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600" role="img">
+<defs>
+<linearGradient id="ceu" gradientTransform="rotate(165)">
+<stop offset="0%" stop-color="#e0b487"/>
+<stop offset="100%" stop-color="#a9723f"/>
+</linearGradient>
+<radialGradient id="vinheta" cx="50%" cy="44%" r="74%">
+<stop offset="58%" stop-color="#000" stop-opacity="0"/>
+<stop offset="100%" stop-color="#000" stop-opacity="0.32"/>
+</radialGradient>
+<clipPath id="corte"><rect width="800" height="600"/></clipPath>
+</defs>
+<g clip-path="url(#corte)">
+<rect width="800" height="600" fill="url(#ceu)"/>
+<rect x="279" y="101" width="268" height="7" rx="3" fill="#c98f5c" opacity="0.22"/>
+<rect x="224" y="140" width="202" height="7" rx="3" fill="#c98f5c" opacity="0.22"/>
+<rect x="395" y="159" width="213" height="7" rx="3" fill="#c98f5c" opacity="0.22"/>
+<rect x="375" y="193" width="196" height="7" rx="3" fill="#c98f5c" opacity="0.22"/>
+<path d="M0 460h800v140H0z" fill="#6d3d1c"/>
+<ellipse cx="400" cy="460" rx="320" ry="26" fill="#5e3517" opacity="0.5"/>
+<g>
+<path d="M400 158q-52 0-84 26l-58 34 40 74 30-18v130h144V274l30 18 40-74-58-34q-32-26-84-26z" fill="#9c5f2e"/>
+<path d="M400 158v246" stroke="#5e3517" stroke-width="6" stroke-dasharray="12 10"/>
+<path d="M400 158q-24 30-24 62 0 22 10 40" stroke="#5e3517" stroke-width="6" fill="none"/>
+<path d="M400 158q24 30 24 62 0 22-10 40" stroke="#5e3517" stroke-width="6" fill="none"/>
+<path d="M292 404v54" stroke="#5e3517" stroke-width="7" stroke-linecap="round"/>
+<path d="M314 404v54" stroke="#5e3517" stroke-width="7" stroke-linecap="round"/>
+<path d="M336 404v54" stroke="#5e3517" stroke-width="7" stroke-linecap="round"/>
+<path d="M358 404v54" stroke="#5e3517" stroke-width="7" stroke-linecap="round"/>
+<path d="M380 404v54" stroke="#5e3517" stroke-width="7" stroke-linecap="round"/>
+<path d="M402 404v54" stroke="#5e3517" stroke-width="7" stroke-linecap="round"/>
+<path d="M424 404v54" stroke="#5e3517" stroke-width="7" stroke-linecap="round"/>
+<path d="M446 404v54" stroke="#5e3517" stroke-width="7" stroke-linecap="round"/>
+<path d="M468 404v54" stroke="#5e3517" stroke-width="7" stroke-linecap="round"/>
+<path d="M490 404v54" stroke="#5e3517" stroke-width="7" stroke-linecap="round"/>
+<path d="M512 404v54" stroke="#5e3517" stroke-width="7" stroke-linecap="round"/>
+<circle cx="306" cy="218" r="3" fill="#c98f5c" opacity="0.85"/>
+<circle cx="320" cy="218" r="3" fill="#c98f5c" opacity="0.85"/>
+<circle cx="334" cy="218" r="3" fill="#c98f5c" opacity="0.85"/>
+<circle cx="348" cy="218" r="3" fill="#c98f5c" opacity="0.85"/>
+<circle cx="362" cy="218" r="3" fill="#c98f5c" opacity="0.85"/>
+<circle cx="376" cy="218" r="3" fill="#c98f5c" opacity="0.85"/>
+<circle cx="390" cy="218" r="3" fill="#c98f5c" opacity="0.85"/>
+<circle cx="404" cy="218" r="3" fill="#c98f5c" opacity="0.85"/>
+<circle cx="418" cy="218" r="3" fill="#c98f5c" opacity="0.85"/>
+<circle cx="432" cy="218" r="3" fill="#c98f5c" opacity="0.85"/>
+<circle cx="446" cy="218" r="3" fill="#c98f5c" opacity="0.85"/>
+<circle cx="460" cy="218" r="3" fill="#c98f5c" opacity="0.85"/>
+<circle cx="474" cy="218" r="3" fill="#c98f5c" opacity="0.85"/>
+<circle cx="488" cy="218" r="3" fill="#c98f5c" opacity="0.85"/>
+<circle cx="400" cy="306" r="15" fill="#c98f5c" opacity="0.75"/>
+<circle cx="400" cy="350" r="15" fill="#c98f5c" opacity="0.75"/>
+</g>
+<rect width="800" height="600" fill="url(#vinheta)"/>
+</g>
+</svg>

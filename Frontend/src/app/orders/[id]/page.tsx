@@ -1,0 +1,160 @@
+import Link from 'next/link'
+import { notFound } from 'next/navigation'
+import Pagina from '@/components/layout/Pagina'
+import { Foto, Migalhas } from '@/components/ui/Basicos'
+import ConversaPedido from '@/components/pedido/ConversaPedido'
+import BotaoSimulado from '@/components/ui/BotaoSimulado'
+import { IconeCaminhao, IconeCheck, IconeSetaDireita } from '@/components/ui/Icones'
+import { obterPedido, conversaDoPedido, listarPedidos } from '@/services/api/pedidos.servico'
+import { obterPeca } from '@/services/api/pecas.servico'
+import { obterArtesao } from '@/services/api/artesaos.servico'
+import { emReais } from '@/utils/formato'
+import { rotuloEstadoPedido } from '@/constants/rotulos'
+
+export async function generateStaticParams() {
+  const { dados } = await listarPedidos()
+  return (dados ?? []).map((p) => ({ id: p.id }))
+}
+
+export default async function Acompanhamento({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const { dados: pedido } = await obterPedido(id)
+  if (!pedido) notFound()
+
+  const { dados: peca } = await obterPeca(pedido.pecaSlug)
+  const artesao = peca ? (await obterArtesao(peca.artesao)).dados : null
+  const { dados: conversa } = await conversaDoPedido(id)
+
+  return (
+    <Pagina>
+      <Migalhas
+        trilha={[
+          { texto: 'Início', href: '/' },
+          { texto: 'Meus pedidos', href: '/orders' },
+          { texto: `Pedido #${pedido.id}` },
+        ]}
+      />
+
+      <h1 className="titulo-pagina">Acompanhamento de pedido</h1>
+      <p className="subtitulo-pagina">
+        Cada etapa é atualizada pelo próprio artesão. Você pode falar com ele a qualquer momento por aqui.
+      </p>
+
+      <div className="duas-colunas">
+        <div>
+          <section className="cartao abaixo-5">
+            <div className="linha-flex linha-entre">
+              <div>
+                <p className="territorio">Código do pedido</p>
+                <p className="dado-valor" style={{ fontSize: 18 }}>
+                  #{pedido.id}
+                </p>
+                <span className={`selo ${rotuloEstadoPedido[pedido.estado].classe} acima-2`}>
+                  <span className="selo-ponto" />
+                  {rotuloEstadoPedido[pedido.estado].texto}
+                </span>
+              </div>
+              <div className="texto-direita">
+                <p className="dado-rotulo">Data da compra</p>
+                <p className="dado-valor">{pedido.data}</p>
+              </div>
+            </div>
+
+            {peca && (
+              <div className="item-sacola acima-3" style={{ borderBottom: 0 }}>
+                <div className="item-sacola-figura">
+                  <Foto nome={peca.nome} imagem={peca.imagem} decorativa />
+                </div>
+                <div className="linha-flex linha-entre encolhivel" style={{ alignItems: 'flex-start' }}>
+                  <div className="encolhivel">
+                    <Link href={`/pieces/${peca.slug}`} className="texto-forte" style={{ color: 'var(--tinta)' }}>
+                      {peca.nome}
+                    </Link>
+                    <p className="autoria">
+                      Artesão: {artesao && <Link href={`/artisans/${artesao.slug}`}>{artesao.nome}</Link>}
+                    </p>
+                    <p className="autoria">Origem: {peca.territorio}</p>
+                  </div>
+                  <div className="texto-direita">
+                    <p className="dado-rotulo">Total</p>
+                    <p className="preco preco-destaque">{emReais(pedido.total)}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </section>
+
+          <section className="cartao abaixo-5">
+            <h2 className="secao-titulo">Status de produção e entrega</h2>
+
+            <ol className="linha-tempo">
+              {pedido.etapas.map((etapa) => (
+                <li
+                  key={etapa.estado}
+                  className={`etapa${etapa.concluida ? ' etapa-feita' : ''}${etapa.atual ? ' etapa-atual' : ''}`}
+                >
+                  <span className="etapa-marca">
+                    {etapa.concluida ? <IconeCheck tamanho={14} /> : etapa.atual ? <IconeCaminhao tamanho={14} /> : null}
+                  </span>
+                  <div className="encolhivel">
+                    <p className="etapa-titulo">
+                      {etapa.titulo}
+                      {etapa.atual && <span className="selo selo-encomenda">Fase atual</span>}
+                    </p>
+                    <p className="etapa-detalhe">{etapa.detalhe}</p>
+                    {etapa.nota && (
+                      <p className="nota-artesao">
+                        <strong>Nota do artesão:</strong> <em>{etapa.nota}</em>
+                      </p>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </section>
+
+          <section className="cartao">
+            <h2 className="secao-titulo">Informações de envio</h2>
+            <div className="grade-dois">
+              <div className="dado">
+                <span className="dado-rotulo">Código de rastreamento</span>
+                <span className="dado-valor preco-destaque">{pedido.rastreio}</span>
+              </div>
+              <div className="dado">
+                <span className="dado-rotulo">Transportadora parceira</span>
+                <span className="dado-valor">{pedido.transportadora}</span>
+              </div>
+              <div className="dado">
+                <span className="dado-rotulo">Entrega estimada</span>
+                <span className="dado-valor" style={{ color: 'var(--verde-tinta)' }}>
+                  {pedido.previsaoEntrega}
+                </span>
+              </div>
+            </div>
+            <BotaoSimulado
+              className="botao botao-secundario acima-4"
+              titulo="Rastreio copiado para acompanhar na transportadora"
+              descricao={`Use o código ${pedido.rastreio} no site da ${pedido.transportadora}.`}
+            >
+              Acompanhar na transportadora
+              <IconeSetaDireita />
+            </BotaoSimulado>
+          </section>
+
+          <section className="cartao acima-5">
+            <h2 className="secao-titulo">Algo deu errado?</h2>
+            <p className="texto-suave abaixo-3">
+              Fale primeiro com o artesão pela conversa ao lado. A maioria dos casos se resolve por lá. Se não
+              resolver, a plataforma entra como mediadora e o repasse do pagamento fica retido até a decisão.
+            </p>
+            <Link href={`/orders/${pedido.id}/mediation`} className="botao botao-fantasma">
+              Pedir mediação da plataforma
+            </Link>
+          </section>
+        </div>
+
+        <ConversaPedido id="conversa-pedido" iniciais={conversa ?? []} atelie={artesao?.atelie} imagem={artesao?.imagem} />
+      </div>
+    </Pagina>
+  )
+}

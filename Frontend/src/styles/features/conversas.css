@@ -1,0 +1,111 @@
+.conversa {
+  @apply flex flex-col gap-3 py-4;
+}
+
+.balao {
+  @apply max-w-[84%] py-2.5 px-[14px] rounded-media text-pequeno;
+}
+
+.balao-deles {
+  @apply bg-fundo border border-linha self-start;
+}
+
+.balao-meu {
+  @apply bg-acao text-branco self-end;
+}
+
+.balao-hora {
+  @apply block text-mini opacity-75 mt-1;
+}
+
+.painel-conversa {
+  @apply flex flex-col min-w-0 scroll-mt-[72px];
+}
+
+.conversa-envio {
+  @apply flex gap-2.5 mt-auto;
+}
+
+.balao-pergunta {
+  @apply max-w-full bg-fundo border border-linha self-start;
+}
+
+.balao-resposta {
+  @apply max-w-full bg-destaque-suave text-tinta;
+}
+
+.caixa-conversas {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+
+.caixa-conversas .painel-conversa {
+  display: none;
+}
+
+.caixa-conversas-detalhe .lista-fios {
+  display: none;
+}
+
+.caixa-conversas-detalhe .painel-conversa {
+  display: flex;
+  min-height: min(70dvh, 560px);
+}
+
+.voltar-conversas {
+  @apply self-start mb-3;
+}
+
+.lista-fios {
+  @apply list-none m-0 p-0 bg-superficie border border-linha rounded-media shadow-(--sombra) overflow-hidden;
+}
+
+.fio {
+  @apply flex gap-3 items-center py-[14px] px-4 border-b border-linha text-inherit min-w-0;
+}
+
+button.fio {
+  @apply w-full border-x-0 border-t-0 bg-superficie text-left cursor-pointer;
+}
+
+.fio-ativo {
+  @apply bg-destaque-suave;
+}
+
+.lista-fios li:last-child .fio {
+  @apply border-b-0;
+}
+
+.fio:hover {
+  @apply bg-fundo no-underline;
+}
+
+.fio-nao-lido {
+  @apply bg-destaque-suave;
+}
+
+.previa {
+  @apply text-pequeno text-tinta-suave overflow-hidden text-ellipsis whitespace-nowrap;
+}
+
+@media (min-width: 1000px) {
+  .caixa-conversas {
+    grid-template-columns: 340px minmax(0, 1fr);
+  }
+
+  .caixa-conversas .painel-conversa,
+  .caixa-conversas-detalhe .painel-conversa {
+    display: flex;
+    min-height: 0;
+  }
+
+  .caixa-conversas-detalhe .lista-fios {
+    display: block;
+  }
+
+  .voltar-conversas {
+    display: none;
+  }
+}

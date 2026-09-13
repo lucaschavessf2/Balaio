@@ -1,0 +1,205 @@
+.grade-pecas {
+  @apply grid gap-5 grid-cols-1 md:grid-cols-2 xl:grid-cols-3;
+}
+
+.grade-pecas-compacta {
+  @apply gap-4 grid-cols-2 md:grid-cols-3 xl:grid-cols-4;
+}
+
+.busca-destaque {
+  @apply mb-5;
+}
+
+.busca-destaque-linha {
+  @apply flex gap-3 mt-2 flex-wrap;
+}
+
+.busca-destaque-linha .campo-select {
+  @apply flex-[1_1_240px] min-h-12;
+}
+
+.buscas-recentes {
+  @apply flex flex-wrap gap-2 items-center mb-6;
+}
+
+.busca-recente {
+  @apply gap-1.5;
+}
+
+.filtros {
+  @apply bg-superficie border border-linha rounded-grande p-5 shadow-(--sombra);
+  background-image: var(--textura-trama);
+}
+
+.filtros-grupo {
+  @apply mb-3;
+}
+
+.filtros-grupo:last-child {
+  @apply mb-0;
+}
+
+.filtros-titulo {
+  @apply flex items-center gap-2 min-h-11 cursor-pointer list-none font-corpo text-mini font-bold tracking-[0.09em] uppercase;
+}
+
+.filtros-titulo::-webkit-details-marker {
+  display: none;
+}
+
+.seta-grupo {
+  @apply ml-auto inline-flex text-tinta-suave transition duration-[140ms];
+}
+
+details[open] > .filtros-titulo .seta-grupo {
+  @apply rotate-180;
+}
+
+.filtro-contagem {
+  @apply bg-amarelo text-tinta-fixa rounded-pilula text-mini font-bold py-px px-2 tracking-normal;
+}
+
+.chips-filtro {
+  @apply flex flex-wrap gap-2 pb-2;
+}
+
+.chip-filtro {
+  @apply inline-flex items-center gap-[5px] min-h-9 py-[5px] px-3 border border-linha rounded-pilula bg-superficie text-tinta text-[13px] font-semibold text-left cursor-pointer transition duration-[140ms];
+}
+
+.chip-filtro:hover {
+  @apply border-barro-claro bg-barro-fundo;
+}
+
+.chip-filtro-ativo {
+  @apply bg-barro-fundo border-barro text-barro-tinta;
+}
+
+.paginacao {
+  @apply flex items-center justify-center gap-2 flex-wrap mt-8;
+}
+
+.pagina-numero {
+  @apply min-w-11 min-h-11 border border-linha rounded-caixa bg-superficie text-tinta font-semibold cursor-pointer transition duration-[140ms];
+}
+
+.pagina-numero:hover {
+  @apply border-barro-claro bg-barro-fundo;
+}
+
+.pagina-numero-ativa,
+.pagina-numero-ativa:hover {
+  @apply bg-acao border-acao text-branco;
+}
+
+.catalogo {
+  @apply grid gap-6 grid-cols-1 items-start xl:grid-cols-[280px_minmax(0,1fr)];
+}
+
+.catalogo-conteudo {
+  scroll-margin-top: calc(var(--cabecalho-espaco) + 12px);
+}
+
+.catalogo .grade-pecas {
+  animation: surgir 300ms ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .catalogo .grade-pecas {
+    animation: none;
+  }
+}
+
+.catalogo-topo {
+  @apply flex justify-between items-center gap-3 flex-wrap mb-4 text-pequeno text-tinta-suave;
+}
+
+.catalogo-topo .campo-select {
+  @apply w-auto min-w-40;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .filtros[open] {
+    animation: none;
+  }
+}
+
+.catalogo > * {
+  min-width: 0;
+}
+
+@keyframes surgir {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.filtros-cabecalho {
+  @apply flex justify-between items-center gap-2 mb-4;
+}
+
+.filtros-cabecalho h2 {
+  @apply text-medio font-corpo;
+}
+
+.abre-filtros {
+  @apply inline-flex items-center justify-center gap-2 min-h-12 px-[18px] border border-linha rounded-pilula bg-superficie text-tinta text-[15px] font-semibold cursor-pointer justify-self-start;
+}
+
+.abre-filtros:hover {
+  @apply border-acao text-destaque;
+}
+
+.filtros[open] {
+  position: fixed;
+  inset: auto 0 0 0;
+  width: 100%;
+  max-width: none;
+  max-height: 85dvh;
+  overflow-y: auto;
+  margin: 0;
+  border: none;
+  border-radius: var(--raio-g) var(--raio-g) 0 0;
+  padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+  color: var(--tinta);
+  animation: folha-sobe 260ms ease;
+}
+
+.filtros::backdrop {
+  background: rgba(17, 22, 37, 0.55);
+}
+
+.filtros-rodape {
+  @apply sticky bottom-0 mt-4 pt-3 bg-superficie;
+}
+
+@media (min-width: 1000px) {
+  .abre-filtros,
+  .filtros-rodape {
+    display: none;
+  }
+
+  .filtros,
+  .filtros[open] {
+    display: block;
+    position: static;
+    width: auto;
+    max-width: none;
+    max-height: none;
+    overflow: visible;
+    animation: none;
+    margin: 0;
+    border: 1px solid var(--linha);
+    border-radius: var(--raio-g);
+    padding: 20px;
+  }
+
+  .filtros::backdrop {
+    background: none;
+  }
+}

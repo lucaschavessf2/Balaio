@@ -1,0 +1,101 @@
+.aviso-toast {
+  @apply text-pequeno;
+}
+
+[data-sonner-toaster] [data-sonner-toast].aviso-toast {
+  --normal-bg: var(--superficie);
+  --normal-text: var(--tinta);
+  --normal-border: var(--linha);
+  background: var(--superficie);
+  background-image: var(--textura-trama);
+  color: var(--tinta);
+  border: 1px solid var(--linha);
+  border-left: 3px solid var(--barro);
+  border-radius: var(--raio);
+  box-shadow: var(--sombra-alta);
+  align-items: center;
+  gap: var(--esp-3);
+  font-family: var(--fonte), system-ui, sans-serif;
+}
+
+[data-sonner-toaster] [data-sonner-toast].aviso-toast[data-type="success"] {
+  border-left-color: var(--verde);
+}
+
+[data-sonner-toaster] [data-sonner-toast].aviso-toast[data-type="error"] {
+  border-left-color: var(--vermelho);
+}
+
+[data-sonner-toaster] [data-sonner-toast].aviso-toast[data-type="info"] {
+  border-left-color: var(--azul);
+}
+
+[data-sonner-toaster] [data-sonner-toast].aviso-toast [data-icon] {
+  width: auto;
+  height: auto;
+  margin: 0;
+}
+
+[data-sonner-toaster] [data-sonner-toast].aviso-toast [data-title] {
+  font-weight: 600;
+  font-size: var(--texto-pequeno);
+  line-height: 1.4;
+  color: var(--tinta);
+}
+
+[data-sonner-toaster] [data-sonner-toast].aviso-toast [data-description] {
+  color: var(--tinta-suave);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+[data-sonner-toaster] [data-sonner-toast].aviso-toast [data-button] {
+  background: var(--destaque-suave);
+  color: var(--destaque);
+  border-radius: var(--raio-s);
+  font-weight: 600;
+  font-size: 13px;
+  height: 32px;
+  padding: 0 12px;
+  flex: none;
+}
+
+[data-sonner-toaster] [data-sonner-toast].aviso-toast [data-button]:hover {
+  background: color-mix(in srgb, var(--destaque) 18%, var(--superficie));
+}
+
+[data-sonner-toaster] [data-sonner-toast].aviso-toast [data-close-button] {
+  background: var(--superficie);
+  color: var(--tinta-suave);
+  border: 1px solid var(--linha);
+}
+
+[data-sonner-toaster] [data-sonner-toast].aviso-toast [data-close-button]:hover {
+  background: var(--fundo);
+  color: var(--tinta);
+}
+
+.aviso-toast-bolha {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.aviso-toast-bolha-sucesso {
+  background: color-mix(in srgb, var(--verde) 14%, var(--superficie));
+  color: var(--verde-tinta);
+}
+
+.aviso-toast-bolha-erro {
+  background: color-mix(in srgb, var(--vermelho) 12%, var(--superficie));
+  color: var(--vermelho-tinta);
+}
+
+.aviso-toast-bolha-info {
+  background: var(--destaque-suave);
+  color: var(--destaque);
+}

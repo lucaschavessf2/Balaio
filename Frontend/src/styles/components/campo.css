@@ -1,0 +1,58 @@
+.campo {
+  @apply flex flex-col gap-1.5 mb-[18px];
+}
+
+.campo-rotulo {
+  @apply text-pequeno font-semibold;
+}
+
+.campo-ajuda {
+  @apply text-[13px] text-tinta-suave;
+}
+
+.campo input:not([type='radio']):not([type='checkbox']),
+.campo select,
+.campo textarea {
+  @apply min-h-12 border border-linha rounded-caixa py-3 px-[14px] bg-superficie w-full;
+}
+
+.campo textarea {
+  @apply min-h-[120px] resize-y;
+}
+
+.opcoes {
+  @apply flex flex-col gap-3;
+}
+
+.opcao {
+  @apply flex items-center gap-2.5 min-h-11 cursor-pointer text-tinta;
+}
+
+.opcao input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--destaque);
+  flex: none;
+}
+
+.campo-select {
+  @apply min-h-11 border border-linha rounded-caixa py-2 px-3 bg-superficie w-full;
+}
+
+.opcao-topo {
+  @apply items-start;
+}
+
+.opcao-topo input {
+  @apply mt-1;
+}
+
+.campo-erro {
+  @apply text-vermelho-tinta text-[13px] font-semibold;
+}
+
+.campo input[aria-invalid="true"],
+.campo select[aria-invalid="true"],
+.campo textarea[aria-invalid="true"] {
+  border-color: var(--vermelho-tinta);
+}

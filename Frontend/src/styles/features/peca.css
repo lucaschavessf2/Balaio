@@ -1,0 +1,307 @@
+.cartao-peca {
+  @apply relative bg-superficie border border-linha rounded-media overflow-hidden shadow-(--sombra) flex flex-col transition;
+}
+
+.cartao-peca:hover .cartao-peca-link {
+  @apply no-underline;
+}
+
+.cartao-peca-link {
+  @apply text-inherit;
+}
+
+.cartao-peca-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.autoria-com-retrato {
+  @apply inline-flex items-center gap-1.5;
+}
+
+.cartao-peca:hover {
+  @apply shadow-(--sombra-alta) -translate-y-0.5 no-underline;
+}
+
+.cartao-peca-figura {
+  @apply relative aspect-[4/3] overflow-hidden;
+}
+
+.cartao-peca .foto img {
+  transition: transform 350ms ease;
+}
+
+.cartao-peca:hover .foto img {
+  transform: scale(1.045);
+}
+
+.cartao-peca-corpo {
+  @apply pt-[14px] px-4 pb-4 flex flex-col gap-0.5 flex-1;
+}
+
+.territorio {
+  @apply text-mini tracking-[0.08em] uppercase text-barro-tinta font-bold;
+}
+
+.cartao-peca-nome {
+  @apply text-[17px] leading-[1.4] font-semibold text-tinta;
+}
+
+.autoria {
+  @apply text-pequeno text-tinta-suave;
+}
+
+.preco {
+  @apply text-medio font-bold text-tinta;
+}
+
+.preco-destaque {
+  @apply text-destaque;
+}
+
+.ver-peca {
+  @apply text-pequeno font-semibold text-destaque whitespace-nowrap;
+}
+
+.cartao-peca-rodape {
+  @apply flex justify-between items-baseline gap-2 mt-auto pt-2;
+}
+
+.avaliacao-compacta {
+  @apply inline-flex items-center gap-1 mt-0.5 text-[13px] text-amarelo;
+}
+
+.avaliacao-compacta strong {
+  @apply text-tinta;
+}
+
+.cartao-peca-precos {
+  @apply grid gap-[3px] justify-items-start pt-2;
+}
+
+.preco-centavos {
+  @apply text-[0.55em] font-bold ml-px;
+}
+
+.linha-preco-grande {
+  @apply inline-flex items-center gap-2 flex-wrap;
+}
+
+.preco-grande {
+  @apply text-grande font-bold text-tinta;
+}
+
+.preco-riscado {
+  @apply line-through text-tinta-suave font-semibold text-pequeno;
+}
+
+.preco-pagina .preco-riscado {
+  @apply text-[20px];
+}
+
+.linha-preco {
+  @apply inline-flex items-baseline gap-1.5 flex-wrap min-w-0;
+}
+
+.preco-pagina {
+  @apply block text-[32px] font-bold font-titulo text-destaque my-4;
+}
+
+.nota-artesao {
+  @apply bg-barro-fundo border-l-[3px] border-l-barro rounded-caixa py-3 px-[14px] mt-2.5 text-pequeno;
+}
+
+.estrela-unica {
+  @apply inline-flex text-amarelo;
+}
+
+.galeria-miniaturas {
+  @apply grid grid-cols-4 gap-2.5 mt-2.5;
+}
+
+.galeria-miniatura {
+  @apply aspect-square rounded-[6px] overflow-hidden border-2 border-transparent p-0 bg-transparent block cursor-pointer;
+}
+
+.galeria-miniatura:hover {
+  @apply border-barro-claro;
+}
+
+.galeria-miniatura-ativa {
+  @apply border-barro;
+}
+
+.bloco-artesao {
+  @apply flex gap-[14px] items-center;
+}
+
+.pergunta {
+  @apply border-b border-linha py-[14px];
+}
+
+.pergunta:last-child {
+  @apply border-b-0;
+}
+
+.pergunta-texto {
+  @apply font-semibold mb-1;
+}
+
+.lista-perguntas {
+  @apply list-none m-0 p-0 grid gap-3;
+}
+
+.lista-perguntas-rolavel {
+  @apply max-h-[min(760px,70dvh)] overflow-y-auto pr-2;
+  scrollbar-width: thin;
+}
+
+.fio-pergunta {
+  @apply grid gap-2.5 bg-superficie border border-linha rounded-media py-4 px-[18px];
+}
+
+.pergunta-bloco {
+  @apply grid grid-cols-[28px_minmax(0,1fr)] gap-2.5 items-start;
+}
+
+.pergunta-inicial {
+  @apply w-7 h-7 rounded-full bg-barro-fundo text-barro-tinta flex items-center justify-center font-bold text-pequeno flex-none;
+}
+
+.pergunta-autor {
+  @apply flex items-center gap-2 text-mini text-tinta-suave mb-1;
+}
+
+.resposta-artesao {
+  @apply grid grid-cols-[28px_minmax(0,1fr)] gap-2.5 items-start ml-4 pl-4 border-l-2 border-linha;
+}
+
+.resposta-autor {
+  @apply flex items-center gap-2 text-mini text-tinta-suave mb-1;
+}
+
+.pergunta-aguardando {
+  @apply flex items-center flex-wrap gap-3 ml-4 pl-4 border-l-2 border-linha;
+}
+
+.resposta-envio {
+  @apply ml-4 pl-4 border-l-2 border-linha flex-wrap;
+}
+
+.pergunta-resposta {
+  @apply text-pequeno text-tinta-suave;
+}
+
+.depoimento {
+  @apply bg-superficie border border-linha rounded-media p-[18px];
+}
+
+.depoimento-topo {
+  @apply flex justify-between gap-3 items-center mb-2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cartao-peca {
+    transition: none;
+  }
+
+  .cartao-peca:hover,
+  .cartao-peca:hover .foto img {
+    transform: none;
+  }
+}
+
+.estrelas-linha {
+  @apply inline-flex items-center gap-1.5;
+}
+
+.estrelas-nota {
+  @apply text-pequeno;
+}
+
+.botao-favoritar {
+  @apply absolute top-2.5 right-2.5 z-[2] w-11 h-11 border-0 rounded-full bg-superficie text-vermelho-tinta flex items-center justify-center cursor-pointer shadow-(--sombra);
+}
+
+.botao-favoritar:hover {
+  box-shadow: var(--sombra-alta);
+}
+
+.seletor-estrelas {
+  @apply inline-flex gap-0.5;
+}
+
+.seletor-estrelas button {
+  background: none;
+  border: none;
+  padding: 6px;
+  min-width: 44px;
+  min-height: 44px;
+  color: var(--amarelo);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.seletor-estrelas-grande button {
+  min-width: 52px;
+  min-height: 52px;
+  padding: 6px;
+}
+
+.nota-geral-linha {
+  @apply flex items-center gap-3 flex-wrap;
+}
+
+.nota-geral-rotulo {
+  @apply font-titulo text-grande font-bold text-tinta;
+}
+
+.elogios-chips {
+  @apply flex flex-wrap gap-2;
+}
+
+.chip-elogio {
+  @apply inline-flex items-center gap-1.5 min-h-10 px-4 rounded-pilula border border-linha bg-superficie text-tinta text-pequeno font-semibold cursor-pointer;
+}
+
+.chip-elogio:hover {
+  @apply border-acao text-destaque;
+}
+
+.chip-elogio-ativo,
+.chip-elogio-ativo:hover {
+  @apply bg-destaque-suave border-acao text-destaque;
+}
+
+@media (min-width: 1000px) {
+  .coluna-compra {
+    position: sticky;
+    top: 96px;
+  }
+}
+
+.galeria-miniatura img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 220ms ease;
+}
+
+.galeria-principal-img {
+  transition: transform 340ms cubic-bezier(0.2, 0.6, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .galeria-principal-img,
+  .galeria-miniatura img {
+    transition: none;
+  }
+}
+
+.bloco-quem-fez {
+  @apply bg-barro-fundo border-l-[3px] border-l-barro;
+  background-image: var(--textura-trama);
+}

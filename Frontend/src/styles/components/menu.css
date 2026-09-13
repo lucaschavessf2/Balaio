@@ -1,0 +1,133 @@
+.menu-lateral {
+  @apply hidden xl:block bg-superficie border border-linha rounded-media p-3 shadow-(--sombra);
+}
+
+.menu-oficina {
+  @apply flex items-center gap-2.5 p-2 mb-2 border-b border-linha pb-3;
+}
+
+.menu-oficina-nome {
+  @apply font-titulo font-bold text-[15px] leading-tight text-tinta;
+}
+
+.menu-oficina-local {
+  @apply text-mini text-tinta-suave;
+}
+
+.menu-grupo {
+  @apply mb-3;
+}
+
+.menu-grupo:last-of-type {
+  @apply mb-0;
+}
+
+.menu-grupo-rotulo {
+  @apply text-mini font-bold tracking-[0.08em] uppercase text-tinta-suave px-3 mb-1;
+}
+
+.menu-item {
+  @apply flex items-center gap-2.5 min-h-11 px-3 rounded-caixa text-tinta-suave text-[15px] border-l-[3px] border-transparent;
+}
+
+.menu-item:hover {
+  @apply bg-fundo text-tinta no-underline;
+}
+
+.menu-ver-loja {
+  @apply flex items-center gap-2 min-h-11 mt-3 pt-3 px-3 border-t border-linha text-destaque text-pequeno font-semibold;
+}
+
+.menu-ver-loja:hover {
+  @apply no-underline;
+}
+
+.menu-ver-loja svg:last-child {
+  @apply ml-auto;
+}
+
+.menu-item svg {
+  @apply flex-none;
+}
+
+.menu-titulo {
+  @apply text-medio font-semibold mb-3;
+}
+
+.lista-menu {
+  @apply py-1.5 px-2.5;
+}
+
+.lista-menu .menu-item {
+  @apply w-full min-h-14 border-0 border-b border-linha rounded-none bg-transparent text-tinta cursor-pointer text-left;
+}
+
+.lista-menu .menu-item:last-child {
+  @apply border-b-0;
+}
+
+.menu-item-seta {
+  @apply ml-auto inline-flex text-tinta-suave flex-none;
+}
+
+.menu-marcador + .menu-item-seta {
+  @apply ml-3;
+}
+
+.menu-item-ativo {
+  @apply bg-destaque-suave text-destaque font-semibold border-l-acao;
+}
+
+.menu-item-ativo:hover {
+  @apply bg-destaque-suave text-destaque;
+}
+
+.menu-marcador {
+  @apply ml-auto text-mini font-bold rounded-pilula py-[3px] px-[9px] bg-amarelo text-tinta-fixa;
+}
+
+.menu-marcador-alerta {
+  @apply bg-vermelho text-branco;
+}
+
+.abas {
+  @apply flex gap-1 border-b border-linha mb-6 overflow-x-auto;
+}
+
+.aba {
+  @apply py-3 px-[18px] min-h-12 border-0 bg-transparent text-tinta-suave font-semibold cursor-pointer border-b-[3px] border-transparent whitespace-nowrap;
+}
+
+.aba-ativa {
+  @apply text-destaque border-b-destaque;
+}
+
+.painel-abas {
+  @apply flex gap-1 mb-5 pb-0.5 border-b border-linha overflow-x-auto [scrollbar-width:thin];
+}
+
+.painel-aba {
+  @apply inline-flex items-center gap-2 relative flex-none min-h-12 px-[14px] text-tinta-suave text-[15px] font-semibold whitespace-nowrap border-b-[3px] border-transparent;
+}
+
+.painel-aba:hover {
+  @apply no-underline text-tinta;
+}
+
+.painel-aba-ativa {
+  @apply text-destaque border-b-acao;
+}
+
+.painel-aba-marcador {
+  @apply w-2 h-2 rounded-pilula bg-acao flex-none;
+}
+
+.painel-aba-marcador-alerta {
+  @apply bg-vermelho;
+}
+
+@media (min-width: 1000px) {
+  .painel-abas {
+    display: none;
+  }
+}

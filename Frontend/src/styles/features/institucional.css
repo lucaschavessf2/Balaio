@@ -1,0 +1,125 @@
+.passos {
+  @apply list-none m-0 p-0 grid gap-[18px];
+}
+
+.passos li {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.passo-numero {
+  @apply w-9 h-9 rounded-full bg-acao text-branco flex items-center justify-center font-bold flex-none;
+}
+
+.passo-titulo {
+  @apply font-semibold mb-0.5;
+}
+
+.cabecalho-fluxo {
+  @apply mb-4;
+}
+
+.grade-telas {
+  @apply grid gap-[14px] grid-cols-1;
+}
+
+.cartao-tela {
+  @apply flex flex-col gap-1 bg-superficie border border-linha border-l-4 border-l-destaque rounded-media py-4 px-[18px] shadow-(--sombra) text-inherit min-w-0;
+}
+
+.cartao-tela:hover {
+  @apply shadow-(--sombra-alta) -translate-y-0.5 no-underline;
+}
+
+.cartao-tela-nome {
+  @apply text-[17px] font-semibold;
+}
+
+.rota {
+  @apply font-mono text-mini text-tinta-suave [overflow-wrap:anywhere];
+}
+
+.tela-404 {
+  @apply grid place-items-center min-h-[60dvh];
+}
+
+.bloco-404 {
+  @apply w-full max-w-[640px] grid gap-4 justify-items-center text-center bg-superficie border border-linha rounded-media shadow-(--sombra) py-8 px-6;
+}
+
+.bloco-404 .subtitulo-pagina {
+  @apply mx-auto;
+}
+
+.bloco-404-arte {
+  display: flex;
+  justify-content: center;
+}
+
+.bloco-404-acoes {
+  @apply justify-center;
+}
+
+.pedestal {
+  width: 100%;
+  max-width: 240px;
+  height: auto;
+}
+
+.numero-404 {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.numero-404 span {
+  font-size: 46px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.numero-404 span:nth-child(1) {
+  color: var(--destaque);
+}
+
+.numero-404 span:nth-child(2) {
+  color: var(--amarelo);
+}
+
+.numero-404 span:nth-child(3) {
+  color: var(--verde-tinta);
+}
+
+@media (min-width: 700px) {
+  .grade-telas {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .numero-404 span {
+    font-size: 60px;
+  }
+}
+
+@media (min-width: 1000px) {
+  .grade-telas {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .bloco-404 {
+    padding: 48px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cartao-tela {
+    transition: none;
+  }
+
+  .cartao-tela:hover {
+    transform: none;
+  }
+}
