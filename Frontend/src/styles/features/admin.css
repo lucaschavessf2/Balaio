@@ -1,0 +1,43 @@
+.menu-admin-selo {
+  @apply w-11 h-11 rounded-full bg-amarelo text-tinta-fixa flex items-center justify-center flex-none;
+}
+
+.lista-curadoria {
+  @apply list-none m-0 p-0 grid gap-3;
+}
+
+.cartao-curadoria {
+  @apply bg-superficie border border-linha rounded-media shadow-(--sombra) overflow-hidden;
+}
+
+.cartao-curadoria-topo {
+  @apply flex justify-between items-center gap-3 flex-wrap py-3 px-4 border-b border-linha;
+}
+
+.cartao-curadoria-corpo {
+  @apply py-4 px-4;
+}
+
+.cartao-curadoria-peca {
+  @apply font-titulo font-bold text-medio text-tinta;
+}
+
+.cartao-curadoria-acoes {
+  @apply px-4 pb-4;
+}
+
+.lista-criterios {
+  @apply list-none m-0 p-0 grid gap-2.5;
+}
+
+.lista-criterios li {
+  @apply flex gap-2 items-start text-pequeno text-tinta-suave;
+}
+
+.lista-criterios svg {
+  @apply flex-none mt-1 text-verde-tinta;
+}
+
+.lista-criterios-atencao svg {
+  @apply text-vermelho-tinta;
+}

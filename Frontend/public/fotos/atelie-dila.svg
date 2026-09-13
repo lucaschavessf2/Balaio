@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600" role="img">
+<defs>
+<linearGradient id="ceu" gradientTransform="rotate(187)">
+<stop offset="0%" stop-color="#f5efe2"/>
+<stop offset="100%" stop-color="#ded3bd"/>
+</linearGradient>
+<radialGradient id="vinheta" cx="50%" cy="44%" r="74%">
+<stop offset="58%" stop-color="#000" stop-opacity="0"/>
+<stop offset="100%" stop-color="#000" stop-opacity="0.32"/>
+</radialGradient>
+<clipPath id="corte"><rect width="800" height="600"/></clipPath>
+</defs>
+<g clip-path="url(#corte)">
+<rect width="800" height="600" fill="url(#ceu)"/>
+<rect x="176" y="98" width="197" height="7" rx="3" fill="#f7f2e7" opacity="0.22"/>
+<rect x="30" y="137" width="251" height="7" rx="3" fill="#f7f2e7" opacity="0.22"/>
+<rect x="290" y="163" width="258" height="7" rx="3" fill="#f7f2e7" opacity="0.22"/>
+<rect x="253" y="191" width="365" height="7" rx="3" fill="#f7f2e7" opacity="0.22"/>
+<path d="M0 460h800v140H0z" fill="#3a2e22"/>
+<ellipse cx="400" cy="460" rx="320" ry="26" fill="#1a1410" opacity="0.5"/>
+<g>
+<rect x="180" y="150" width="440" height="300" fill="#f7f2e7"/>
+<path d="M192 166v268" stroke="#1a1410" stroke-width="4" opacity="0.14"/>
+<path d="M208 166v268" stroke="#1a1410" stroke-width="2" opacity="0.14"/>
+<path d="M224 166v268" stroke="#1a1410" stroke-width="2" opacity="0.14"/>
+<path d="M240 166v268" stroke="#1a1410" stroke-width="4" opacity="0.14"/>
+<path d="M256 166v268" stroke="#1a1410" stroke-width="2" opacity="0.14"/>
+<path d="M272 166v268" stroke="#1a1410" stroke-width="2" opacity="0.14"/>
+<path d="M288 166v268" stroke="#1a1410" stroke-width="4" opacity="0.14"/>
+<path d="M304 166v268" stroke="#1a1410" stroke-width="2" opacity="0.14"/>
+<path d="M320 166v268" stroke="#1a1410" stroke-width="2" opacity="0.14"/>
+<path d="M336 166v268" stroke="#1a1410" stroke-width="4" opacity="0.14"/>
+<path d="M352 166v268" stroke="#1a1410" stroke-width="2" opacity="0.14"/>
+<path d="M368 166v268" stroke="#1a1410" stroke-width="2" opacity="0.14"/>
+<path d="M384 166v268" stroke="#1a1410" stroke-width="4" opacity="0.14"/>
+<path d="M400 166v268" stroke="#1a1410" stroke-width="2" opacity="0.14"/>
+<path d="M416 166v268" stroke="#1a1410" stroke-width="2" opacity="0.14"/>
+<path d="M432 166v268" stroke="#1a1410" stroke-width="4" opacity="0.14"/>
+<path d="M448 166v268" stroke="#1a1410" stroke-width="2" opacity="0.14"/>
+<path d="M464 166v268" stroke="#1a1410" stroke-width="2" opacity="0.14"/>
+<path d="M480 166v268" stroke="#1a1410" stroke-width="4" opacity="0.14"/>
+<path d="M496 166v268" stroke="#1a1410" stroke-width="2" opacity="0.14"/>
+<path d="M512 166v268" stroke="#1a1410" stroke-width="2" opacity="0.14"/>
+<path d="M528 166v268" stroke="#1a1410" stroke-width="4" opacity="0.14"/>
+<path d="M544 166v268" stroke="#1a1410" stroke-width="2" opacity="0.14"/>
+<path d="M560 166v268" stroke="#1a1410" stroke-width="2" opacity="0.14"/>
+<path d="M576 166v268" stroke="#1a1410" stroke-width="4" opacity="0.14"/>
+<path d="M592 166v268" stroke="#1a1410" stroke-width="2" opacity="0.14"/>
+<path d="M608 166v268" stroke="#1a1410" stroke-width="2" opacity="0.14"/>
+<rect x="180" y="150" width="440" height="300" fill="none" stroke="#1a1410" stroke-width="12"/>
+<circle cx="318" cy="240" r="40" fill="#1a1410"/>
+<path d="M362.0 240.0L390.0 240.0" stroke="#1a1410" stroke-width="7" stroke-linecap="round"/>
+<path d="M356.1 262.0L380.4 276.0" stroke="#1a1410" stroke-width="7" stroke-linecap="round"/>
+<path d="M340.0 278.1L354.0 302.4" stroke="#1a1410" stroke-width="7" stroke-linecap="round"/>
+<path d="M318.0 284.0L318.0 312.0" stroke="#1a1410" stroke-width="7" stroke-linecap="round"/>
+<path d="M296.0 278.1L282.0 302.4" stroke="#1a1410" stroke-width="7" stroke-linecap="round"/>
+<path d="M279.9 262.0L255.6 276.0" stroke="#1a1410" stroke-width="7" stroke-linecap="round"/>
+<path d="M274.0 240.0L246.0 240.0" stroke="#1a1410" stroke-width="7" stroke-linecap="round"/>
+<path d="M279.9 218.0L255.6 204.0" stroke="#1a1410" stroke-width="7" stroke-linecap="round"/>
+<path d="M296.0 201.9L282.0 177.6" stroke="#1a1410" stroke-width="7" stroke-linecap="round"/>
+<path d="M318.0 196.0L318.0 168.0" stroke="#1a1410" stroke-width="7" stroke-linecap="round"/>
+<path d="M340.0 201.9L354.0 177.6" stroke="#1a1410" stroke-width="7" stroke-linecap="round"/>
+<path d="M356.1 218.0L380.4 204.0" stroke="#1a1410" stroke-width="7" stroke-linecap="round"/>
+<path d="M470 432V320q0-30 26-30t26 30v112z" fill="#1a1410"/>
+<path d="M496 354q-34-6-34-44" stroke="#1a1410" stroke-width="11" fill="none" stroke-linecap="round"/>
+<path d="M496 374q34-6 34-46" stroke="#1a1410" stroke-width="11" fill="none" stroke-linecap="round"/>
+<path d="M212 432h376" stroke="#1a1410" stroke-width="10"/>
+<path d="M244 432l36-58 36 58z" fill="#1a1410"/>
+</g>
+<rect width="800" height="600" fill="url(#vinheta)"/>
+</g>
+</svg>

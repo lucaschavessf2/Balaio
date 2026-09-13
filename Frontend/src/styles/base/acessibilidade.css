@@ -1,0 +1,18 @@
+.pular-para-conteudo {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--superficie);
+  color: var(--destaque);
+  padding: 12px 20px;
+  z-index: 100;
+}
+
+.pular-para-conteudo:focus {
+  left: 8px;
+  top: 8px;
+}
+
+.so-leitor {
+  @apply sr-only;
+}

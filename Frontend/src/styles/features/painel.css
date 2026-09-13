@@ -1,0 +1,57 @@
+.grafico-faturamento {
+  @apply w-full;
+}
+
+.grafico-dica {
+  @apply bg-superficie border border-linha rounded-caixa py-2 px-3 shadow-(--sombra);
+}
+
+.grafico-dica-mes {
+  @apply text-mini text-tinta-suave;
+}
+
+.grafico-dica-valor {
+  @apply font-titulo font-bold text-medio text-tinta;
+}
+
+.grafico {
+  @apply flex items-end gap-3 h-[220px] pt-5;
+}
+
+.grafico-coluna {
+  @apply flex-1 min-w-0 h-full flex flex-col justify-end items-center gap-1.5;
+}
+
+.grafico-barra {
+  @apply w-full max-w-16 rounded-t-[6px] min-h-1.5;
+  background: linear-gradient(180deg, var(--acao), var(--acao-forte));
+}
+
+.grafico-valor {
+  @apply text-mini font-bold text-tinta-suave;
+}
+
+.grafico-rotulo {
+  @apply text-[13px] text-tinta-suave;
+}
+
+.area-upload {
+  @apply border-2 border-dashed border-barro-claro rounded-media p-8 text-center text-tinta-suave mb-5;
+  background-image: var(--textura-trama);
+}
+
+.linha-video {
+  @apply grid grid-cols-[54px_minmax(0,1fr)_auto] gap-3 items-center py-3 border-b border-linha;
+}
+
+.linha-video:last-child {
+  @apply border-b-0;
+}
+
+.linha-video img {
+  @apply w-[54px] h-[54px] rounded-caixa object-cover;
+}
+
+.rotulo-acao {
+  @apply inline;
+}

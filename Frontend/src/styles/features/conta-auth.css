@@ -1,0 +1,103 @@
+.conta-hub {
+  @apply max-w-[720px] mx-auto grid gap-4;
+}
+
+.conta-capa {
+  @apply flex gap-4 items-center;
+}
+
+.conta-capa-nome {
+  @apply font-titulo text-grande;
+  font-weight: 400;
+  letter-spacing: 0.015em;
+}
+
+.auth-dividida {
+  @apply w-full max-w-[880px] mx-auto grid grid-cols-1 items-stretch bg-superficie border border-linha rounded-grande shadow-(--sombra) overflow-hidden lg:grid-cols-2;
+}
+
+.auth-marca {
+  @apply flex flex-col justify-center gap-2 py-5 px-6 border-b border-linha lg:gap-3 lg:border-b-0 lg:border-r lg:p-10;
+  background-image: var(--textura-trama), linear-gradient(160deg, var(--barro-fundo), var(--superficie) 70%);
+}
+
+.auth-marca-topo {
+  @apply flex items-center gap-3 lg:block;
+}
+
+.auth-marca-logo {
+  @apply w-10 h-auto lg:w-14;
+}
+
+.auth-marca-nome {
+  @apply font-titulo text-[26px] font-bold leading-none lg:mt-3;
+}
+
+.auth-marca-frase {
+  @apply text-tinta-suave;
+}
+
+.auth-marca-lista {
+  @apply hidden list-none p-0 m-0 mt-2 gap-2.5 lg:grid;
+}
+
+.auth-marca-lista li {
+  @apply flex gap-2 items-start text-pequeno;
+}
+
+.auth-marca-lista svg {
+  @apply flex-none mt-[3px] text-verde-tinta;
+}
+
+.auth-painel {
+  @apply flex flex-col justify-center py-8 px-6 lg:p-10;
+}
+
+.auth-titulo {
+  @apply font-titulo text-[30px] font-bold mb-1.5;
+  letter-spacing: 0.015em;
+}
+
+.auth-apoio {
+  @apply mb-5;
+}
+
+.auth-painel form.cartao {
+  @apply bg-transparent border-0 rounded-none shadow-none p-0;
+}
+
+.auth-alternativa {
+  @apply text-center text-pequeno mt-5 pt-5 border-t border-linha;
+}
+
+.cabeca-auth {
+  @apply grid justify-items-center text-center;
+}
+
+.cabeca-auth-icone {
+  @apply w-14 h-14 rounded-full bg-destaque-suave text-destaque flex items-center justify-center mb-3;
+}
+
+.cabeca-auth .titulo-pagina {
+  @apply mb-2;
+}
+
+.cabeca-auth .subtitulo-pagina {
+  @apply mb-0 mx-auto;
+}
+
+.cabeca-auth-icone-sucesso {
+  @apply bg-verde text-branco;
+}
+
+.cartao-auth-sucesso {
+  @apply grid justify-items-center text-center gap-2;
+}
+
+.voltar-login {
+  @apply text-center mt-4;
+}
+
+.ajuda-auth {
+  @apply bg-transparent shadow-none;
+}

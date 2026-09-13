@@ -1,0 +1,62 @@
+@media (prefers-reduced-motion: reduce) {
+  .esqueleto {
+    animation: none;
+  }
+}
+
+.estado-vazio {
+  @apply text-center py-14 px-6;
+  background-image: var(--textura-trama);
+}
+
+.estado-carregando {
+  @apply grid;
+}
+
+.esqueleto {
+  @apply rounded-media;
+  background: var(--linha);
+  animation: pulsar-esqueleto 1.4s ease-in-out infinite;
+}
+
+.esqueleto-titulo {
+  @apply h-9 mb-3;
+  width: min(60%, 420px);
+}
+
+.esqueleto-subtitulo {
+  @apply h-4 mb-6;
+  width: min(80%, 560px);
+}
+
+.esqueleto-cartao {
+  @apply w-full;
+  aspect-ratio: 3 / 4;
+}
+
+@keyframes pulsar-esqueleto {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+.estado-vazio-icone {
+  @apply w-[88px] h-[88px] bg-barro-fundo text-barro-tinta flex items-center justify-center mx-auto mb-5;
+  border-radius: 46% 54% 52% 48% / 54% 46% 54% 46%;
+}
+
+.estado-vazio h3 {
+  @apply text-grande font-semibold mb-2;
+}
+
+.estado-vazio p {
+  @apply text-tinta-suave max-w-[46ch] mx-auto mb-[22px];
+}
+
+.aviso {
+  @apply flex gap-3 items-start bg-aviso-fundo border border-amarelo rounded-caixa py-[14px] px-4 text-pequeno;
+}
