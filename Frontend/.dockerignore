@@ -1,0 +1,9 @@
+node_modules
+.next
+out
+.git
+.gitignore
+*.md
+public/fotos/LEIA-ME.md
+npm-debug.log*
+.DS_Store

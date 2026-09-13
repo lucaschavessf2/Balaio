@@ -1,0 +1,59 @@
+.metricas {
+  @apply grid gap-4 grid-cols-[repeat(auto-fit,minmax(180px,1fr))];
+}
+
+.metrica {
+  @apply rounded-media p-5 min-w-0;
+}
+
+.metricas-duplas {
+  @apply grid-cols-2 md:grid-cols-[repeat(auto-fit,minmax(180px,1fr))];
+}
+
+.metricas-duplas .metrica {
+  @apply p-[14px] md:p-5;
+}
+
+.metricas-duplas .metrica-valor {
+  @apply text-[26px] md:text-[34px];
+}
+
+.metrica-rotulo {
+  @apply text-pequeno font-semibold;
+}
+
+.metrica-valor {
+  @apply font-titulo text-[34px] font-bold leading-[1.15] mt-1.5 mb-1 [overflow-wrap:anywhere];
+}
+
+.metrica-nota {
+  @apply text-[13px];
+}
+
+.metrica-amarela {
+  @apply bg-amarelo text-tinta-fixa;
+}
+
+.metrica-azul {
+  @apply bg-acao text-branco;
+}
+
+.metrica-verde {
+  @apply bg-verde text-branco;
+}
+
+.metrica-branca {
+  @apply bg-superficie border border-linha;
+}
+
+.metrica-branca .metrica-rotulo {
+  @apply text-tinta-suave;
+}
+
+.metrica-branca .metrica-valor {
+  color: var(--destaque);
+}
+
+.metrica-branca .metrica-nota {
+  color: var(--verde-tinta);
+}

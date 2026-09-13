@@ -1,0 +1,179 @@
+.hero {
+  @apply grid gap-5 grid-cols-1 items-center bg-superficie border border-linha rounded-grande shadow-(--sombra) p-5;
+  background-image: var(--textura-trama), linear-gradient(160deg, var(--barro-fundo), var(--superficie) 55%);
+}
+
+@media (min-width: 1000px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 40px;
+    padding: 28px;
+  }
+}
+
+.hero-figura {
+  @apply aspect-[4/3] rounded-grande overflow-hidden;
+}
+
+.hero-texto {
+  @apply py-1;
+}
+
+.hero-texto .titulo-pagina {
+  @apply mb-3;
+}
+
+.hero-kicker {
+  @apply text-pequeno leading-[1.7] font-bold tracking-[0.1em] uppercase text-barro-tinta mb-2.5;
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-carrossel .hero-figura,
+  .hero-carrossel .hero-figura .foto img,
+  .hero-carrossel .hero-texto,
+  .hero-carrossel .hero-texto > *,
+  .hero-carrossel-saindo .hero-figura,
+  .hero-carrossel-saindo .hero-texto > * {
+    animation: none;
+  }
+}
+
+.hero-controles {
+  @apply col-span-full flex items-center justify-center gap-3;
+}
+
+.hero-seta {
+  @apply w-11 h-11 flex-none rounded-full border border-linha bg-superficie text-destaque cursor-pointer inline-flex items-center justify-center transition duration-[140ms];
+}
+
+.hero-seta:hover {
+  @apply bg-destaque-suave;
+}
+
+.hero-pontos {
+  @apply inline-flex gap-1;
+}
+
+.hero-ponto {
+  @apply w-8 h-11 flex-none border-0 bg-transparent cursor-pointer inline-flex items-center justify-center p-0;
+}
+
+.hero-ponto::after {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: var(--raio-pilula);
+  background: var(--linha);
+  transition: background-color var(--transicao-rapida), width var(--transicao-rapida);
+}
+
+.hero-ponto[aria-current="true"]::after {
+  width: 24px;
+  background: var(--barro);
+}
+
+@keyframes surgir-figura {
+  from {
+    opacity: 0;
+    transform: scale(1.05);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes surgir-linha {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes sumir-slide {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes surgir-mapa {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes sumir-mapa {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes respirar-foto {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.06);
+  }
+}
+
+.hero-carrossel .hero-figura {
+  animation: surgir-figura 620ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.hero-carrossel .hero-figura .foto img {
+  animation: respirar-foto 7s linear both;
+}
+
+.hero-carrossel .hero-texto > * {
+  animation: surgir-linha 560ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.hero-carrossel .hero-texto > *:nth-child(1) {
+  animation-delay: 90ms;
+}
+
+.hero-carrossel .hero-texto > *:nth-child(2) {
+  animation-delay: 170ms;
+}
+
+.hero-carrossel .hero-texto > *:nth-child(3) {
+  animation-delay: 250ms;
+}
+
+.hero-carrossel .hero-texto > *:nth-child(4) {
+  animation-delay: 330ms;
+}
+
+.hero-carrossel-saindo .hero-figura,
+.hero-carrossel-saindo .hero-texto > *:nth-child(n) {
+  animation: sumir-slide 220ms ease forwards;
+}
+
+.hero-carrossel .hero-figura-mapa {
+  animation: surgir-mapa 520ms ease backwards;
+}
+
+.hero-carrossel-saindo .hero-figura-mapa {
+  animation: sumir-mapa 220ms ease forwards;
+}
+
+.hero-carrossel-pausado .hero-figura .foto img {
+  animation-play-state: paused;
+}

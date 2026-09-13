@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600" role="img">
+<defs>
+<linearGradient id="ceu" gradientTransform="rotate(167)">
+<stop offset="0%" stop-color="#e8c79a"/>
+<stop offset="100%" stop-color="#b98650"/>
+</linearGradient>
+<radialGradient id="vinheta" cx="50%" cy="44%" r="74%">
+<stop offset="58%" stop-color="#000" stop-opacity="0"/>
+<stop offset="100%" stop-color="#000" stop-opacity="0.32"/>
+</radialGradient>
+<clipPath id="corte"><rect width="800" height="600"/></clipPath>
+</defs>
+<g clip-path="url(#corte)">
+<rect width="800" height="600" fill="url(#ceu)"/>
+<rect x="60" y="103" width="279" height="7" rx="3" fill="#d8ab77" opacity="0.22"/>
+<rect x="271" y="138" width="357" height="7" rx="3" fill="#d8ab77" opacity="0.22"/>
+<rect x="390" y="158" width="152" height="7" rx="3" fill="#d8ab77" opacity="0.22"/>
+<rect x="256" y="199" width="355" height="7" rx="3" fill="#d8ab77" opacity="0.22"/>
+<path d="M0 460h800v140H0z" fill="#7a4a22"/>
+<ellipse cx="400" cy="460" rx="320" ry="26" fill="#6b421d" opacity="0.5"/>
+<g transform="translate(400 0) scale(1.06) translate(-22.641509433962263 0)">
+<rect x="-28" y="300" width="20" height="92" rx="9" fill="#6b421d"/>
+<rect x="8" y="300" width="20" height="92" rx="9" fill="#6b421d"/>
+<path d="M-46 198q46-26 92 0l14 110q-60 22-120 0z" fill="#a9703c"/>
+<circle cx="0" cy="152" r="43" fill="#d8ab77"/>
+<circle cx="-14" cy="146" r="5.5" fill="#3d2310"/>
+<circle cx="14" cy="146" r="5.5" fill="#3d2310"/>
+<path d="M-12 170q12 10 24 0" stroke="#3d2310" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M-60 118h120" stroke="#3d2310" stroke-width="10" stroke-linecap="round"/><path d="M-36 118q36-44 72 0z" fill="#3d2310"/>
+<rect x="-42" y="232" width="32" height="58" rx="5" fill="#3d2310"/>
+<rect x="18" y="232" width="32" height="58" rx="5" fill="#3d2310"/>
+<rect x="-8" y="236" width="24" height="50" fill="#d8ab77"/>
+<path d="M-8 244h24M-8 254h24M-8 264h24M-8 274h24" stroke="#3d2310" stroke-width="3"/>
+</g>
+<rect width="800" height="600" fill="url(#vinheta)"/>
+</g>
+</svg>

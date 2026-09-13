@@ -1,0 +1,307 @@
+.resumo-desconto,
+.resumo-desconto strong {
+  @apply text-verde-tinta;
+}
+
+.linha-pedido {
+  @apply grid gap-x-4 gap-y-3 grid-cols-1 items-center bg-superficie border border-linha rounded-media p-4 mb-3 shadow-(--sombra);
+}
+
+.linha-pedido > * {
+  min-width: 0;
+}
+
+.dado {
+  @apply flex flex-col min-w-0;
+}
+
+.dado-rotulo {
+  @apply text-mini text-tinta-suave;
+}
+
+.dado-valor {
+  @apply font-semibold [overflow-wrap:anywhere];
+}
+
+.linha-tempo {
+  @apply list-none m-0 p-0;
+}
+
+.etapa {
+  @apply grid grid-cols-[28px_1fr] gap-[14px] pb-[26px] relative;
+}
+
+.etapa:last-child {
+  @apply pb-0;
+}
+
+.etapa::before {
+  content: "";
+  position: absolute;
+  left: 13px;
+  top: 26px;
+  bottom: 0;
+  width: 2px;
+  background: var(--linha);
+}
+
+.etapa:last-child::before {
+  display: none;
+}
+
+.etapa-marca {
+  @apply w-7 h-7 rounded-full border-2 border-linha bg-superficie flex items-center justify-center z-[1] flex-none;
+}
+
+.etapa-feita .etapa-marca {
+  @apply bg-verde border-verde-tinta text-branco;
+}
+
+.etapa-atual .etapa-marca {
+  @apply bg-acao border-destaque text-branco;
+}
+
+.etapa-titulo {
+  @apply font-bold flex items-center gap-2.5 flex-wrap;
+}
+
+.etapa-atual .etapa-titulo {
+  @apply text-destaque;
+}
+
+.etapa-detalhe {
+  @apply text-pequeno text-tinta-suave;
+}
+
+.resumo {
+  @apply flex justify-between gap-4 py-[9px] text-[15px];
+}
+
+.resumo-total {
+  @apply border-t border-linha mt-2 pt-4 text-medio font-bold;
+}
+
+@media (min-width: 700px) {
+  .linha-pedido {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+  }
+}
+
+@media (min-width: 1000px) {
+  .linha-pedido {
+    grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+  }
+}
+
+.item-sacola {
+  @apply grid gap-[14px] grid-cols-[88px_minmax(0,1fr)] items-start py-4 border-b border-linha;
+}
+
+.item-sacola-figura {
+  @apply aspect-square rounded-caixa overflow-hidden;
+}
+
+.resumo-peca-formulario {
+  @apply grid gap-[14px] grid-cols-[88px_minmax(0,1fr)] items-start pb-[18px];
+}
+
+.resumo-peca-figura {
+  @apply aspect-square rounded-caixa overflow-hidden;
+}
+
+.nota-fiscal {
+  @apply bg-destaque-suave rounded-caixa p-4 text-pequeno;
+}
+
+.selo-pago {
+  @apply inline-flex items-center gap-2 bg-verde text-branco rounded-pilula py-2 px-4 font-semibold;
+}
+
+.endereco {
+  @apply flex justify-between gap-4 flex-wrap py-4 border-b border-linha;
+}
+
+.endereco:last-of-type {
+  border-bottom: 0;
+}
+
+.etapas-compra {
+  @apply flex gap-2 items-center flex-wrap list-none p-0 m-0 mb-6 text-pequeno text-tinta-suave;
+}
+
+.etapa-compra {
+  @apply inline-flex items-center gap-2;
+}
+
+.etapa-compra-numero {
+  @apply w-7 h-7 rounded-full border-2 border-linha inline-flex items-center justify-center font-bold flex-none;
+}
+
+.etapa-compra-atual {
+  @apply text-tinta font-bold;
+}
+
+.etapa-compra-atual .etapa-compra-numero {
+  @apply bg-acao border-acao text-branco;
+}
+
+.etapa-compra-feita .etapa-compra-numero {
+  @apply bg-verde border-verde text-branco;
+}
+
+.etapas-compra-seta {
+  @apply hidden text-tinta-suave sm:block;
+}
+
+.etapa-compra:not(.etapa-compra-atual) .etapa-compra-texto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (min-width: 560px) {
+  .etapa-compra:not(.etapa-compra-atual) .etapa-compra-texto {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+  }
+}
+
+.opcoes-pagamento {
+  @apply grid gap-3 grid-cols-1 mb-4 sm:grid-cols-3;
+}
+
+.opcao-pagamento {
+  @apply flex gap-3 items-center min-h-[72px] py-3 px-4 border-2 border-linha rounded-media bg-superficie cursor-pointer text-left transition duration-[140ms] sm:flex-col sm:items-start sm:gap-2;
+}
+
+.opcao-pagamento[aria-pressed="true"] {
+  @apply border-acao bg-destaque-suave;
+}
+
+.opcao-pagamento-nome {
+  @apply font-bold block;
+}
+
+.opcao-pagamento-nota {
+  @apply block text-pequeno text-tinta-suave;
+}
+
+.bloco-psp {
+  @apply border border-linha rounded-media p-4 grid gap-2 bg-fundo text-pequeno;
+}
+
+.bloco-psp-titulo {
+  @apply flex gap-2 items-center font-bold text-corpo;
+}
+
+.linha-pedido-figura {
+  @apply w-[60px] h-[60px] rounded-caixa overflow-hidden flex-none;
+}
+
+.qr-simulado {
+  width: 180px;
+  height: 180px;
+  border-radius: var(--raio-s);
+  background: repeating-conic-gradient(var(--tinta-fixa) 0% 25%, var(--branco) 0% 50%);
+  background-size: 20px 20px;
+  border: 8px solid var(--branco);
+  box-shadow: var(--sombra);
+}
+
+.linha-pedido .acoes-linha > .botao {
+  flex: 1 1 auto;
+}
+
+.cartao-pedido {
+  @apply bg-superficie border border-linha rounded-media shadow-(--sombra) mb-4 overflow-hidden;
+}
+
+.cartao-pedido-topo {
+  @apply flex justify-between items-center gap-3 py-3 px-4 border-b border-linha;
+}
+
+.cartao-pedido-corpo {
+  @apply grid grid-cols-[96px_minmax(0,1fr)] gap-[14px] m-2 p-2 rounded-caixa text-inherit md:grid-cols-[120px_minmax(0,1fr)];
+}
+
+.cartao-pedido-corpo:hover {
+  @apply no-underline bg-fundo;
+}
+
+.cartao-pedido-figura {
+  @apply aspect-square rounded-caixa overflow-hidden;
+}
+
+.cartao-pedido-figura img {
+  @apply w-full h-full object-cover;
+}
+
+.cartao-pedido-status {
+  @apply text-pequeno text-tinta-suave;
+}
+
+.status-bom {
+  @apply text-verde-tinta font-semibold;
+}
+
+.cartao-pedido-acoes {
+  @apply px-4 pb-4 pt-4;
+}
+
+.barra-fixa {
+  @apply fixed bottom-(--nav-inferior-espaco) left-0 right-0 z-[44] flex items-center gap-3 pt-2.5 px-5 pb-[calc(10px+env(safe-area-inset-bottom,0px))] bg-superficie border-t border-linha shadow-[0_-1px_8px_var(--sombra-cor)];
+}
+
+.barra-fixa-info {
+  @apply whitespace-nowrap;
+}
+
+.barra-fixa-rotulo {
+  @apply block text-mini leading-[1.2] text-tinta-suave;
+}
+
+.barra-fixa-valor {
+  @apply font-titulo text-maior font-bold leading-[1.15] text-destaque;
+}
+
+.barra-fixa .botao {
+  flex: 1 1 auto;
+  margin-block: 0;
+}
+
+@media (min-width: 700px) {
+  .linha-pedido .acoes-linha > .botao {
+    flex: 0 0 auto;
+  }
+
+  .barra-fixa {
+    position: static;
+    display: block;
+    padding: 0;
+    background: none;
+    border-top: none;
+    box-shadow: none;
+  }
+
+  .barra-fixa-info {
+    display: none;
+  }
+
+  .barra-fixa-compra .botao {
+    margin-bottom: var(--esp-4);
+  }
+
+  .barra-fixa-total .botao {
+    margin-top: var(--esp-4);
+  }
+}

@@ -1,0 +1,178 @@
+.cabecalho {
+  @apply hidden bg-cabecalho-fundo text-cabecalho-tinta z-40;
+}
+
+@media (min-width: 700px) {
+  .cabecalho {
+    display: block;
+    position: sticky;
+    top: 0;
+  }
+}
+
+.cabecalho-linha {
+  @apply flex items-center gap-4 min-h-[72px] flex-wrap py-3 px-6 xl:grid xl:grid-cols-[auto_1fr_auto] xl:px-16;
+}
+
+.marca {
+  @apply flex items-center gap-2.5 text-branco mr-auto;
+}
+
+.marca:hover {
+  @apply no-underline;
+}
+
+.marca-logo {
+  @apply block h-13 w-auto rounded-caixa flex-none;
+}
+
+.marca-nome {
+  @apply font-titulo text-grande font-bold leading-[1.1];
+}
+
+.marca-linha {
+  @apply block text-mini tracking-[0.09em] uppercase text-amarelo;
+}
+
+.cabecalho-busca {
+  @apply order-3 flex-[1_1_100%] relative xl:order-none xl:flex-none xl:w-full xl:max-w-[480px] xl:justify-self-center;
+}
+
+.cabecalho-busca input {
+  @apply w-full h-[46px] rounded-pilula border-0 py-0 pr-[18px] pl-11 bg-superficie text-tinta;
+}
+
+.cabecalho-busca svg {
+  @apply absolute left-4 top-1/2 -translate-y-1/2 text-tinta-suave;
+}
+
+.cabecalho-acoes {
+  @apply flex flex-wrap items-center justify-end gap-3 xl:justify-self-end;
+}
+
+.cabecalho-link {
+  @apply text-branco inline-flex items-center gap-1.5 py-3 px-2.5 rounded-caixa text-pequeno min-h-11;
+}
+
+.cabecalho-link:hover {
+  @apply bg-[rgba(255,255,255,0.14)] no-underline;
+}
+
+.sacola {
+  @apply bg-amarelo text-tinta-fixa font-semibold px-[14px];
+}
+
+.sacola:hover {
+  @apply bg-[#ffd633];
+}
+
+.contador {
+  @apply bg-acao text-branco rounded-pilula min-w-5 h-5 inline-flex items-center justify-center text-mini font-bold px-[5px];
+}
+
+.cabecalho-link.mapa {
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.cabecalho-link.mapa:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.alternador {
+  @apply bg-transparent border border-[rgba(255,255,255,0.5)] cursor-pointer p-0 w-11 justify-center;
+}
+
+.alternador:hover {
+  @apply bg-[rgba(255,255,255,0.2)];
+}
+
+.alternador-espaco {
+  @apply w-[18px] h-[18px];
+}
+
+.cabecalho-mobile {
+  @apply block sticky top-0;
+}
+
+@media (min-width: 700px) {
+  .cabecalho-mobile {
+    display: none;
+  }
+}
+
+.cabecalho-mobile-linha {
+  @apply flex items-center gap-3 min-h-14 py-2;
+}
+
+.marca-compacta {
+  @apply gap-2;
+}
+
+.marca-compacta .marca-logo {
+  @apply h-9;
+}
+
+.marca-compacta .marca-nome {
+  @apply text-[18px];
+}
+
+.abre-menu {
+  @apply xl:hidden inline-flex items-center gap-2 min-h-11 mb-5 px-4 rounded-pilula border border-linha bg-superficie text-tinta font-semibold text-pequeno cursor-pointer;
+}
+
+.drawer {
+  @apply border-0 p-0 m-0 w-[300px] max-w-[86vw] bg-superficie text-tinta shadow-(--sombra-alta);
+  height: 100dvh;
+  max-height: 100dvh;
+}
+
+.drawer[open] {
+  position: fixed;
+  inset: 0 auto 0 0;
+  display: flex;
+  flex-direction: column;
+  animation: drawer-entra 240ms ease;
+}
+
+.drawer::backdrop {
+  background: rgba(17, 22, 37, 0.55);
+}
+
+@keyframes drawer-entra {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer[open] {
+    animation: none;
+  }
+}
+
+.drawer-cabecalho {
+  @apply flex items-center justify-between gap-2 px-4 py-3 border-b border-linha flex-none;
+}
+
+.drawer-titulo {
+  @apply font-titulo font-bold text-medio;
+}
+
+.drawer-fechar {
+  @apply inline-flex items-center justify-center w-11 h-11 -mr-2 rounded-full border-0 bg-transparent text-tinta-suave cursor-pointer;
+}
+
+.drawer-fechar:hover {
+  @apply bg-fundo text-tinta;
+}
+
+.drawer-conteudo {
+  @apply p-3 flex-1 overflow-y-auto;
+}
+
+.drawer .menu-lateral {
+  @apply block border-0 shadow-none p-0 bg-transparent;
+}

@@ -1,0 +1,18 @@
+.cartao {
+  @apply bg-superficie border border-linha rounded-media shadow-(--sombra) p-5;
+}
+
+a.cartao {
+  display: block;
+  color: inherit;
+}
+
+a.cartao:hover {
+  box-shadow: var(--sombra-alta);
+  text-decoration: none;
+}
+
+.cartao .secao-titulo {
+  font-size: var(--texto-medio);
+  margin-bottom: var(--esp-4);
+}

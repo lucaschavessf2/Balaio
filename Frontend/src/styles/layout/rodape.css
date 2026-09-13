@@ -1,0 +1,95 @@
+.rodape {
+  @apply bg-cabecalho-fundo text-cabecalho-tinta mt-auto pt-8 pb-4;
+}
+
+.rodape a {
+  @apply text-branco text-pequeno;
+}
+
+.rodape-grade {
+  @apply grid grid-cols-1 gap-7 items-start;
+}
+
+.rodape-logo {
+  @apply inline-flex items-center gap-2.5 text-branco mb-2.5;
+}
+
+.rodape-logo:hover {
+  @apply no-underline opacity-90;
+}
+
+.rodape-logo .marca-logo {
+  @apply h-12;
+}
+
+.rodape-logo .marca-nome {
+  @apply text-[20px];
+}
+
+.rodape-sobre {
+  @apply text-pequeno leading-[1.65] max-w-[36ch] opacity-80;
+}
+
+.rodape-colunas {
+  @apply grid grid-cols-2 gap-8;
+}
+
+.rodape-titulo {
+  @apply text-mini font-bold tracking-[0.09em] uppercase text-amarelo mb-3;
+}
+
+.rodape-lista {
+  @apply list-none m-0 p-0 flex flex-col gap-2.5;
+}
+
+.rodape-lista a {
+  @apply opacity-85;
+}
+
+.rodape-lista a:hover {
+  @apply opacity-100;
+}
+
+.rodape-base {
+  @apply flex flex-wrap gap-x-6 gap-y-2 justify-between items-center mt-6 pt-4 border-t border-[rgba(255,255,255,0.14)] text-[13px] opacity-70;
+}
+
+@media (min-width: 700px) {
+  .rodape {
+    padding: 32px 0 16px;
+  }
+
+  .rodape-grade {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.8fr);
+    gap: 40px;
+  }
+
+  .rodape-marca {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .rodape-colunas {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  .rodape-lista {
+    flex-direction: row;
+    flex-wrap: wrap;
+    column-gap: 24px;
+    row-gap: 8px;
+  }
+
+  .rodape-titulo {
+    margin-bottom: 8px;
+  }
+}
+
+@media (min-width: 1000px) {
+  .rodape-grade {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 2.2fr);
+    gap: 48px;
+  }
+}
