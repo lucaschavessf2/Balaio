@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import EstadoErro from '@/components/feedback/EstadoErro'
 import Pagina from '@/components/layout/Pagina'
 import { EstadoVazio, Foto, Migalhas } from '@/components/ui/Basicos'
 import BotaoAdicionarSacola from '@/components/carrinho/BotaoAdicionarSacola'
@@ -10,11 +11,12 @@ import { emReais } from '@/utils/formato'
 import { rotuloEstadoPedido } from '@/constants/rotulos'
 
 export default async function MeusPedidos() {
-  const [{ dados: pedidos }, { dados: pecas }, { dados: artesaos }] = await Promise.all([
+  const [{ dados: pedidos, erro }, { dados: pecas }, { dados: artesaos }] = await Promise.all([
     listarPedidos(),
     listarPecas(),
     listarArtesaos(),
   ])
+  if (erro) return <Pagina><EstadoErro mensagem={erro.mensagem} /></Pagina>
   const mapaPecas = new Map((pecas ?? []).map((p) => [p.slug, p]))
   const mapaArtesaos = new Map((artesaos ?? []).map((a) => [a.slug, a]))
   const acharPeca = (slug: string) => mapaPecas.get(slug)
@@ -62,12 +64,12 @@ export default async function MeusPedidos() {
                   {peca && <Foto nome={peca.nome} imagem={peca.imagem} decorativa />}
                 </div>
                 <div className="encolhivel">
-                  <p className="texto-forte">{peca?.nome}</p>
+                  <p className="texto-forte">{peca?.nome}{(pedido.itens?.length ?? 0) > 1 ? ` e mais ${pedido.itens!.length - 1} peça(s)` : ''}</p>
                   <p className="autoria">
                     por {artesao?.nome} · Pedido #{pedido.id}
                   </p>
                   <p className={`cartao-pedido-status${entregue ? ' status-bom' : ''}`}>
-                    {entregue ? 'Entregue no seu endereço' : `Previsão de entrega: ${pedido.previsaoEntrega}`}
+                    {entregue ? 'Entregue no seu endereço' : (pedido.previsaoEntrega ? `Previsão de entrega: ${pedido.previsaoEntrega}` : 'Aguardando previsão de entrega')}
                   </p>
                   <p className="preco-destaque">{emReais(pedido.total)}</p>
                 </div>

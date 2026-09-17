@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Retrato } from '@/components/ui/Basicos'
 import ImagemComFallback from '@/components/ui/ImagemComFallback'
+import { comentarVideo } from '@/services/api/videos.servico'
 import { avisar } from '@/components/feedback/Avisos'
 import { IconeConversa, IconeCoracao, IconeMarcador, IconeSelo, IconeSetaDireita } from '@/components/ui/Icones'
 import { emMilhares, type Comentario, type Video } from '@/mocks/videos'
@@ -21,6 +22,7 @@ type Props = {
 }
 
 export default function CartaoVideo({ video, artesao, peca, comentarios }: Props) {
+  const [salvando, definirSalvando] = useState(false)
   const [curtido, definirCurtido] = useState(false)
   const [salvo, definirSalvo] = useState(false)
   const [aberto, definirAberto] = useState(false)
@@ -97,11 +99,15 @@ export default function CartaoVideo({ video, artesao, peca, comentarios }: Props
     campoComentario.current?.focus()
   }
 
-  function enviarComentario(evento: FormEvent<HTMLFormElement>) {
+  async function enviarComentario(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
     const texto = rascunho.trim()
-    if (!texto) return
-    definirLista([...lista, { autor: 'Você', texto, quando: 'agora', curtidas: 0 }])
+    if (!texto || salvando) return
+    definirSalvando(true)
+    const resposta = await comentarVideo(video.id, { autor: 'Você', texto, quando: 'agora', curtidas: 0 })
+    definirSalvando(false)
+    if (resposta.erro || !resposta.dados) { avisar.erro('Não foi possível comentar', resposta.erro?.mensagem); return }
+    definirLista((atuais) => [...atuais, resposta.dados!])
     definirRascunho('')
   }
 
@@ -276,7 +282,7 @@ export default function CartaoVideo({ video, artesao, peca, comentarios }: Props
               value={rascunho}
               onChange={(evento) => definirRascunho(evento.target.value)}
             />
-            <button type="submit" className="botao botao-primario" style={{ padding: '0 18px' }}>
+            <button disabled={salvando} type="submit" className="botao botao-primario" style={{ padding: '0 18px' }}>
               Enviar
             </button>
           </form>

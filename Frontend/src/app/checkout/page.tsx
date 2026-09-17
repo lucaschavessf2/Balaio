@@ -7,11 +7,13 @@ import Pagina from '@/components/layout/Pagina'
 import { Campo, EstadoVazio, Foto, Migalhas } from '@/components/ui/Basicos'
 import { IconeCadeado, IconeCaminhao, IconeCheck, IconeSacola, IconeSetaDireita } from '@/components/ui/Icones'
 import { avisar } from '@/components/feedback/Avisos'
+import { finalizarCompra } from '@/services/api/pedidos.servico'
+import EstadoErro from '@/components/feedback/EstadoErro'
 import EstadoCarregando from '@/components/feedback/EstadoCarregando'
 import { useSacola } from '@/store/sacola'
 import { usePecas } from '@/hooks/usePecas'
 import { validarCEP, validarObrigatorio } from '@/utils/validacao'
-import { opcoesFrete } from '@/mocks/frete'
+import { useDados } from '@/store/dados'
 import { emReais, precoComDesconto } from '@/utils/formato'
 
 type Meio = 'pix' | 'cartao' | 'boleto'
@@ -25,10 +27,13 @@ const meios: { id: Meio; nome: string; nota: string }[] = [
 export default function Checkout() {
   const roteador = useRouter()
   const { itens, pronto, limpar } = useSacola()
-  const { mapaPecas, carregando } = usePecas()
+  const { mapaPecas, carregando, erro } = usePecas()
   const [meio, definirMeio] = useState<Meio>('pix')
-  const [frete, definirFrete] = useState(opcoesFrete[0])
+  const { fretes: opcoesFrete, carregando: carregandoFretes, erro: erroFretes } = useDados()
+  const [freteId, definirFrete] = useState('padrao')
+  const frete = opcoesFrete.find((f) => f.id === freteId) ?? opcoesFrete[0]
   const [erros, definirErros] = useState<Record<string, string>>({})
+  const [salvando, definirSalvando] = useState(false)
   const [concluido, definirConcluido] = useState(false)
 
   const detalhados = itens.flatMap((item) => {
@@ -39,10 +44,11 @@ export default function Checkout() {
   const subtotalCheio = detalhados.reduce((total, d) => total + d.peca.preco * d.item.quantidade, 0)
   const subtotal = detalhados.reduce((total, d) => total + precoComDesconto(d.peca) * d.item.quantidade, 0)
   const economia = subtotalCheio - subtotal
-  const total = subtotal + frete.valor
+  const total = subtotal + (frete?.valor ?? 0)
 
-  function confirmar(evento: FormEvent<HTMLFormElement>) {
+  async function confirmar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
+    if (salvando || !detalhados.length || !frete) return
     const dados = new FormData(evento.currentTarget)
     const proximosErros: Record<string, string> = {}
 
@@ -66,13 +72,20 @@ export default function Checkout() {
       return
     }
 
+    definirSalvando(true)
+    const resposta = await finalizarCompra({
+      itens, freteId: frete.id, meio,
+      endereco: { cep: String(dados.get('cep')), endereco: String(dados.get('endereco')), cidade: String(dados.get('cidade')), estado: String(dados.get('estado')) },
+    })
+    definirSalvando(false)
+    if (resposta.erro || !resposta.dados) { avisar.erro('Não foi possível registrar o pedido', resposta.erro?.mensagem); return }
     definirConcluido(true)
     limpar()
-    avisar.sucesso('Pagamento aprovado', 'O pedido já foi para o artesão. Acompanhe a produção por aqui.')
-    roteador.push('/confirmation/PE-2026-8941')
+    avisar.sucesso('Compra de demonstração registrada', 'Nenhum pagamento real foi realizado.')
+    roteador.push('/confirmation/' + resposta.dados.id)
   }
 
-  if ((!pronto || carregando) && !concluido) {
+  if ((!pronto || carregando || carregandoFretes) && !concluido) {
     return (
       <Pagina>
         <Migalhas
@@ -83,6 +96,8 @@ export default function Checkout() {
       </Pagina>
     )
   }
+
+  if (erro || erroFretes || !frete) return <Pagina><EstadoErro mensagem={erro ?? erroFretes ?? 'Nenhuma opção de entrega disponível.'} /></Pagina>
 
   if (pronto && detalhados.length === 0 && !concluido) {
     return (
@@ -113,7 +128,7 @@ export default function Checkout() {
 
       <h1 className="titulo-pagina">Finalizar compra</h1>
       <p className="subtitulo-pagina">
-        Falta pouco. O pagamento é processado pelo Mercado Pago e o valor só é repassado ao artesão depois da entrega.
+        Compra de demonstração: os dados serão salvos, sem cobrança ou pagamento real.
       </p>
 
       <ol className="etapas-compra">
@@ -168,7 +183,7 @@ export default function Checkout() {
             <div className="opcoes">
               {opcoesFrete.map((opcao) => (
                 <label className="opcao opcao-topo" key={opcao.id}>
-                  <input type="radio" name="frete" checked={frete.id === opcao.id} onChange={() => definirFrete(opcao)} />
+                  <input type="radio" name="frete" checked={frete.id === opcao.id} onChange={() => definirFrete(opcao.id)} />
                   <span className="encolhivel">
                     <span className="linha-flex" style={{ gap: 8, fontWeight: 600 }}>
                       <IconeCaminhao />
@@ -279,7 +294,7 @@ export default function Checkout() {
               <span className="barra-fixa-rotulo">Total</span>
               <span className="barra-fixa-valor">{emReais(total)}</span>
             </p>
-            <button type="submit" className="botao botao-sucesso botao-largo">
+            <button disabled={salvando || concluido} type="submit" className="botao botao-sucesso botao-largo">
               Confirmar e pagar <span className="esconde-mobile">{emReais(total)}</span>
               <IconeSetaDireita />
             </button>

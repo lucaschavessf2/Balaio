@@ -1,19 +1,23 @@
-import { videos, comentariosDoVideo, type Comentario, type Video } from '@/mocks/videos'
-import { API_FAKE, buscar } from './cliente'
-import { falha, sucesso, type RespostaApi } from './tipos'
+import type { Comentario, Video } from '@/mocks/videos'
+import { buscar, enviar } from './cliente'
+import { type RespostaApi } from './tipos'
 
-export async function listarVideos(): Promise<RespostaApi<Video[]>> {
-  if (!API_FAKE) return buscar<Video[]>('/videos')
-  return sucesso(videos)
+export async function listarVideos(painel = false): Promise<RespostaApi<Video[]>> {
+  return buscar<Video[]>(`/videos${painel ? '?painel=true' : ''}`)
+}
+
+export function criarVideo(video: Video & { situacao: 'publicada' | 'rascunho' }): Promise<RespostaApi<Video>> {
+  return enviar('/videos', video)
+}
+
+export function comentarVideo(id: string, comentario: Comentario): Promise<RespostaApi<Comentario>> {
+  return enviar(`/videos/${encodeURIComponent(id)}/comentarios`, comentario)
 }
 
 export async function obterVideo(id: string): Promise<RespostaApi<Video>> {
-  if (!API_FAKE) return buscar<Video>(`/videos/${id}`)
-  const video = videos.find((v) => v.id === id)
-  return video ? sucesso(video) : falha('RECURSO_NAO_ENCONTRADO', 'Vídeo não encontrado.')
+  return buscar<Video>(`/videos/${encodeURIComponent(id)}`)
 }
 
 export async function comentariosDe(id: string): Promise<RespostaApi<Comentario[]>> {
-  if (!API_FAKE) return buscar<Comentario[]>(`/videos/${id}/comentarios`)
-  return sucesso(comentariosDoVideo(id))
+  return buscar<Comentario[]>(`/videos/${encodeURIComponent(id)}/comentarios`)
 }

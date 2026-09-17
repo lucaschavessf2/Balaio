@@ -3,16 +3,17 @@
 import { useState } from 'react'
 import { avisar } from '@/components/feedback/Avisos'
 import { validarCEP } from '@/utils/validacao'
-import { opcoesFrete } from '@/mocks/frete'
+import { useDados } from '@/store/dados'
 import { emReais } from '@/utils/formato'
 
 export default function CalculoFrete({ territorio }: { territorio: string }) {
+  const { fretes: opcoesFrete, erro: erroFretes, carregando } = useDados()
   const [cep, definirCep] = useState('')
   const [erro, definirErro] = useState<string | null>(null)
   const [calculado, definirCalculado] = useState(false)
 
   function calcular() {
-    const problema = validarCEP(cep)
+    const problema = erroFretes ?? (opcoesFrete.length ? validarCEP(cep) : 'Nenhuma opção de entrega disponível.')
     definirErro(problema)
     if (problema) {
       definirCalculado(false)
@@ -41,7 +42,7 @@ export default function CalculoFrete({ territorio }: { territorio: string }) {
           aria-invalid={erro ? true : undefined}
           aria-describedby={erro ? 'cep-erro' : undefined}
         />
-        <button type="button" className="botao botao-secundario" onClick={calcular}>
+        <button type="button" className="botao botao-secundario" disabled={carregando} onClick={calcular}>
           Calcular
         </button>
       </div>

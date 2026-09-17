@@ -5,23 +5,26 @@ import { EstadoVazio, Foto, SeloDisponibilidade } from '@/components/ui/Basicos'
 import { IconeSacola, IconeSetaDireita } from '@/components/ui/Icones'
 import { useSacola } from '@/store/sacola'
 import { avisar } from '@/components/feedback/Avisos'
-import { acharPeca } from '@/mocks/pecas'
-import { acharArtesao } from '@/mocks/artesaos'
+import { usePecas } from '@/hooks/usePecas'
+import EstadoErro from '@/components/feedback/EstadoErro'
+import EstadoCarregando from '@/components/feedback/EstadoCarregando'
+import { useDados } from '@/store/dados'
 import { emReais, precoComDesconto } from '@/utils/formato'
-import { opcoesFrete } from '@/mocks/frete'
 
 export default function ItensSacola() {
+  const { mapaPecas, carregando, erro } = usePecas()
+  const { artesaos, fretes, carregando: carregandoFretes, erro: erroFretes } = useDados()
   const { itens, remover, repor, alterarQuantidade } = useSacola()
 
   const detalhados = itens.flatMap((item) => {
-    const peca = acharPeca(item.slug)
+    const peca = mapaPecas.get(item.slug)
     return peca ? [{ item, peca }] : []
   })
 
   const subtotalCheio = detalhados.reduce((total, d) => total + d.peca.preco * d.item.quantidade, 0)
   const subtotal = detalhados.reduce((total, d) => total + precoComDesconto(d.peca) * d.item.quantidade, 0)
   const economia = subtotalCheio - subtotal
-  const frete = opcoesFrete[0].valor
+  const frete = fretes[0]?.valor ?? 0
 
   function removerItem(slug: string, nome: string) {
     const posicao = itens.findIndex((i) => i.slug === slug)
@@ -29,6 +32,9 @@ export default function ItensSacola() {
     remover(slug)
     avisar.desfazivel(`${nome} saiu da sacola`, () => repor(item, posicao))
   }
+
+  if (carregando || carregandoFretes) return <EstadoCarregando />
+  if (erro || erroFretes || !fretes.length) return <EstadoErro mensagem={erro ?? erroFretes ?? 'Nenhuma opção de entrega disponível.'} />
 
   if (detalhados.length === 0) {
     return (
@@ -55,7 +61,7 @@ export default function ItensSacola() {
       <div className="duas-colunas">
         <section className="cartao">
           {detalhados.map(({ peca, item }) => {
-            const artesao = acharArtesao(peca.artesao)
+            const artesao = artesaos.find((a) => a.slug === peca.artesao)
             return (
               <article className="item-sacola" key={peca.slug}>
                 <div className="item-sacola-figura">

@@ -12,10 +12,12 @@ import {
   IconeUsuario,
 } from '@/components/ui/Icones'
 import { listarPedidos } from '@/services/api/pedidos.servico'
-import { usuarioAtual } from '@/mocks/usuario'
+import { obterUsuario } from '@/services/api/conta.servico'
+import EstadoErro from '@/components/feedback/EstadoErro'
 
 export default async function Conta() {
-  const { dados: pedidos } = await listarPedidos()
+  const [{ dados: pedidos }, { dados: usuarioAtual, erro }] = await Promise.all([listarPedidos(), obterUsuario()])
+  if (!usuarioAtual) return <Pagina><EstadoErro mensagem={erro?.mensagem} /></Pagina>
   const totalPedidos = (pedidos ?? []).length
   return (
     <Pagina>
@@ -28,8 +30,8 @@ export default async function Conta() {
         <header className="cartao conta-capa">
           <Retrato imagem={usuarioAtual.imagem} grande />
           <div className="encolhivel">
-            <p className="conta-capa-nome">Carlos de Olinda</p>
-            <p className="autoria">carlos@exemplo.com</p>
+            <p className="conta-capa-nome">{usuarioAtual.nome}</p>
+            <p className="autoria">{usuarioAtual.email}</p>
           </div>
         </header>
 

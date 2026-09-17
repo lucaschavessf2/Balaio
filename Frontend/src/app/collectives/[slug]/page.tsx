@@ -4,19 +4,17 @@ import Pagina from '@/components/layout/Pagina'
 import CartaoPeca from '@/components/produto/CartaoPeca'
 import { Migalhas, Retrato } from '@/components/ui/Basicos'
 import { IconeSelo, IconeSetaDireita } from '@/components/ui/Icones'
-import { coletivos } from '@/mocks/coletivos'
 import { obterColetivo } from '@/services/api/coletivos.servico'
 import { obterArtesao } from '@/services/api/artesaos.servico'
 import { pecasPorArtesao } from '@/services/api/pecas.servico'
 import type { Artesao } from '@/types/dominio'
 
-export function generateStaticParams() {
-  return coletivos.map((c) => ({ slug: c.slug }))
-}
+export const dynamic = 'force-dynamic'
 
 export default async function PerfilColetivo({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const { dados: coletivo } = await obterColetivo(slug)
+  const { dados: coletivo, erro } = await obterColetivo(slug)
+  if (erro && erro.codigo !== 'RECURSO_NAO_ENCONTRADO') throw new Error(erro.mensagem)
   if (!coletivo) notFound()
 
   const membrosResp = await Promise.all(coletivo.membros.map((m) => obterArtesao(m)))

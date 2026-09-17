@@ -6,6 +6,7 @@ import { useState, type FormEvent } from 'react'
 import { Campo, Foto } from '@/components/ui/Basicos'
 import SeletorEstrelas from '@/components/ui/SeletorEstrelas'
 import { IconeCheck } from '@/components/ui/Icones'
+import { avaliarPedido } from '@/services/api/pedidos.servico'
 import { avisar } from '@/components/feedback/Avisos'
 
 const rotulosNota = ['', 'Muito ruim', 'Ruim', 'Regular', 'Bom', 'Excelente']
@@ -42,6 +43,7 @@ type Props = {
 }
 
 export default function FormAvaliacao({ pedidoId, pecaNome, pecaImagem, artesaoNome }: Props) {
+  const [salvando, definirSalvando] = useState(false)
   const roteador = useRouter()
   const [nota, definirNota] = useState(0)
   const [aspectosMarcados, definirAspectosMarcados] = useState<string[]>([])
@@ -63,14 +65,20 @@ export default function FormAvaliacao({ pedidoId, pecaNome, pecaImagem, artesaoN
     )
   }
 
-  function enviar(evento: FormEvent<HTMLFormElement>) {
+  async function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
+    if (salvando) return
     if (nota === 0) {
       definirErroNota('Escolha uma nota geral de 1 a 5 estrelas')
       avisar.erro('Escolha uma nota geral de 1 a 5 estrelas')
       document.querySelector<HTMLButtonElement>('#nota-geral button')?.focus()
       return
     }
+    definirSalvando(true)
+    const resposta = await avaliarPedido(pedidoId, { nota, comentario, aspectos: aspectosMarcados })
+    definirSalvando(false)
+    if (resposta.erro) { avisar.erro('Não foi possível avaliar', resposta.erro.mensagem); return }
+    roteador.refresh()
     avisar.sucesso('Avaliação enviada', 'Obrigado por fortalecer o trabalho do artesão.')
     roteador.push(`/orders/${pedidoId}`)
   }
@@ -146,7 +154,7 @@ export default function FormAvaliacao({ pedidoId, pecaNome, pecaImagem, artesaoN
       </Campo>
 
       <div className="acoes-linha acoes-empilhaveis">
-        <button type="submit" className="botao botao-primario">
+        <button disabled={salvando} type="submit" className="botao botao-primario">
           Enviar avaliação
         </button>
         <Link href="/orders" className="botao botao-fantasma">

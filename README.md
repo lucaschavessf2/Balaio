@@ -1,5 +1,19 @@
 # Balaio: Projeto Origem
 
+## Desenvolvimento com fake API
+
+Requer Node.js 22.21+.
+
+```sh
+cd Frontend
+npm ci
+npm run dev
+```
+
+Frontend: `http://localhost:4321`. API json-server: `http://127.0.0.1:3001/api/v1`.
+O banco é populado automaticamente e mantém as alterações entre reinícios.
+Veja [comandos, endpoints, persistência e limites da demonstração](Frontend/fake-api/README.md).
+
 > Marketplace digital voltado para a valorização e comercialização do artesanato e da economia criativa de Pernambuco.
 
 ## Sobre o projeto
@@ -80,7 +94,7 @@ Entre os recursos implementados estão:
 
 ### Frontend
 
-- **Next.js 15**
+- **Next.js 16**
 - **React 19**
 - **TypeScript**
 - **Tailwind CSS**

@@ -1,5 +1,9 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
+import { criarPeca } from '@/services/api/pecas.servico'
+import { gerarSlugEvento } from '@/components/eventos/eventosLocais'
+import type { Tecnica } from '@/types/dominio'
 import { useRef, useState, type FormEvent } from 'react'
 import LayoutPainel from '@/components/painel/LayoutPainel'
 import { Campo, Migalhas } from '@/components/ui/Basicos'
@@ -14,6 +18,8 @@ import { emReais } from '@/utils/formato'
 const sugestao = { materiais: 180, horas: 14, valorHora: 22 }
 
 export default function NovaPeca() {
+  const roteador = useRouter()
+  const [salvando, definirSalvando] = useState(false)
   const { tecnicas, territorios, categorias, carregando } = useReferencias()
   const [disponibilidade, definirDisponibilidade] = useState<Disponibilidade>('disponivel')
   const [erros, definirErros] = useState<Record<string, string>>({})
@@ -72,18 +78,30 @@ export default function NovaPeca() {
     definirFotos(0)
   }
 
+  async function salvar(rascunho: boolean) {
+    if (salvando || !validar(rascunho)) return
+    const dados = new FormData(formulario.current!)
+    definirSalvando(true)
+    const resposta = await criarPeca({
+      slug: gerarSlugEvento(String(dados.get('nome'))), nome: String(dados.get('nome')).trim(),
+      artesao: 'mestre-nuca', tecnica: String(dados.get('tecnica')) as Tecnica,
+      territorio: String(dados.get('territorio')), categoria: String(dados.get('categoria')),
+      historia: [String(dados.get('historia') || '')],
+      preco: Number(String(dados.get('preco') || '0').replace(/\./g, '').replace(',', '.')) || 0,
+      disponibilidade, prazoProducaoDias: disponibilidade === 'encomenda' ? Number(dados.get('prazo')) : undefined,
+      imagem: '/fotos/ImagemBase.webp', situacao: rascunho ? 'rascunho' : 'curadoria',
+    })
+    definirSalvando(false)
+    if (resposta.erro) { avisar.erro('Não foi possível salvar', resposta.erro.mensagem); return }
+    limparFormulario()
+    avisar.sucesso(rascunho ? 'Rascunho salvo' : 'Peça enviada para curadoria')
+    roteador.refresh()
+  }
   function enviarParaCuradoria(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
-    if (!validar(false)) return
-    limparFormulario()
-    avisar.sucesso('Peça enviada para curadoria', 'Você recebe a resposta em até um dia útil.')
+    void salvar(false)
   }
-
-  function salvarRascunho() {
-    if (!validar(true)) return
-    limparFormulario()
-    avisar.sucesso('Rascunho salvo em Minhas peças')
-  }
+  function salvarRascunho() { void salvar(true) }
 
   return (
     <LayoutPainel ativo="pecas">
@@ -145,6 +163,7 @@ export default function NovaPeca() {
           </section>
 
           <section className="cartao abaixo-5">
+            <p className="campo-ajuda">Na demonstração, a peça usa uma imagem de exemplo; arquivos não são enviados.</p>
             <h2 className="secao-titulo">Fotos</h2>
             <label className="area-upload" style={{ display: 'block', cursor: 'pointer' }}>
               <span className="estado-vazio-icone" style={{ width: 64, height: 64, marginBottom: 12 }}>
@@ -216,10 +235,10 @@ export default function NovaPeca() {
             </Campo>
 
             <div className="acoes-linha acima-2">
-              <button type="submit" className="botao botao-primario">
+              <button disabled={salvando} type="submit" className="botao botao-primario">
                 Enviar para curadoria
               </button>
-              <button type="button" className="botao botao-fantasma" onClick={salvarRascunho}>
+              <button type="button" className="botao botao-fantasma" disabled={salvando} onClick={salvarRascunho}>
                 Salvar rascunho
               </button>
             </div>

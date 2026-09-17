@@ -1,0 +1,83 @@
+const { test } = require('node:test')
+const assert = require('node:assert/strict')
+const { mkdtempSync, readFileSync, rmSync } = require('node:fs')
+const { tmpdir } = require('node:os')
+const path = require('node:path')
+const { criarServidor } = require('./server.cjs')
+
+test('contrato HTTP, filtros, relações, CRUD e persistência', async (t) => {
+  process.env.NODE_ENV = 'test'
+  const pasta = mkdtempSync(path.join(tmpdir(), 'balaio-api-'))
+  const arquivo = path.join(pasta, 'db.json')
+  const servidor = criarServidor(arquivo).listen(0, '127.0.0.1')
+  await new Promise((resolve) => servidor.once('listening', resolve))
+  t.after(async () => {
+    await new Promise((resolve) => servidor.close(resolve))
+    rmSync(pasta, { recursive: true, force: true })
+  })
+  const base = `http://127.0.0.1:${servidor.address().port}/api/v1`
+  const request = async (url, body, method = 'POST') => {
+    const res = await fetch(base + url, body === undefined ? undefined : { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+    return { status: res.status, ...await res.json() }
+  }
+  for (const recurso of ['pecas', 'artesaos', 'coletivos', 'eventos', 'videos', 'pedidos', 'artesao/conversas', 'artesao/pedidos-pendentes', 'admin/curadoria', 'admin/mediacoes']) {
+    const res = await request('/' + recurso)
+    assert.equal(res.status, 200, recurso)
+    assert.equal(res.erro, null, recurso)
+    assert.ok(res.dados.length > 0, recurso)
+  }
+  assert.ok((await request('/referencias')).dados.tecnicas.length)
+  const todas = await request('/pecas')
+  const pagina = await request('/pecas?pagina=2&tamanho=3&ordenar=preco-asc')
+  assert.equal(pagina.dados.length, 3)
+  assert.equal(pagina.paginacao.total, todas.dados.length)
+  assert.equal(pagina.paginacao.pagina, 2)
+  const preco = (p) => p.preco * (1 - (p.desconto || 0) / 100)
+  assert.deepEqual(pagina.dados.map(preco), [...pagina.dados.map(preco)].sort((a, b) => a - b))
+  assert.ok((await request('/pecas?q=ceramica')).dados.length)
+  assert.equal((await request('/pecas?q=inexistente')).paginacao.total, 0)
+  const primeira = todas.dados[0]
+  const relacionadas = await request(`/pecas/${primeira.slug}/relacionadas?limite=1`)
+  assert.equal(relacionadas.dados.length, 1)
+  assert.notEqual(relacionadas.dados[0].slug, primeira.slug)
+  assert.ok((await request(`/artesaos/${primeira.artesao}/pecas`)).dados.every((p) => p.artesao === primeira.artesao))
+  assert.equal((await request('/pecas/inexistente')).status, 404)
+  assert.equal((await request('/pedidos/inexistente/conversa')).status, 404)
+  const evento = (await request('/eventos')).dados[0]
+  const novo = await request('/eventos', { ...evento, id: undefined, slug: 'evento-teste', nome: 'Evento de teste' })
+  assert.equal(novo.status, 201)
+  assert.equal((await request('/eventos/evento-teste')).dados.nome, 'Evento de teste')
+  assert.equal((await request('/eventos', { ...evento, slug: 'evento-teste' })).status, 409)
+  assert.equal((await request('/eventos/evento-teste', { nome: 'Atualizado' }, 'PATCH')).dados.nome, 'Atualizado')
+  const compra = { itens: [{ slug: primeira.slug, quantidade: 1 }, { slug: todas.dados[1].slug, quantidade: 2 }], freteId: 'padrao', meio: 'pix', endereco: { cep: '52021030', endereco: 'Rua de teste', cidade: 'Recife', estado: 'PE' } }
+  const pedido = await request('/checkout', compra)
+  assert.equal(pedido.status, 201)
+  assert.equal(pedido.dados.total, Math.round((preco(primeira) + 2 * preco(todas.dados[1]) + 38.9) * 100) / 100)
+  assert.equal(pedido.dados.itens.length, 2)
+  assert.equal((await request('/checkout', { ...compra, itens: [] })).status, 400)
+  const mensagem = await request(`/pedidos/${pedido.dados.id}/conversa`, { texto: 'Olá!', autor: 'comprador', hora: 'agora' })
+  assert.equal(mensagem.status, 201)
+  assert.equal((await request(`/pedidos/${pedido.dados.id}/conversa`)).dados.length, 1)
+  assert.equal((await request('/pedidos/PE-2026-8720/conversa')).dados.length, 0)
+  const disco = JSON.parse(readFileSync(arquivo, 'utf8'))
+  assert.ok(disco.pedidos.some((p) => p.id === pedido.dados.id))
+  assert.equal(disco.eventos.find((e) => e.slug === 'evento-teste').nome, 'Atualizado')
+  assert.equal((await request('/eventos/evento-teste', {}, 'DELETE')).status, 200)
+  assert.equal((await request('/eventos/evento-teste')).status, 404)
+  const pecaNova = { ...primeira, id: undefined, slug: 'peca-teste', situacao: 'curadoria' }
+  assert.equal((await request('/pecas', pecaNova)).status, 201)
+  assert.ok(!(await request('/pecas')).dados.some((p) => p.slug === 'peca-teste'))
+  const fila = (await request('/admin/curadoria')).dados.find((p) => p.pecaSlug === 'peca-teste')
+  assert.ok(fila)
+  assert.equal((await request(`/admin/curadoria/${fila.id}/decisao`, { decisao: 'aprovada' })).status, 200)
+  assert.ok((await request('/pecas')).dados.some((p) => p.slug === 'peca-teste'))
+  assert.equal((await request('/pedidos/PE-2026-8720/avaliacao', { nota: 0 })).status, 400)
+  assert.equal((await request('/pedidos/PE-2026-8720/avaliacao', { nota: 5, comentario: 'Ótima peça', aspectos: [] })).status, 201)
+  assert.equal((await request('/pedidos/PE-2026-8720')).dados.avaliado, true)
+  assert.equal((await request('/pedidos/PE-2026-8720/avaliacao', { nota: 5 })).status, 409)
+  const mediacao = { id: 'MED-teste', pedido: pedido.dados.id, assunto: 'Ajuda', relato: 'Preciso de ajuda', solucao: 'conversa' }
+  assert.equal((await request('/admin/mediacoes', mediacao)).status, 201)
+  assert.equal((await request('/admin/mediacoes', mediacao)).status, 409)
+  assert.equal((await request('/eventos?lat=-8&lng=-35')).dados.length, (await request('/eventos')).dados.length)
+  assert.equal((await request('/eventos?lat=200&lng=0')).status, 400)
+})

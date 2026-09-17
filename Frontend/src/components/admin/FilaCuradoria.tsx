@@ -1,5 +1,6 @@
 'use client'
 
+import { enviar } from '@/services/api/cliente'
 import { useState } from 'react'
 import { EstadoVazio } from '@/components/ui/Basicos'
 import { avisar } from '@/components/feedback/Avisos'
@@ -34,13 +35,17 @@ export default function FilaCuradoria({
     },
   ]
 
-  function aprovar(item: ItemCuradoria) {
+  async function aprovar(item: ItemCuradoria) {
+    const resposta = await enviar('/admin/curadoria/' + item.id + '/decisao', { decisao: 'aprovada' })
+    if (resposta.erro) { avisar.erro('Não foi possível aprovar', resposta.erro.mensagem); return }
     definirFila(fila.filter((f) => f.id !== item.id))
     definirAnalisadas((n) => n + 1)
     avisar.sucesso('Peça aprovada e publicada no catálogo', `${item.peca}, de ${item.artesao}.`)
   }
 
-  function pedirAjuste(item: ItemCuradoria) {
+  async function pedirAjuste(item: ItemCuradoria) {
+    const resposta = await enviar('/admin/curadoria/' + item.id + '/decisao', { decisao: 'ajuste' })
+    if (resposta.erro) { avisar.erro('Não foi possível registrar', resposta.erro.mensagem); return }
     definirFila(fila.filter((f) => f.id !== item.id))
     definirAnalisadas((n) => n + 1)
     avisar.info('Pedido de ajuste enviado ao artesão', `${item.artesao} recebe o motivo por mensagem.`)

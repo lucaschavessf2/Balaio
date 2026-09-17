@@ -6,20 +6,20 @@ import { EstadoVazio, Migalhas } from '@/components/ui/Basicos'
 import EstadoErro from '@/components/feedback/EstadoErro'
 import { IconeBusca } from '@/components/ui/Icones'
 import { tecnicas } from '@/constants/referencias'
-import { artesaos } from '@/mocks/artesaos'
+import { listarArtesaos } from '@/services/api/artesaos.servico'
 import { listarPecas } from '@/services/api/pecas.servico'
 import { obterReferencias } from '@/services/api/referencias.servico'
 
 type Props = { searchParams: Promise<{ q?: string }> }
 
 async function montarSugestoes() {
-  const [pecasResp, refs] = await Promise.all([listarPecas(), obterReferencias()])
+  const [pecasResp, refs, autores] = await Promise.all([listarPecas(), obterReferencias(), listarArtesaos()])
   const nomesPecas = (pecasResp.dados ?? []).map((p) => p.nome)
   const referencias = refs.dados
   const base = referencias
     ? [...referencias.tecnicas, ...referencias.territorios, ...referencias.categorias]
     : []
-  return Array.from(new Set([...nomesPecas, ...base, ...artesaos.map((a) => a.nome)]))
+  return Array.from(new Set([...nomesPecas, ...base, ...(autores.dados ?? []).map((a) => a.nome)]))
 }
 
 export default async function Busca({ searchParams }: Props) {
