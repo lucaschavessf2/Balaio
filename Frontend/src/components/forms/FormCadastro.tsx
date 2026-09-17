@@ -6,6 +6,7 @@ import { useState, type FormEvent } from 'react'
 import { Campo } from '@/components/ui/Basicos'
 import { avisar } from '@/components/feedback/Avisos'
 import { validarEmail, validarObrigatorio, validarSenha } from '@/utils/validacao'
+import { cadastrarUsuario } from '@/services/api/conta.servico'
 
 const perfis = [
   { chave: 'comprador', rotulo: 'Quero comprar peças', destino: '/account' },
@@ -23,10 +24,11 @@ export default function FormCadastro({ tecnicas, territorios }: Props) {
   const roteador = useRouter()
   const [perfil, definirPerfil] = useState<Perfil>('comprador')
   const [erros, definirErros] = useState<Record<string, string>>({})
+  const [enviando, definirEnviando] = useState(false)
 
   const vendedor = perfil === 'artesao'
 
-  function cadastrar(evento: FormEvent<HTMLFormElement>) {
+  async function cadastrar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
     const dados = new FormData(evento.currentTarget)
     const proximosErros: Record<string, string> = {}
@@ -48,12 +50,28 @@ export default function FormCadastro({ tecnicas, territorios }: Props) {
       return
     }
 
+    definirEnviando(true)
+    const { dados: usuario, erro } = await cadastrarUsuario({
+      nome: String(dados.get('nome')),
+      email: String(dados.get('email')),
+      senha: String(dados.get('senha')),
+      perfil,
+      territorio: vendedor ? String(dados.get('territorio') ?? '') : undefined,
+      tecnica: vendedor ? String(dados.get('tecnica') ?? '') : undefined,
+    })
+    definirEnviando(false)
+    if (!usuario) {
+      avisar.erro('Não foi possível criar a conta', erro?.mensagem)
+      return
+    }
+
     const destino = perfis.find((p) => p.chave === perfil)!.destino
     avisar.sucesso(
       'Conta criada!',
       vendedor ? 'Seu ateliê já pode publicar a primeira peça.' : 'Boas compras: seu catálogo está liberado.',
     )
     roteador.push(destino)
+    roteador.refresh()
   }
 
   return (
@@ -123,8 +141,8 @@ export default function FormCadastro({ tecnicas, territorios }: Props) {
         </div>
       )}
 
-      <button type="submit" className="botao botao-primario botao-largo">
-        Criar minha conta
+      <button type="submit" className="botao botao-primario botao-largo" disabled={enviando}>
+        {enviando ? 'Criando conta…' : 'Criar minha conta'}
       </button>
 
       <p className="voltar-login">

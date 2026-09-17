@@ -46,6 +46,8 @@ Os mocks originais permanecem como fonte do seed, tipos, funções de apresenta�
 | `GET /videos`, `/videos/:id`, `/videos/:id/comentarios` | Feed e comentários; `?painel=true` inclui rascunhos |
 | `POST /videos`, `/videos/:id/comentarios` | Metadados de vídeos e comentários |
 | `GET /pedidos`, `/pedidos/:id`, `/pedidos/:id/conversa` | Pedidos e conversa isolada por pedido |
+| `POST /auth/cadastro`, `/auth/login`, `/auth/logout` | Cadastro, entrada e encerramento de sessão local por cookie |
+| `GET/PATCH /usuario` | Consulta e atualização do usuário autenticado |
 | `POST /checkout` | Recebe `itens: [{slug, quantidade}]`, `freteId`, `meio` e `endereco`; calcula total na API e gera ID |
 | `POST /pedidos/:id/conversa` | Mensagem com autor, texto e hora |
 | `POST /pedidos/:id/avaliacao` | Nota 1–5, comentário e aspectos; somente pedido entregue e não avaliado |
@@ -63,7 +65,7 @@ Os recursos do json-server também oferecem CRUD padrão. Nas coleções com slu
 
 Catálogo, busca, perfis, carrinho/favoritos (consulta de peças), agenda, checkout, pedidos, conversa do comprador, avaliações, mediações, curadoria, cadastro de peças e metadados/comentários de vídeos usam HTTP. Formulários preservam os dados quando a API falha; checkout só esvazia a sacola após a confirmação.
 
-O json-server é um simulador local, sem autenticação, autorização, cobrança, notificações reais ou upload de arquivos. O painel usa o artesão `mestre-nuca`; a compra usa o usuário de demonstração. Vídeos salvam metadados e capa de exemplo. Fotos de novas peças usam imagem de exemplo. Autenticação/recuperação de senha, configurações de conta/ateliê, endereços, perguntas públicas e alguns indicadores/ações ilustrativos do painel continuam simulados. Sacola, favoritos, tema e histórico de busca continuam no navegador conforme os stores existentes.
+O json-server é um simulador local, sem segurança de produção, autorização por papéis, cobrança, notificações reais ou upload de arquivos. Cadastro e login persistem usuários e sessões no `db.json`; o cookie é HTTP-only, mas a implementação não substitui um provedor de identidade real. O usuário de demonstração é `carlos@exemplo.com`, com senha `balaio123`. O painel usa o artesão `mestre-nuca`. Vídeos salvam metadados e capa de exemplo. Fotos de novas peças usam imagem de exemplo. Recuperação de senha, configurações do ateliê, endereços, perguntas públicas e alguns indicadores/ações ilustrativos do painel continuam simulados. Sacola, favoritos, tema e histórico de busca continuam no navegador conforme os stores existentes.
 
 O Dockerfile existente empacota somente o Next.js. Para usar esse frontend em contêiner, forneça uma API acessível e configure `API_URL` no build (rewrite) e na execução (SSR); a API de desenvolvimento não é incluída na imagem de produção.
 

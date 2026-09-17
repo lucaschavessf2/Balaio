@@ -3,6 +3,8 @@ import { Migalhas } from '@/components/ui/Basicos'
 import EnderecosEntrega from '@/components/forms/EnderecosEntrega'
 import MenuDrawer from '@/components/navegacao/MenuDrawer'
 import MenuConta from '@/components/conta/MenuConta'
+import { exigirUsuario } from '@/services/autenticacao'
+import { listarPedidos } from '@/services/api/pedidos.servico'
 
 const enderecos = [
   {
@@ -17,7 +19,8 @@ const enderecos = [
   },
 ]
 
-export default function EnderecosDaConta() {
+export default async function EnderecosDaConta() {
+  const [usuario, { dados: pedidos }] = await Promise.all([exigirUsuario(), listarPedidos()])
   return (
     <Pagina>
       <Migalhas
@@ -25,7 +28,7 @@ export default function EnderecosDaConta() {
       />
 
       <MenuDrawer titulo="Minha conta" rotulo="Minha conta">
-        <MenuConta ativo="enderecos" />
+        <MenuConta ativo="enderecos" usuario={usuario} totalPedidos={pedidos?.length ?? 0} />
       </MenuDrawer>
 
       <h1 className="titulo-pagina">Endereços de entrega</h1>

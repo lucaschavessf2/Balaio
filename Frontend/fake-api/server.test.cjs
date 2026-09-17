@@ -16,9 +16,12 @@ test('contrato HTTP, filtros, relações, CRUD e persistência', async (t) => {
     rmSync(pasta, { recursive: true, force: true })
   })
   const base = `http://127.0.0.1:${servidor.address().port}/api/v1`
-  const request = async (url, body, method = 'POST') => {
-    const res = await fetch(base + url, body === undefined ? undefined : { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-    return { status: res.status, ...await res.json() }
+  const request = async (url, body, method = 'POST', headers = {}) => {
+    const opcoes = body === undefined && Object.keys(headers).length === 0
+      ? undefined
+      : { method: body === undefined ? method : method, headers: { 'Content-Type': 'application/json', ...headers }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) }
+    const res = await fetch(base + url, opcoes)
+    return { status: res.status, cookie: res.headers.get('set-cookie'), ...await res.json() }
   }
   for (const recurso of ['pecas', 'artesaos', 'coletivos', 'eventos', 'videos', 'pedidos', 'artesao/conversas', 'artesao/pedidos-pendentes', 'admin/curadoria', 'admin/mediacoes']) {
     const res = await request('/' + recurso)
@@ -27,6 +30,22 @@ test('contrato HTTP, filtros, relações, CRUD e persistência', async (t) => {
     assert.ok(res.dados.length > 0, recurso)
   }
   assert.ok((await request('/referencias')).dados.tecnicas.length)
+  assert.equal((await request('/usuario')).status, 401)
+  assert.equal((await request('/auth/cadastro', { nome: '', email: 'invalido', senha: '123' })).status, 400)
+  const cadastro = await request('/auth/cadastro', { nome: 'Ally Show', email: 'ALLYSHOW@gmail.com', senha: 'senhaforte', perfil: 'comprador' })
+  assert.equal(cadastro.status, 201)
+  assert.equal(cadastro.dados.email, 'allyshow@gmail.com')
+  assert.ok(!('senhaHash' in cadastro.dados))
+  const cookie = cadastro.cookie.split(';')[0]
+  assert.equal((await request('/usuario', undefined, 'GET', { Cookie: cookie })).dados.nome, 'Ally Show')
+  assert.equal((await request('/usuario', { nome: 'Ally Atualizado', email: 'allyshow@gmail.com', telefone: '81999990000' }, 'PATCH', { Cookie: cookie })).dados.nome, 'Ally Atualizado')
+  assert.equal((await request('/auth/cadastro', { nome: 'Outro', email: 'allyshow@gmail.com', senha: 'senhaforte' })).status, 409)
+  assert.equal((await request('/auth/logout', {}, 'POST', { Cookie: cookie })).status, 200)
+  assert.equal((await request('/usuario', undefined, 'GET', { Cookie: cookie })).status, 401)
+  assert.equal((await request('/auth/login', { email: 'allyshow@gmail.com', senha: 'errada' })).status, 401)
+  const login = await request('/auth/login', { email: 'allyshow@gmail.com', senha: 'senhaforte' })
+  assert.equal(login.status, 200)
+  assert.ok(login.cookie)
   const todas = await request('/pecas')
   const pagina = await request('/pecas?pagina=2&tamanho=3&ordenar=preco-asc')
   assert.equal(pagina.dados.length, 3)
@@ -60,6 +79,8 @@ test('contrato HTTP, filtros, relações, CRUD e persistência', async (t) => {
   assert.equal((await request(`/pedidos/${pedido.dados.id}/conversa`)).dados.length, 1)
   assert.equal((await request('/pedidos/PE-2026-8720/conversa')).dados.length, 0)
   const disco = JSON.parse(readFileSync(arquivo, 'utf8'))
+  assert.ok(disco.usuarios.some((usuario) => usuario.email === 'allyshow@gmail.com' && usuario.senhaHash))
+  assert.ok(!disco.usuarios.some((usuario) => 'senha' in usuario))
   assert.ok(disco.pedidos.some((p) => p.id === pedido.dados.id))
   assert.equal(disco.eventos.find((e) => e.slug === 'evento-teste').nome, 'Atualizado')
   assert.equal((await request('/eventos/evento-teste', {}, 'DELETE')).status, 200)

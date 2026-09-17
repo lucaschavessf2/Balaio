@@ -1,8 +1,14 @@
 
 export type Usuario = {
+  id?: string
   nome: string
   email: string
   imagem: string
+  perfil?: 'comprador' | 'artesao'
+  telefone?: string
+  tipoComprador?: string
+  territorio?: string
+  tecnica?: string
 }
 
 export const usuarioAtual: Usuario = {

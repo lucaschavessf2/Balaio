@@ -6,12 +6,14 @@ import { useState, type FormEvent } from 'react'
 import { Campo } from '@/components/ui/Basicos'
 import { avisar } from '@/components/feedback/Avisos'
 import { validarEmail, validarObrigatorio } from '@/utils/validacao'
+import { entrar as entrarNaConta } from '@/services/api/conta.servico'
 
 export default function FormEntrar() {
   const roteador = useRouter()
   const [erros, definirErros] = useState<Record<string, string>>({})
+  const [enviando, definirEnviando] = useState(false)
 
-  function entrar(evento: FormEvent<HTMLFormElement>) {
+  async function entrar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
     const dados = new FormData(evento.currentTarget)
     const proximosErros: Record<string, string> = {}
@@ -30,8 +32,19 @@ export default function FormEntrar() {
       return
     }
 
-    avisar.sucesso('Bem-vindo de volta!', 'Entrando com o perfil de demonstração de comprador.')
-    roteador.push('/account')
+    definirEnviando(true)
+    const { dados: usuario, erro } = await entrarNaConta({
+      email: String(dados.get('email')),
+      senha: String(dados.get('senha')),
+    })
+    definirEnviando(false)
+    if (!usuario) {
+      avisar.erro('Não foi possível entrar', erro?.mensagem)
+      return
+    }
+    avisar.sucesso('Bem-vindo de volta!', `Olá, ${usuario.nome}.`)
+    roteador.push(usuario.perfil === 'artesao' ? '/dashboard' : '/account')
+    roteador.refresh()
   }
 
   return (
@@ -44,8 +57,8 @@ export default function FormEntrar() {
         <input id="senha" name="senha" type="password" autoComplete="current-password" enterKeyHint="go" />
       </Campo>
 
-      <button type="submit" className="botao botao-primario botao-largo">
-        Entrar
+      <button type="submit" className="botao botao-primario botao-largo" disabled={enviando}>
+        {enviando ? 'Entrando…' : 'Entrar'}
       </button>
 
       <p style={{ textAlign: 'center', marginTop: 14 }}>

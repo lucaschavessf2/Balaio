@@ -1,12 +1,28 @@
 const jsonServer = require('json-server')
 const { existsSync, copyFileSync } = require('node:fs')
 const path = require('node:path')
-const { randomUUID } = require('node:crypto')
+const { randomBytes, randomUUID, scryptSync, timingSafeEqual } = require('node:crypto')
 
 const ok = (dados, paginacao) => ({ dados, erro: null, ...(paginacao ? { paginacao } : {}) })
-const erro = (res, status, mensagem) => res.status(status).json({ dados: null, erro: { codigo: status === 404 ? 'RECURSO_NAO_ENCONTRADO' : 'REQUISICAO_INVALIDA', mensagem } })
+const erro = (res, status, mensagem, codigo) => res.status(status).json({ dados: null, erro: { codigo: codigo ?? (status === 404 ? 'RECURSO_NAO_ENCONTRADO' : 'REQUISICAO_INVALIDA'), mensagem } })
 const normalizar = (texto) => String(texto).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 const preco = (peca) => peca.preco * (1 - (peca.desconto || 0) / 100)
+const COOKIE_SESSAO = 'balaio_sessao'
+const emailValido = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+const senhaProtegida = (senha, sal = randomBytes(16).toString('hex')) => ({ sal, hash: scryptSync(senha, sal, 64).toString('hex') })
+const senhaConfere = (senha, usuario) => {
+  if (!usuario.senhaSal || !usuario.senhaHash) return false
+  const esperado = Buffer.from(usuario.senhaHash, 'hex')
+  const recebido = scryptSync(senha, usuario.senhaSal, 64)
+  return esperado.length === recebido.length && timingSafeEqual(esperado, recebido)
+}
+const usuarioPublico = (usuario) => {
+  const publico = { ...usuario }
+  delete publico.senhaHash
+  delete publico.senhaSal
+  return publico
+}
+const cookies = (req) => Object.fromEntries(String(req.headers.cookie || '').split(';').map((item) => item.trim().split('=').map(decodeURIComponent)).filter(([chave]) => chave))
 
 function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
   if (!existsSync(arquivo)) copyFileSync(path.join(__dirname, 'seed.json'), arquivo)
@@ -18,6 +34,87 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
   const ler = (nome) => db.get(nome).value()
   const encontrar = (nome, id) => ler(nome).find((item) => item.id === id)
   const inserir = (nome, item) => { db.get(nome).push(item).write(); return item }
+
+  if (!db.has('usuarios').value()) db.set('usuarios', []).write()
+  if (!db.has('sessoes').value()) db.set('sessoes', []).write()
+  const demonstracao = ler('usuario')
+  if (demonstracao?.email && !ler('usuarios').some((usuario) => usuario.email === demonstracao.email.toLowerCase())) {
+    const senha = senhaProtegida('balaio123')
+    inserir('usuarios', { id: randomUUID(), ...demonstracao, email: demonstracao.email.toLowerCase(), perfil: 'comprador', senhaSal: senha.sal, senhaHash: senha.hash })
+  }
+
+  const tokenDaRequisicao = (req) => {
+    const autorizacao = req.headers.authorization
+    if (autorizacao?.startsWith('Bearer ')) return autorizacao.slice(7)
+    return cookies(req)[COOKIE_SESSAO]
+  }
+  const usuarioDaRequisicao = (req) => {
+    const sessao = ler('sessoes').find((item) => item.id === tokenDaRequisicao(req))
+    return sessao ? encontrar('usuarios', sessao.usuarioId) : null
+  }
+  const abrirSessao = (res, usuario) => {
+    const sessao = { id: randomBytes(32).toString('hex'), usuarioId: usuario.id, criadaEm: new Date().toISOString() }
+    inserir('sessoes', sessao)
+    res.cookie(COOKIE_SESSAO, sessao.id, { httpOnly: true, sameSite: 'lax', maxAge: 7 * 24 * 60 * 60 * 1000, path: '/' })
+  }
+  const exigirUsuario = (req, res) => {
+    const usuario = usuarioDaRequisicao(req)
+    if (!usuario) erro(res, 401, 'Entre na sua conta para continuar.', 'NAO_AUTENTICADO')
+    return usuario
+  }
+
+  server.post('/api/v1/auth/cadastro', (req, res) => {
+    const nome = String(req.body.nome || '').trim()
+    const email = String(req.body.email || '').trim().toLowerCase()
+    const senhaInformada = String(req.body.senha || '')
+    const perfil = req.body.perfil === 'artesao' ? 'artesao' : 'comprador'
+    if (!nome || !emailValido(email) || senhaInformada.length < 8) return erro(res, 400, 'Informe nome, e-mail válido e senha com pelo menos 8 caracteres.')
+    if (ler('usuarios').some((usuario) => usuario.email === email)) return erro(res, 409, 'Já existe uma conta com este e-mail.', 'EMAIL_EM_USO')
+    const senha = senhaProtegida(senhaInformada)
+    const usuario = {
+      id: randomUUID(), nome, email, perfil, imagem: '/fotos/jarra-cabocla.svg',
+      ...(perfil === 'artesao' ? { territorio: String(req.body.territorio || ''), tecnica: String(req.body.tecnica || '') } : {}),
+      senhaSal: senha.sal, senhaHash: senha.hash,
+    }
+    inserir('usuarios', usuario)
+    db.set('usuario', usuarioPublico(usuario)).write()
+    abrirSessao(res, usuario)
+    res.status(201).json(ok(usuarioPublico(usuario)))
+  })
+
+  server.post('/api/v1/auth/login', (req, res) => {
+    const email = String(req.body.email || '').trim().toLowerCase()
+    const usuario = ler('usuarios').find((item) => item.email === email)
+    if (!usuario || !senhaConfere(String(req.body.senha || ''), usuario)) return erro(res, 401, 'E-mail ou senha inválidos.', 'CREDENCIAIS_INVALIDAS')
+    abrirSessao(res, usuario)
+    res.json(ok(usuarioPublico(usuario)))
+  })
+
+  server.post('/api/v1/auth/logout', (req, res) => {
+    const token = tokenDaRequisicao(req)
+    if (token) db.get('sessoes').remove({ id: token }).write()
+    res.clearCookie(COOKIE_SESSAO, { path: '/' })
+    res.json(ok({ encerrada: true }))
+  })
+
+  server.get('/api/v1/usuario', (req, res) => {
+    const usuario = exigirUsuario(req, res)
+    if (usuario) res.json(ok(usuarioPublico(usuario)))
+  })
+
+  server.patch('/api/v1/usuario', (req, res) => {
+    const usuario = exigirUsuario(req, res)
+    if (!usuario) return
+    const nome = String(req.body.nome ?? usuario.nome).trim()
+    const email = String(req.body.email ?? usuario.email).trim().toLowerCase()
+    if (!nome || !emailValido(email)) return erro(res, 400, 'Informe um nome e um e-mail válido.')
+    if (ler('usuarios').some((item) => item.id !== usuario.id && item.email === email)) return erro(res, 409, 'Já existe uma conta com este e-mail.', 'EMAIL_EM_USO')
+    const alteracoes = { nome, email, telefone: String(req.body.telefone ?? usuario.telefone ?? '').trim(), tipoComprador: String(req.body.tipoComprador ?? usuario.tipoComprador ?? 'final') }
+    db.get('usuarios').find({ id: usuario.id }).assign(alteracoes).write()
+    const atualizado = encontrar('usuarios', usuario.id)
+    db.set('usuario', usuarioPublico(atualizado)).write()
+    res.json(ok(usuarioPublico(atualizado)))
+  })
 
   server.get('/api/v1/eventos', (req, res) => {
     const lista = [...ler('eventos')]
@@ -104,7 +201,7 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
     }
     const pedido = {
       id: `PE-${Date.now()}-${randomUUID().slice(0, 8)}`, pecaSlug: itens[0].slug, itens,
-      compradorNome: ler('usuario').nome, data: new Date().toLocaleDateString('pt-BR'),
+      compradorNome: (usuarioDaRequisicao(req) ?? ler('usuario')).nome, data: new Date().toLocaleDateString('pt-BR'),
       total: Math.round((subtotal + frete.valor) * 100) / 100, estado: 'confirmado', avaliado: false,
       endereco, meio, freteId, simulado: true,
       etapas: [{ estado: 'confirmado', titulo: 'Pedido confirmado', detalhe: 'Compra de demonstração registrada.', concluida: true, atual: true }],

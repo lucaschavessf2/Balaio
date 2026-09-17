@@ -1272,6 +1272,8 @@
     "email": "carlos@exemplo.com",
     "imagem": "/fotos/jarra-cabocla.svg"
   },
+  "usuarios": [],
+  "sessoes": [],
   "fretes": [
     {
       "id": "padrao",
