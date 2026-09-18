@@ -5,7 +5,7 @@ import { criarPeca } from '@/services/api/pecas.servico'
 import { gerarSlugEvento } from '@/components/eventos/eventosLocais'
 import type { Tecnica } from '@/types/dominio'
 import type { TipoPeca } from '@/constants/referencias'
-import { useRef, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent, type DragEvent, type FormEvent } from 'react'
 import LayoutPainel from '@/components/painel/LayoutPainel'
 import { Campo, Migalhas } from '@/components/ui/Basicos'
 import { avisar } from '@/components/feedback/Avisos'
@@ -18,6 +18,27 @@ import { type Disponibilidade } from '@/types/dominio'
 import { emReais } from '@/utils/formato'
 
 const sugestao = { materiais: 180, horas: 14, valorHora: 22 }
+const MAX_FOTOS = 5
+const MAX_TAMANHO_ARQUIVO_MB = 5
+
+type FotoSelecionada = {
+  id: string
+  nome: string
+  url: string
+  arquivo: File
+}
+
+function lerImagem(arquivo: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const leitor = new FileReader()
+    leitor.onload = () => typeof leitor.result === 'string'
+      ? resolve(leitor.result)
+      : reject(new Error('Não foi possível ler a imagem.'))
+    leitor.onerror = () => reject(new Error('Não foi possível ler a imagem.'))
+    leitor.onabort = () => reject(new Error('Leitura cancelada.'))
+    leitor.readAsDataURL(arquivo)
+  })
+}
 
 export default function NovaPeca() {
   const roteador = useRouter()
@@ -26,8 +47,33 @@ export default function NovaPeca() {
   const { tecnicas, territorios, categorias, tipos, carregando } = useReferencias()
   const [disponibilidade, definirDisponibilidade] = useState<Disponibilidade>('disponivel')
   const [erros, definirErros] = useState<Record<string, string>>({})
-  const [fotos, definirFotos] = useState(0)
+  const [fotosSelecionadas, definirFotosSelecionadas] = useState<FotoSelecionada[]>([])
   const formulario = useRef<HTMLFormElement>(null)
+  const entradaFotos = useRef<HTMLInputElement>(null)
+  const fotosAtuais = useRef<FotoSelecionada[]>([])
+  const urlsLocais = useRef(new Set<string>())
+  const envioEmAndamento = useRef(false)
+  const profundidadeArraste = useRef(0)
+  const [arrastando, definirArrastando] = useState(false)
+  const [erroFotos, definirErroFotos] = useState('')
+
+  useEffect(() => {
+    const urls = urlsLocais.current
+    // Evita que soltar um arquivo fora do campo abra a imagem e perca o formulário.
+    function impedirNavegacao(evento: globalThis.DragEvent) {
+      if (Array.from(evento.dataTransfer?.types ?? []).includes('Files')) {
+        evento.preventDefault()
+      }
+    }
+    window.addEventListener('dragover', impedirNavegacao)
+    window.addEventListener('drop', impedirNavegacao)
+    return () => {
+      window.removeEventListener('dragover', impedirNavegacao)
+      window.removeEventListener('drop', impedirNavegacao)
+      urls.forEach((url) => URL.revokeObjectURL(url))
+      urls.clear()
+    }
+  }, [])
   const precoSugerido = sugestao.materiais + sugestao.horas * sugestao.valorHora
 
   if (carregando) {
@@ -75,31 +121,129 @@ export default function NovaPeca() {
     return true
   }
 
+  function atualizarFotos(fotos: FotoSelecionada[]) {
+    fotosAtuais.current = fotos
+    definirFotosSelecionadas(fotos)
+  }
+
+  function liberarMiniatura(url: string) {
+    URL.revokeObjectURL(url)
+    urlsLocais.current.delete(url)
+  }
+
   function limparFormulario() {
     formulario.current?.reset()
     definirDisponibilidade('disponivel')
-    definirFotos(0)
+    fotosAtuais.current.forEach((foto) => liberarMiniatura(foto.url))
+    atualizarFotos([])
+    definirErroFotos('')
+    definirErros({})
+  }
+
+  function moverFoto(indice: number, direcao: -1 | 1) {
+    if (envioEmAndamento.current) return
+    const novas = [...fotosAtuais.current]
+    const alvo = indice + direcao
+    if (!novas[indice] || alvo < 0 || alvo >= novas.length) return
+    ;[novas[indice], novas[alvo]] = [novas[alvo], novas[indice]]
+    atualizarFotos(novas)
+  }
+
+  function removerFoto(id: string) {
+    if (envioEmAndamento.current) return
+    const foto = fotosAtuais.current.find((item) => item.id === id)
+    if (!foto) return
+    atualizarFotos(fotosAtuais.current.filter((item) => item.id !== id))
+    liberarMiniatura(foto.url)
+    definirErroFotos('')
+  }
+
+  // O seletor e o arrastar/soltar usam exatamente as mesmas validações.
+  function adicionarFotos(arquivos: File[]) {
+    if (envioEmAndamento.current || !arquivos.length) return
+    definirErroFotos('')
+    let erro = ''
+    if (fotosAtuais.current.length + arquivos.length > MAX_FOTOS) {
+      erro = `Você pode adicionar até ${MAX_FOTOS} fotos. Já selecionou ${fotosAtuais.current.length}.`
+    } else {
+      const invalido = arquivos.find((arquivo) => !arquivo.type.startsWith('image/'))
+      const grande = arquivos.find((arquivo) => arquivo.size > MAX_TAMANHO_ARQUIVO_MB * 1024 * 1024)
+      const vazio = arquivos.find((arquivo) => arquivo.size === 0)
+      if (invalido) erro = `O arquivo "${invalido.name}" não é uma imagem aceita.`
+      else if (grande) erro = `O arquivo "${grande.name}" excede o limite de ${MAX_TAMANHO_ARQUIVO_MB} MB.`
+      else if (vazio) erro = `O arquivo "${vazio.name}" está vazio.`
+    }
+    if (erro) {
+      definirErroFotos(erro)
+      avisar.erro(erro)
+      return
+    }
+    const novas = arquivos.map((arquivo) => {
+      const url = URL.createObjectURL(arquivo)
+      urlsLocais.current.add(url)
+      return { id: crypto.randomUUID(), nome: arquivo.name, url, arquivo }
+    })
+    atualizarFotos([...fotosAtuais.current, ...novas])
+    avisar.sucesso(`${novas.length} ${novas.length === 1 ? 'foto adicionada' : 'fotos adicionadas'}`)
+  }
+
+  function selecionarFotos(evento: ChangeEvent<HTMLInputElement>) {
+    const arquivos = Array.from(evento.currentTarget.files ?? [])
+    // O input fica disponível inclusive para selecionar novamente o mesmo arquivo.
+    evento.currentTarget.value = ''
+    adicionarFotos(arquivos)
+  }
+
+  function receberFotosArrastadas(evento: DragEvent<HTMLDivElement>) {
+    evento.preventDefault()
+    evento.stopPropagation()
+    profundidadeArraste.current = 0
+    definirArrastando(false)
+    if (envioEmAndamento.current) return
+    const arquivos = Array.from(evento.dataTransfer.files)
+    if (!arquivos.length) {
+      definirErroFotos('Arraste arquivos de imagem do seu computador. Links de imagens não são aceitos.')
+      return
+    }
+    adicionarFotos(arquivos)
   }
 
   async function salvar(rascunho: boolean) {
-    if (salvando || !validar(rascunho) || !sessao?.artesao) return
+    if (envioEmAndamento.current || !validar(rascunho) || !sessao?.artesao) return
     const dados = new FormData(formulario.current!)
+    envioEmAndamento.current = true
     definirSalvando(true)
-    const resposta = await criarPeca({
-      slug: gerarSlugEvento(String(dados.get('nome'))), nome: String(dados.get('nome')).trim(),
-      artesao: sessao.artesao, tecnica: String(dados.get('tecnica')) as Tecnica,
-      territorio: String(dados.get('territorio')), categoria: String(dados.get('categoria')),
-      tipo: String(dados.get('tipo')) as TipoPeca,
-      historia: [String(dados.get('historia') || '')],
-      preco: Number(String(dados.get('preco') || '0').replace(/\./g, '').replace(',', '.')) || 0,
-      disponibilidade, prazoProducaoDias: disponibilidade === 'encomenda' ? Number(dados.get('prazo')) : undefined,
-      imagem: '/fotos/ImagemBase.webp', situacao: rascunho ? 'rascunho' : 'curadoria',
-    })
-    definirSalvando(false)
-    if (resposta.erro) { avisar.erro('Não foi possível salvar', resposta.erro.mensagem); return }
-    limparFormulario()
-    avisar.sucesso(rascunho ? 'Rascunho salvo' : 'Peça enviada para curadoria')
-    roteador.refresh()
+    try {
+      // blob: é usado só nas miniaturas. A fake API recebe imagens serializáveis.
+      const fotosParaEnviar = await Promise.all(fotosAtuais.current.map(async (foto, indice) => ({
+        id: foto.id,
+        nome: foto.nome,
+        url: await lerImagem(foto.arquivo),
+        ordem: indice,
+      })))
+      const resposta = await criarPeca({
+        slug: gerarSlugEvento(String(dados.get('nome'))), nome: String(dados.get('nome')).trim(),
+        artesao: sessao.artesao, tecnica: String(dados.get('tecnica')) as Tecnica,
+        territorio: String(dados.get('territorio')), categoria: String(dados.get('categoria')),
+        tipo: String(dados.get('tipo')) as TipoPeca,
+        historia: [String(dados.get('historia') || '')],
+        preco: Number(String(dados.get('preco') || '0').replace(/\./g, '').replace(',', '.')) || 0,
+        disponibilidade, prazoProducaoDias: disponibilidade === 'encomenda' ? Number(dados.get('prazo')) : undefined,
+        imagem: fotosParaEnviar[0]?.url ?? '/fotos/ImagemBase.webp',
+        fotos: fotosParaEnviar,
+        ordemFotos: fotosParaEnviar.map((foto) => foto.id),
+        situacao: rascunho ? 'rascunho' : 'curadoria',
+      })
+      if (resposta.erro) { avisar.erro('Não foi possível salvar', resposta.erro.mensagem); return }
+      limparFormulario()
+      avisar.sucesso(rascunho ? 'Rascunho salvo' : 'Peça enviada para curadoria')
+      roteador.refresh()
+    } catch {
+      avisar.erro('Não foi possível salvar', 'Confira a conexão e tente novamente. Suas fotos foram mantidas.')
+    } finally {
+      envioEmAndamento.current = false
+      definirSalvando(false)
+    }
   }
   function enviarParaCuradoria(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
@@ -177,31 +321,135 @@ export default function NovaPeca() {
           </section>
 
           <section className="cartao abaixo-5">
-            <p className="campo-ajuda">Na demonstração, a peça usa uma imagem de exemplo; arquivos não são enviados.</p>
             <h2 className="secao-titulo">Fotos</h2>
-            <label className="area-upload" style={{ display: 'block', cursor: 'pointer' }}>
-              <span className="estado-vazio-icone" style={{ width: 64, height: 64, marginBottom: 12 }}>
-                <IconePincel tamanho={26} />
-              </span>
-              <span style={{ display: 'block', fontWeight: 600, color: 'var(--tinta)' }}>
-                {fotos > 0 ? `${fotos} ${fotos === 1 ? 'foto escolhida' : 'fotos escolhidas'}` : 'Toque para escolher as fotos'}
-              </span>
-              <span className="campo-ajuda">
-                Use luz do dia e fundo simples. A primeira foto é a que aparece no catálogo.
-              </span>
+            <div
+              className="area-upload"
+              style={{
+                display: 'block', padding: 16,
+                outline: arrastando ? '2px solid var(--tinta)' : undefined,
+                outlineOffset: 3,
+              }}
+              onDragEnter={(evento) => {
+                evento.preventDefault()
+                if (envioEmAndamento.current || !Array.from(evento.dataTransfer.types).includes('Files')) return
+                profundidadeArraste.current += 1
+                definirArrastando(true)
+              }}
+              onDragOver={(evento) => {
+                evento.preventDefault()
+                evento.dataTransfer.dropEffect = salvando ? 'none' : 'copy'
+              }}
+              onDragLeave={(evento) => {
+                evento.preventDefault()
+                profundidadeArraste.current = Math.max(0, profundidadeArraste.current - 1)
+                if (profundidadeArraste.current === 0) definirArrastando(false)
+              }}
+              onDrop={receberFotosArrastadas}
+              aria-busy={salvando}
+            >
+              <IconePincel tamanho={26} />
+              <p style={{ fontWeight: 600 }} aria-live="polite">
+                {arrastando ? 'Solte as imagens aqui' : `${fotosSelecionadas.length} de ${MAX_FOTOS} fotos selecionadas`}
+              </p>
+              <p id="ajuda-fotos" className="campo-ajuda">
+                Arraste imagens do seu computador ou use o botão abaixo.
+                Até {MAX_FOTOS} fotos de {MAX_TAMANHO_ARQUIVO_MB} MB cada.
+                A primeira foto será a capa. Use as setas para ordenar.
+              </p>
               <input
+                ref={entradaFotos}
                 type="file"
                 accept="image/*"
                 multiple
-                className="so-leitor"
-                onChange={(evento) => {
-                  const quantidade = evento.target.files?.length ?? 0
-                  definirFotos(quantidade)
-                  if (quantidade > 0)
-                    avisar.sucesso(`${quantidade} ${quantidade === 1 ? 'foto adicionada' : 'fotos adicionadas'}`)
-                }}
+                hidden
+                disabled={salvando}
+                onChange={selecionarFotos}
               />
-            </label>
+              <button
+                type="button"
+                className="botao botao-fantasma"
+                onClick={() => entradaFotos.current?.click()}
+                disabled={salvando}
+                aria-describedby={erroFotos ? 'ajuda-fotos erro-fotos' : 'ajuda-fotos'}
+              >
+                {fotosSelecionadas.length ? 'Adicionar mais fotos' : 'Escolher fotos'}
+              </button>
+              {erroFotos && <p id="erro-fotos" role="alert" style={{ color: '#b91c1c' }}>{erroFotos}</p>}
+              {fotosSelecionadas.length > 0 && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 12, marginTop: 16 }}>
+                  {fotosSelecionadas.map((foto, indice) => (
+                    <div key={foto.id} style={{ background: '#fff', borderRadius: 12, border: '1px solid rgba(15, 23, 42, 0.12)', padding: 8, minWidth: 0 }}>
+                      <img
+                        src={foto.url}
+                        alt={`Foto ${indice + 1}: ${foto.nome}`}
+                        draggable={false}
+                        style={{ width: '100%', height: 100, objectFit: 'cover', borderRadius: 8 }}
+                      />
+                      <p title={foto.nome} style={{ fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{foto.nome}</p>
+                      <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                        <button
+                          type="button"
+                          className="botao botao-fantasma"
+                          aria-label={`Mover foto ${indice + 1} para antes`}
+                          onClick={() => moverFoto(indice, -1)}
+                          disabled={salvando || indice === 0}
+                          style={{
+                            flex: 1,
+                            minWidth: 0,
+                            padding: '0.5rem 0.75rem',
+                            fontSize: 12,
+                            lineHeight: 1,
+                            borderRadius: 999,
+                            justifyContent: 'center',
+                          }}
+                        >
+                          ←
+                        </button>
+                        <button
+                          type="button"
+                          className="botao botao-fantasma"
+                          aria-label={`Mover foto ${indice + 1} para depois`}
+                          onClick={() => moverFoto(indice, 1)}
+                          disabled={salvando || indice === fotosSelecionadas.length - 1}
+                          style={{
+                            flex: 1,
+                            minWidth: 0,
+                            padding: '0.5rem 0.75rem',
+                            fontSize: 12,
+                            lineHeight: 1,
+                            borderRadius: 999,
+                            justifyContent: 'center',
+                          }}
+                        >
+                          →
+                        </button>
+                        <button
+                          type="button"
+                          className="botao botao-fantasma"
+                          aria-label={`Remover foto ${indice + 1}`}
+                          onClick={() => removerFoto(foto.id)}
+                          disabled={salvando}
+                          style={{
+                            flex: 1,
+                            minWidth: 0,
+                            padding: '0.5rem 0.75rem',
+                            fontSize: 12,
+                            lineHeight: 1,
+                            borderRadius: 999,
+                            justifyContent: 'center',
+                            color: '#b91c1c',
+                            borderColor: 'rgba(185, 28, 28, 0.4)',
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      <span style={{ display: 'block', fontSize: 12, marginTop: 8 }}>{indice === 0 ? '1 — Capa' : `${indice + 1}`}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </section>
 
           <section className="cartao">

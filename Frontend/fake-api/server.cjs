@@ -1,4 +1,5 @@
 const jsonServer = require('json-server')
+const bodyParser = require('body-parser')
 const { existsSync, copyFileSync, readFileSync } = require('node:fs')
 const path = require('node:path')
 const { randomUUID } = require('node:crypto')
@@ -47,6 +48,7 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
   }
   db.write()
   server.use(jsonServer.defaults({ static: path.join(__dirname, '../public'), logger: process.env.NODE_ENV !== 'test' }))
+  server.post('/api/v1/pecas', bodyParser.json({ limit: '45mb' }))
   server.use(jsonServer.bodyParser)
   const ler = (nome) => db.get(nome).value()
   const encontrar = (nome, id) => ler(nome).find((item) => item.id === id)

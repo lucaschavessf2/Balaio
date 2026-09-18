@@ -82,7 +82,13 @@ export default async function DetalhePeca({ params }: { params: Promise<{ slug: 
 
       <div className="duas-colunas">
         <div>
-          <GaleriaPeca imagem={peca.imagem} nome={peca.nome} desconto={peca.desconto} />
+          <GaleriaPeca
+            imagem={peca.imagem}
+            fotos={peca.fotos}
+            ordemFotos={peca.ordemFotos}
+            nome={peca.nome}
+            desconto={peca.desconto}
+          />
         </div>
 
         <div className="coluna-compra">
