@@ -5,11 +5,13 @@ import PedidosPendentes from '@/components/pedido/PedidosPendentes'
 import { IconeSetaDireita } from '@/components/ui/Icones'
 import { listarPedidosPendentes, listarConversasArtesao } from '@/services/api/pedidos.servico'
 import { listarPecas } from '@/services/api/pecas.servico'
+import { exigirArtesao } from '@/services/sessao/servidor'
 
 export default async function Painel() {
+  const { artesao } = await exigirArtesao()
   const [{ dados: pend }, { dados: conversas }, { dados: pecas }] = await Promise.all([
-    listarPedidosPendentes(),
-    listarConversasArtesao(),
+    listarPedidosPendentes(artesao),
+    listarConversasArtesao(artesao),
     listarPecas(),
   ])
   const mapaPecas = new Map((pecas ?? []).map((p) => [p.slug, p]))

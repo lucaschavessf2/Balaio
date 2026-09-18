@@ -1,18 +1,20 @@
 'use client'
 
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, type FormEvent } from 'react'
 import { Campo } from '@/components/ui/Basicos'
 import { avisar } from '@/components/feedback/Avisos'
+import { IconeAviso, IconeCadeado } from '@/components/ui/Icones'
+import { cadastrar, type PapelCadastro } from '@/services/api/auth.servico'
+import { destinoInicial } from '@/services/sessao/cookie'
+import { useSessao } from '@/store/sessao'
+import SeletorComOutro from '@/components/forms/SeletorComOutro'
 import { validarEmail, validarObrigatorio, validarSenha } from '@/utils/validacao'
 
-const perfis = [
-  { chave: 'comprador', rotulo: 'Quero comprar peças', destino: '/account' },
-  { chave: 'artesao', rotulo: 'Quero vender o que eu faço', destino: '/dashboard' },
-] as const
-
-type Perfil = (typeof perfis)[number]['chave']
+const perfis: { chave: PapelCadastro; rotulo: string }[] = [
+  { chave: 'comprador', rotulo: 'Quero comprar peças' },
+  { chave: 'artesao', rotulo: 'Quero vender o que eu faço' },
+]
 
 type Props = {
   tecnicas: string[]
@@ -21,13 +23,17 @@ type Props = {
 
 export default function FormCadastro({ tecnicas, territorios }: Props) {
   const roteador = useRouter()
-  const [perfil, definirPerfil] = useState<Perfil>('comprador')
+  const { iniciarSessao } = useSessao()
+  const [perfil, definirPerfil] = useState<PapelCadastro>('comprador')
   const [erros, definirErros] = useState<Record<string, string>>({})
+  const [erroEnvio, definirErroEnvio] = useState<string | null>(null)
+  const [enviando, definirEnviando] = useState(false)
 
   const vendedor = perfil === 'artesao'
 
-  function cadastrar(evento: FormEvent<HTMLFormElement>) {
+  async function aoEnviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
+    if (enviando) return
     const dados = new FormData(evento.currentTarget)
     const proximosErros: Record<string, string> = {}
 
@@ -41,6 +47,7 @@ export default function FormCadastro({ tecnicas, territorios }: Props) {
     if (problemaSenha) proximosErros['cadastro-senha'] = problemaSenha
 
     definirErros(proximosErros)
+    definirErroEnvio(null)
     const primeiro = Object.keys(proximosErros)[0]
     if (primeiro) {
       document.getElementById(primeiro)?.focus()
@@ -48,16 +55,45 @@ export default function FormCadastro({ tecnicas, territorios }: Props) {
       return
     }
 
-    const destino = perfis.find((p) => p.chave === perfil)!.destino
+    definirEnviando(true)
+    const { dados: usuario, erro } = await cadastrar({
+      nome: String(dados.get('nome')).trim(),
+      email: String(dados.get('email')).trim(),
+      senha: String(dados.get('senha')),
+      papel: perfil,
+      territorio: vendedor ? String(dados.get('territorio') ?? '') : undefined,
+      tecnica: vendedor ? String(dados.get('tecnica') ?? '') : undefined,
+    })
+    definirEnviando(false)
+
+    if (!usuario) {
+      if (erro?.codigo === 'EMAIL_EM_USO') {
+        definirErros({ 'cadastro-email': erro.mensagem })
+        document.getElementById('cadastro-email')?.focus()
+        return
+      }
+      definirErroEnvio(erro?.mensagem ?? 'Não foi possível criar a conta agora.')
+      return
+    }
+
+    iniciarSessao(usuario)
     avisar.sucesso(
       'Conta criada!',
       vendedor ? 'Seu ateliê já pode publicar a primeira peça.' : 'Boas compras: seu catálogo está liberado.',
     )
-    roteador.push(destino)
+    roteador.push(destinoInicial(usuario))
+    roteador.refresh()
   }
 
   return (
-    <form className="cartao" onSubmit={cadastrar} noValidate>
+    <form className="cartao" onSubmit={aoEnviar} noValidate>
+      {erroEnvio && (
+        <p className="auth-erro" role="alert">
+          <IconeAviso tamanho={18} />
+          <span>{erroEnvio}</span>
+        </p>
+      )}
+
       <fieldset className="campo">
         <legend className="campo-rotulo">Você vem para</legend>
         <div className="lista-radios">
@@ -100,36 +136,50 @@ export default function FormCadastro({ tecnicas, territorios }: Props) {
       </Campo>
 
       {vendedor && (
-        <div className="grade-dois">
-          <Campo
-            rotulo="Seu território"
-            ajuda="Aparece na peça e na busca por região."
-            id="cadastro-territorio"
-          >
-            <select id="cadastro-territorio" name="territorio" defaultValue={territorios[0]}>
-              {territorios.map((t) => (
-                <option key={t}>{t}</option>
-              ))}
-            </select>
-          </Campo>
+        <>
+          <div className="grade-dois">
+            <Campo
+              rotulo="Seu território"
+              ajuda="Aparece na peça e na busca por região."
+              id="cadastro-territorio"
+            >
+              <SeletorComOutro
+                id="cadastro-territorio"
+                name="territorio"
+                opcoes={territorios}
+                rotuloOutro="Outro território…"
+                tituloModal="Qual é o seu território?"
+                ajudaModal="Nome da cidade ou região onde fica o seu ateliê"
+                exemploModal="Ex.: Bezerros, Agreste"
+              />
+            </Campo>
 
-          <Campo rotulo="Sua técnica principal" ajuda="Dá para acrescentar outras depois." id="cadastro-tecnica">
-            <select id="cadastro-tecnica" name="tecnica" defaultValue={tecnicas[0]}>
-              {tecnicas.map((t) => (
-                <option key={t}>{t}</option>
-              ))}
-            </select>
-          </Campo>
-        </div>
+            <Campo rotulo="Sua técnica principal" ajuda="Dá para acrescentar outras depois." id="cadastro-tecnica">
+              <SeletorComOutro
+                id="cadastro-tecnica"
+                name="tecnica"
+                opcoes={tecnicas}
+                rotuloOutro="Outra técnica…"
+                tituloModal="Qual é a sua técnica?"
+                ajudaModal="Como você chama o que faz"
+                exemploModal="Ex.: Trançado de palha"
+              />
+            </Campo>
+          </div>
+
+          <p className="aviso auth-aviso">
+            <IconeCadeado />
+            <span>
+              <strong>Não exigimos formalização.</strong> Artesãos informais vendem normalmente. A plataforma ajuda com
+              a nota quando ela for necessária.
+            </span>
+          </p>
+        </>
       )}
 
-      <button type="submit" className="botao botao-primario botao-largo">
-        Criar minha conta
+      <button type="submit" className="botao botao-primario botao-largo" disabled={enviando}>
+        {enviando ? 'Criando sua conta…' : 'Criar minha conta'}
       </button>
-
-      <p className="voltar-login">
-        Já tem conta? <Link href="/login">Entrar</Link>
-      </p>
     </form>
   )
 }

@@ -9,10 +9,12 @@ import { listarPecas } from '@/services/api/pecas.servico'
 import { listarArtesaos } from '@/services/api/artesaos.servico'
 import { emReais } from '@/utils/formato'
 import { rotuloEstadoPedido } from '@/constants/rotulos'
+import { exigirSessao } from '@/services/sessao/servidor'
 
 export default async function MeusPedidos() {
+  const sessao = await exigirSessao('/orders')
   const [{ dados: pedidos, erro }, { dados: pecas }, { dados: artesaos }] = await Promise.all([
-    listarPedidos(),
+    listarPedidos(sessao.id),
     listarPecas(),
     listarArtesaos(),
   ])

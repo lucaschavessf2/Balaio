@@ -7,6 +7,7 @@
       "territorio": "Mata Norte",
       "tecnica": "Cerâmica & Barro",
       "categoria": "Decoração & Arte",
+      "tipo": "Esculturas & Bonecos",
       "preco": 1250,
       "disponibilidade": "unica",
       "historia": [
@@ -25,6 +26,7 @@
       "territorio": "Cariri",
       "tecnica": "Bordado & Renda (Renascença)",
       "categoria": "Casa & Mesa",
+      "tipo": "Toalhas & Rendas",
       "preco": 850,
       "disponibilidade": "encomenda",
       "prazoProducaoDias": 21,
@@ -44,6 +46,7 @@
       "territorio": "Pajeú",
       "tecnica": "Couro Autoral",
       "categoria": "Vestuário & Acessórios",
+      "tipo": "Couro: Bolsas, Cintos & Gibões",
       "preco": 490,
       "disponibilidade": "disponivel",
       "historia": [
@@ -61,6 +64,7 @@
       "territorio": "Petrolina",
       "tecnica": "Escultura em Madeira",
       "categoria": "Decoração & Arte",
+      "tipo": "Esculturas & Bonecos",
       "preco": 780,
       "disponibilidade": "disponivel",
       "historia": [
@@ -78,6 +82,7 @@
       "territorio": "Vale do Ipojuca",
       "tecnica": "Cerâmica & Barro",
       "categoria": "Casa & Mesa",
+      "tipo": "Jarras & Vasos",
       "preco": 350,
       "disponibilidade": "disponivel",
       "historia": [
@@ -95,6 +100,7 @@
       "territorio": "Caruaru",
       "tecnica": "Xilogravura",
       "categoria": "Decoração & Arte",
+      "tipo": "Gravuras & Cordéis",
       "preco": 950,
       "disponibilidade": "unica",
       "historia": [
@@ -112,6 +118,7 @@
       "territorio": "Caruaru",
       "tecnica": "Cerâmica & Barro",
       "categoria": "Decoração & Arte",
+      "tipo": "Esculturas & Bonecos",
       "preco": 420,
       "desconto": 10,
       "disponibilidade": "encomenda",
@@ -131,6 +138,7 @@
       "territorio": "Mata Norte",
       "tecnica": "Cerâmica & Barro",
       "categoria": "Casa & Mesa",
+      "tipo": "Jarras & Vasos",
       "preco": 380,
       "disponibilidade": "disponivel",
       "historia": [
@@ -148,6 +156,7 @@
       "territorio": "Cariri",
       "tecnica": "Bordado & Renda (Renascença)",
       "categoria": "Casa & Mesa",
+      "tipo": "Toalhas & Rendas",
       "preco": 690,
       "desconto": 20,
       "disponibilidade": "encomenda",
@@ -167,6 +176,7 @@
       "territorio": "Mata Norte",
       "tecnica": "Cerâmica & Barro",
       "categoria": "Decoração & Arte",
+      "tipo": "Esculturas & Bonecos",
       "preco": 180,
       "desconto": 10,
       "disponibilidade": "disponivel",
@@ -185,6 +195,7 @@
       "territorio": "Mata Norte",
       "tecnica": "Cerâmica & Barro",
       "categoria": "Casa & Mesa",
+      "tipo": "Jarras & Vasos",
       "preco": 550,
       "desconto": 15,
       "disponibilidade": "disponivel",
@@ -203,6 +214,7 @@
       "territorio": "Alto do Moura, Caruaru",
       "tecnica": "Cerâmica & Barro",
       "categoria": "Decoração & Arte",
+      "tipo": "Esculturas & Bonecos",
       "preco": 1890,
       "disponibilidade": "unica",
       "historia": [
@@ -220,6 +232,7 @@
       "territorio": "Vale do Ipojuca",
       "tecnica": "Cerâmica & Barro",
       "categoria": "Casa & Mesa",
+      "tipo": "Mesa & Cozinha",
       "preco": 240,
       "disponibilidade": "disponivel",
       "historia": [
@@ -237,6 +250,7 @@
       "territorio": "Vale do Ipojuca",
       "tecnica": "Cerâmica & Barro",
       "categoria": "Casa & Mesa",
+      "tipo": "Mesa & Cozinha",
       "preco": 320,
       "desconto": 10,
       "disponibilidade": "encomenda",
@@ -256,6 +270,7 @@
       "territorio": "Alto do Moura, Caruaru",
       "tecnica": "Cerâmica & Barro",
       "categoria": "Decoração & Arte",
+      "tipo": "Esculturas & Bonecos",
       "preco": 1480,
       "disponibilidade": "unica",
       "historia": [
@@ -273,6 +288,7 @@
       "territorio": "Alto do Moura, Caruaru",
       "tecnica": "Cerâmica & Barro",
       "categoria": "Decoração & Arte",
+      "tipo": "Esculturas & Bonecos",
       "preco": 890,
       "disponibilidade": "encomenda",
       "prazoProducaoDias": 20,
@@ -291,6 +307,7 @@
       "territorio": "Cariri",
       "tecnica": "Bordado & Renda (Renascença)",
       "categoria": "Casa & Mesa",
+      "tipo": "Toalhas & Rendas",
       "preco": 430,
       "desconto": 15,
       "disponibilidade": "encomenda",
@@ -310,6 +327,7 @@
       "territorio": "Cariri",
       "tecnica": "Bordado & Renda (Renascença)",
       "categoria": "Vestuário & Acessórios",
+      "tipo": "Toalhas & Rendas",
       "preco": 260,
       "disponibilidade": "disponivel",
       "historia": [
@@ -327,6 +345,7 @@
       "territorio": "Pajeú",
       "tecnica": "Couro Autoral",
       "categoria": "Vestuário & Acessórios",
+      "tipo": "Couro: Bolsas, Cintos & Gibões",
       "preco": 190,
       "disponibilidade": "disponivel",
       "historia": [
@@ -344,6 +363,7 @@
       "territorio": "Pajeú",
       "tecnica": "Couro Autoral",
       "categoria": "Vestuário & Acessórios",
+      "tipo": "Couro: Bolsas, Cintos & Gibões",
       "preco": 380,
       "desconto": 10,
       "disponibilidade": "disponivel",
@@ -362,6 +382,7 @@
       "territorio": "Caruaru",
       "tecnica": "Xilogravura",
       "categoria": "Decoração & Arte",
+      "tipo": "Gravuras & Cordéis",
       "preco": 210,
       "disponibilidade": "disponivel",
       "historia": [
@@ -379,6 +400,7 @@
       "territorio": "Caruaru",
       "tecnica": "Xilogravura",
       "categoria": "Decoração & Arte",
+      "tipo": "Gravuras & Cordéis",
       "preco": 540,
       "disponibilidade": "encomenda",
       "prazoProducaoDias": 10,
@@ -397,6 +419,7 @@
       "territorio": "Petrolina",
       "tecnica": "Escultura em Madeira",
       "categoria": "Decoração & Arte",
+      "tipo": "Esculturas & Bonecos",
       "preco": 620,
       "disponibilidade": "encomenda",
       "prazoProducaoDias": 25,
@@ -415,6 +438,7 @@
       "territorio": "Petrolina",
       "tecnica": "Escultura em Madeira",
       "categoria": "Decoração & Arte",
+      "tipo": "Esculturas & Bonecos",
       "preco": 350,
       "disponibilidade": "disponivel",
       "historia": [
@@ -869,7 +893,8 @@
           "concluida": false,
           "atual": false
         }
-      ]
+      ],
+      "compradorId": "u-carlos"
     },
     {
       "id": "PE-2026-8720",
@@ -911,7 +936,8 @@
           "concluida": true,
           "atual": true
         }
-      ]
+      ],
+      "compradorId": "u-carlos"
     },
     {
       "id": "PE-2026-8655",
@@ -953,7 +979,8 @@
           "concluida": true,
           "atual": true
         }
-      ]
+      ],
+      "compradorId": "u-carlos"
     }
   ],
   "conversasArtesao": [
@@ -1003,21 +1030,8 @@
   ],
   "curadoria": [
     {
-      "id": "CUR-114",
-      "peca": "Bonecos de Barro do Mestre Zé",
-      "artesao": "Oficina do Alto do Moura",
-      "enviadoEm": "Hoje, 08:22",
-      "motivo": "Primeira publicação do artesão"
-    },
-    {
-      "id": "CUR-113",
-      "peca": "Rede de Tear Manual",
-      "artesao": "Tecelagem de Pesqueira",
-      "enviadoEm": "Ontem, 19:03",
-      "motivo": "Faltam fotos de detalhe da técnica"
-    },
-    {
       "id": "CUR-112",
+      "artesaoSlug": "ze-do-cariri",
       "peca": "Chapéu de Couro Cangaceiro",
       "artesao": "Couraria do Pajeú",
       "enviadoEm": "19/03, 11:47",
@@ -1286,6 +1300,87 @@
       "valor": 72.5
     }
   ],
+  "usuarios": [
+    {
+      "id": "u-carlos",
+      "nome": "Carlos de Olinda",
+      "email": "carlos@exemplo.com",
+      "imagem": "/fotos/jarra-cabocla.svg",
+      "senha": "balaio123",
+      "papel": "comprador"
+    },
+    {
+      "id": "u-admin",
+      "nome": "Curadoria Balaio",
+      "email": "admin@exemplo.com",
+      "senha": "balaio123",
+      "papel": "admin",
+      "imagem": "/balaio-logo.svg"
+    },
+    {
+      "id": "u-mestre-nuca",
+      "nome": "Mestre Nuca (Sucessor)",
+      "email": "nuca@exemplo.com",
+      "senha": "balaio123",
+      "papel": "artesao",
+      "artesao": "mestre-nuca",
+      "imagem": "/fotos/atelier-nuca.svg"
+    },
+    {
+      "id": "u-maria-de-caruaru",
+      "nome": "Maria de Caruaru",
+      "email": "maria-de-caruaru@exemplo.com",
+      "senha": "balaio123",
+      "papel": "artesao",
+      "artesao": "maria-de-caruaru",
+      "imagem": "/fotos/casa-renascenca.svg"
+    },
+    {
+      "id": "u-mestre-dila",
+      "nome": "Mestre Dila",
+      "email": "mestre-dila@exemplo.com",
+      "senha": "balaio123",
+      "papel": "artesao",
+      "artesao": "mestre-dila",
+      "imagem": "/fotos/atelie-dila.svg"
+    },
+    {
+      "id": "u-mestre-amaro",
+      "nome": "Mestre Amaro",
+      "email": "mestre-amaro@exemplo.com",
+      "senha": "balaio123",
+      "papel": "artesao",
+      "artesao": "mestre-amaro",
+      "imagem": "/fotos/oficina-imburana.svg"
+    },
+    {
+      "id": "u-ze-do-cariri",
+      "nome": "Artesão Zé do Cariri",
+      "email": "ze-do-cariri@exemplo.com",
+      "senha": "balaio123",
+      "papel": "artesao",
+      "artesao": "ze-do-cariri",
+      "imagem": "/fotos/couraria-pajeu.svg"
+    },
+    {
+      "id": "u-dona-bia-do-ipojuca",
+      "nome": "Dona Bia do Ipojuca",
+      "email": "dona-bia-do-ipojuca@exemplo.com",
+      "senha": "balaio123",
+      "papel": "artesao",
+      "artesao": "dona-bia-do-ipojuca",
+      "imagem": "/fotos/barro-ipojuca.svg"
+    },
+    {
+      "id": "u-mestre-vitalino-sucessores",
+      "nome": "Sucessores de Vitalino",
+      "email": "mestre-vitalino-sucessores@exemplo.com",
+      "senha": "balaio123",
+      "papel": "artesao",
+      "artesao": "mestre-vitalino-sucessores",
+      "imagem": "/fotos/alto-do-moura.svg"
+    }
+  ],
   "referencias": {
     "tecnicas": [
       "Cerâmica & Barro",
@@ -1308,6 +1403,14 @@
       "Casa & Mesa",
       "Vestuário & Acessórios"
     ],
+    "tipos": [
+      "Jarras & Vasos",
+      "Esculturas & Bonecos",
+      "Mesa & Cozinha",
+      "Toalhas & Rendas",
+      "Couro: Bolsas, Cintos & Gibões",
+      "Gravuras & Cordéis"
+    ],
     "etiquetas": [
       "ceramica",
       "renascenca",
@@ -1317,5 +1420,6 @@
       "passoapasso"
     ]
   },
-  "avaliacoes": []
+  "avaliacoes": [],
+  "configuracoesAtelie": []
 }

@@ -160,21 +160,8 @@ export const conversasArtesao: ConversaArtesao[] = [
 
 export const filaCuradoria = [
   {
-    id: 'CUR-114',
-    peca: 'Bonecos de Barro do Mestre Zé',
-    artesao: 'Oficina do Alto do Moura',
-    enviadoEm: 'Hoje, 08:22',
-    motivo: 'Primeira publicação do artesão',
-  },
-  {
-    id: 'CUR-113',
-    peca: 'Rede de Tear Manual',
-    artesao: 'Tecelagem de Pesqueira',
-    enviadoEm: 'Ontem, 19:03',
-    motivo: 'Faltam fotos de detalhe da técnica',
-  },
-  {
     id: 'CUR-112',
+    artesaoSlug: 'ze-do-cariri',
     peca: 'Chapéu de Couro Cangaceiro',
     artesao: 'Couraria do Pajeú',
     enviadoEm: '19/03, 11:47',

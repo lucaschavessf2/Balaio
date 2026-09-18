@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 import { IconeConversa, IconeEngrenagem, IconeGrafico, IconePacote, IconePincel, IconePlay } from '@/components/ui/Icones'
-import { conversasArtesao, pedidosPendentesArtesao } from '@/mocks/pedidos'
 
 export type ChavePainel = 'pedidos' | 'pecas' | 'videos' | 'conversas' | 'vendas' | 'config'
 
@@ -22,12 +21,9 @@ export const rotulosGrupo: Record<GrupoPainel, string> = {
   oficina: 'Oficina',
 }
 
-export const artesaoDoPainel = 'mestre-nuca'
+export type ContagensPainel = { pendentes: number; naoLidas: number }
 
-export function itensPainel(): ItemPainel[] {
-  const pendentes = pedidosPendentesArtesao.length
-  const naoLidas = conversasArtesao.filter((c) => c.naoLida).length
-
+export function itensPainel({ pendentes, naoLidas }: ContagensPainel = { pendentes: 0, naoLidas: 0 }): ItemPainel[] {
   return [
     {
       chave: 'pedidos',
@@ -83,8 +79,8 @@ export function itensPainel(): ItemPainel[] {
   ]
 }
 
-export function itensPorGrupo() {
-  const itens = itensPainel()
+export function itensPorGrupo(contagens?: ContagensPainel) {
+  const itens = itensPainel(contagens)
   return (Object.keys(rotulosGrupo) as GrupoPainel[])
     .map((grupo) => ({ grupo, rotulo: rotulosGrupo[grupo], itens: itens.filter((i) => i.grupo === grupo) }))
     .filter((g) => g.itens.length > 0)

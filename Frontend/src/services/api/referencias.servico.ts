@@ -5,6 +5,7 @@ export type Referencias = {
   tecnicas: string[]
   territorios: string[]
   categorias: string[]
+  tipos: string[]
   etiquetas: string[]
 }
 

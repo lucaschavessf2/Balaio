@@ -28,7 +28,6 @@ export default async function PerfilColetivo({ params }: { params: Promise<{ slu
       <Migalhas
         trilha={[
           { texto: 'Início', href: '/' },
-          { texto: 'Como funciona', href: '/how-it-works' },
           { texto: coletivo.nome },
         ]}
       />

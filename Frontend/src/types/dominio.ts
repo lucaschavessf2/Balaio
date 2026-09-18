@@ -1,3 +1,5 @@
+import type { TipoPeca } from '@/constants/referencias'
+
 export type Disponibilidade = 'disponivel' | 'encomenda' | 'unica'
 
 export type Tecnica =
@@ -15,6 +17,7 @@ export type Peca = {
   territorio: string
   tecnica: Tecnica
   categoria: string
+  tipo: TipoPeca
   preco: number
   desconto?: number
   disponibilidade: Disponibilidade
@@ -54,6 +57,7 @@ export type Pedido = {
   simulado?: boolean
   id: string
   pecaSlug: string
+  compradorId?: string
   compradorNome: string
   data: string
   total: number

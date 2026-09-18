@@ -13,12 +13,22 @@
 }
 
 .auth-dividida {
-  @apply w-full max-w-[880px] mx-auto grid grid-cols-1 items-stretch bg-superficie border border-linha rounded-grande shadow-(--sombra) overflow-hidden lg:grid-cols-2;
+  @apply w-full max-w-[880px] mx-auto grid grid-cols-1 items-stretch bg-superficie border border-linha rounded-grande shadow-(--sombra) lg:grid-cols-2;
 }
 
 .auth-marca {
   @apply flex flex-col justify-center gap-2 py-5 px-6 border-b border-linha lg:gap-3 lg:border-b-0 lg:border-r lg:p-10;
   background-image: var(--textura-trama), linear-gradient(160deg, var(--barro-fundo), var(--superficie) 70%);
+}
+
+.auth-marca {
+  border-radius: calc(var(--raio-g) - 1px) calc(var(--raio-g) - 1px) 0 0;
+}
+
+@media (width >= 64rem) {
+  .auth-marca {
+    border-radius: calc(var(--raio-g) - 1px) 0 0 calc(var(--raio-g) - 1px);
+  }
 }
 
 .auth-marca-topo {
@@ -100,4 +110,25 @@
 
 .ajuda-auth {
   @apply bg-transparent shadow-none;
+}
+
+.auth-erro {
+  @apply flex gap-3 items-start border border-vermelho rounded-caixa py-3 px-4 mb-4 text-pequeno text-vermelho-tinta font-semibold;
+  background: color-mix(in srgb, var(--vermelho) 10%, var(--superficie));
+}
+
+.auth-erro svg {
+  @apply flex-none mt-px;
+}
+
+.auth-aviso {
+  @apply mb-4;
+}
+
+.auth-painel .cartao-auth-sucesso {
+  @apply bg-transparent border-0 rounded-none shadow-none p-0;
+}
+
+.auth-painel .grade-dois {
+  @apply grid-cols-1;
 }

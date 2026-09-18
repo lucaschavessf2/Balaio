@@ -7,11 +7,13 @@ import { Campo } from '@/components/ui/Basicos'
 import { avisar } from '@/components/feedback/Avisos'
 import { validarObrigatorio } from '@/utils/validacao'
 import { IconePincel } from '@/components/ui/Icones'
+import { useSessao } from '@/store/sessao'
 
 type PecaVinculavel = { slug: string; nome: string }
 
 export default function FormPublicarVideo({ pecas }: { pecas: PecaVinculavel[] }) {
   const roteador = useRouter()
+  const { sessao } = useSessao()
   const [salvando, definirSalvando] = useState(false)
   const formulario = useRef<HTMLFormElement>(null)
   const [erroLegenda, definirErroLegenda] = useState<string | null>(null)
@@ -38,11 +40,11 @@ export default function FormPublicarVideo({ pecas }: { pecas: PecaVinculavel[] }
   }
 
   async function salvar(rascunho: boolean) {
-    if (salvando || !validar()) return
+    if (salvando || !validar() || !sessao?.artesao) return
     const dados = new FormData(formulario.current!)
     definirSalvando(true)
     const resposta = await criarVideo({
-      id: crypto.randomUUID(), artesao: 'mestre-nuca', peca: String(dados.get('peca') || ''),
+      id: crypto.randomUUID(), artesao: sessao.artesao, peca: String(dados.get('peca') || ''),
       legenda: String(dados.get('legenda')), etiquetas: String(dados.get('etiquetas') || '').split(/\s+/).filter(Boolean),
       duracao: '0:00', visualizacoes: 0, curtidas: 0, comentarios: 0,
       publicadoEm: rascunho ? 'Rascunho' : 'agora', capa: '/fotos/ImagemBase.webp', situacao: rascunho ? 'rascunho' : 'publicada',
