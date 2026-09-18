@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Campo, Foto } from '@/components/ui/Basicos'
 import { avisar } from '@/components/feedback/Avisos'
-import { mediacaoDoPedido, proximoIdMediacao, salvarMediacaoLocal } from '@/components/admin/mediacoesLocais'
+import { criarMediacao, listarMediacoes } from '@/services/api/pedidos.servico'
 import { usuarioAtual } from '@/mocks/usuario'
 import { type Mediacao } from '@/types/dominio'
 
@@ -30,6 +30,7 @@ type Props = {
 }
 
 export default function FormMediacao({ pedidoId, pecaNome, pecaImagem, atelie }: Props) {
+  const [salvando, definirSalvando] = useState(false)
   const [motivo, definirMotivo] = useState('')
   const [relato, definirRelato] = useState('')
   const [solucao, definirSolucao] = useState('conversa')
@@ -38,11 +39,18 @@ export default function FormMediacao({ pedidoId, pecaNome, pecaImagem, atelie }:
   const [aberta, definirAberta] = useState<Mediacao | null>(null)
 
   useEffect(() => {
-    definirAberta(mediacaoDoPedido(pedidoId) ?? null)
+    let vivo = true
+    listarMediacoes().then((r) => {
+      if (!vivo) return
+      if (r.erro) avisar.erro('Não foi possível consultar mediações', r.erro.mensagem)
+      else definirAberta(r.dados?.find((m) => m.pedido === pedidoId) ?? null)
+    })
+    return () => { vivo = false }
   }, [pedidoId])
 
-  function enviar(evento: FormEvent<HTMLFormElement>) {
+  async function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
+    if (salvando) return
 
     const motivoEscolhido = motivos.find((m) => m.chave === motivo)
     const problemaMotivo = motivoEscolhido ? null : 'Escolha o que aconteceu com o pedido'
@@ -61,15 +69,18 @@ export default function FormMediacao({ pedidoId, pecaNome, pecaImagem, atelie }:
     }
 
     const mediacao: Mediacao = {
-      id: proximoIdMediacao(),
+      id: 'MED-' + crypto.randomUUID().slice(0, 8),
       pedido: pedidoId,
       assunto: motivoEscolhido!.assunto,
       partes: `${usuarioAtual.nome} × ${atelie ?? 'Ateliê do pedido'}`,
       aberta: 'agora mesmo',
     }
-    salvarMediacaoLocal(mediacao)
-    avisar.sucesso('Pedido de mediação registrado', 'A plataforma e o artesão foram notificados.')
-    definirAberta(mediacao)
+    definirSalvando(true)
+    const resposta = await criarMediacao({ ...mediacao, relato, solucao })
+    definirSalvando(false)
+    if (resposta.erro) { avisar.erro('Não foi possível abrir mediação', resposta.erro.mensagem); return }
+    avisar.sucesso('Pedido de mediação registrado')
+    definirAberta(resposta.dados)
   }
 
   if (aberta) {
@@ -178,7 +189,7 @@ export default function FormMediacao({ pedidoId, pecaNome, pecaImagem, atelie }:
       </fieldset>
 
       <div className="acoes-linha acoes-empilhaveis acima-4">
-        <button type="submit" className="botao botao-primario">
+        <button disabled={salvando} type="submit" className="botao botao-primario">
           Abrir mediação
         </button>
         <Link href={`/orders/${pedidoId}`} className="botao botao-fantasma">

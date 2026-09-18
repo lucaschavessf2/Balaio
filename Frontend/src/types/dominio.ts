@@ -8,6 +8,7 @@ export type Tecnica =
   | 'Xilogravura'
 
 export type Peca = {
+  situacao?: 'publicada' | 'curadoria' | 'rascunho'
   slug: string
   nome: string
   artesao: string
@@ -49,6 +50,8 @@ export type EtapaPedido = {
 }
 
 export type Pedido = {
+  itens?: { slug: string; quantidade: number }[]
+  simulado?: boolean
   id: string
   pecaSlug: string
   compradorNome: string
@@ -69,6 +72,7 @@ export type Mensagem = {
 }
 
 export type Mediacao = {
+  emAnalise?: boolean
   id: string
   pedido: string
   assunto: string

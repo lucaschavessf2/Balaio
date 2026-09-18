@@ -3,18 +3,16 @@ import { notFound } from 'next/navigation'
 import Pagina from '@/components/layout/Pagina'
 import { Migalhas } from '@/components/ui/Basicos'
 import FormMediacao from '@/components/forms/FormMediacao'
-import { obterPedido, listarPedidos } from '@/services/api/pedidos.servico'
+import { obterPedido } from '@/services/api/pedidos.servico'
 import { obterPeca } from '@/services/api/pecas.servico'
 import { obterArtesao } from '@/services/api/artesaos.servico'
 
-export async function generateStaticParams() {
-  const { dados } = await listarPedidos()
-  return (dados ?? []).map((p) => ({ id: p.id }))
-}
+export const dynamic = 'force-dynamic'
 
 export default async function Mediacao({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const { dados: pedido } = await obterPedido(id)
+  const { dados: pedido, erro } = await obterPedido(id)
+  if (erro && erro.codigo !== 'RECURSO_NAO_ENCONTRADO') throw new Error(erro.mensagem)
   if (!pedido) notFound()
 
   const { dados: peca } = await obterPeca(pedido.pecaSlug)

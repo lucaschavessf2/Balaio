@@ -1,11 +1,14 @@
+'use client'
+
 import Link from 'next/link'
 import { Retrato } from '@/components/ui/Basicos'
 import { IconeSelo, IconeSetaDireita } from '@/components/ui/Icones'
-import { acharArtesao } from '@/mocks/artesaos'
+import { useDados } from '@/store/dados'
 import { artesaoDoPainel, itensPorGrupo, type ChavePainel } from '@/components/painel/itensPainel'
 
 export default function MenuPainelLateral({ ativo }: { ativo: ChavePainel }) {
-  const artesao = acharArtesao(artesaoDoPainel)
+  const { artesaos } = useDados()
+  const artesao = artesaos.find((a) => a.slug === artesaoDoPainel)
 
   return (
     <nav className="menu-lateral" aria-label="Menu do painel">

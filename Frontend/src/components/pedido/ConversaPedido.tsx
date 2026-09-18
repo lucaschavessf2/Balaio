@@ -3,24 +3,32 @@
 import { useState, type FormEvent } from 'react'
 import { Retrato } from '@/components/ui/Basicos'
 import { IconeEnviar } from '@/components/ui/Icones'
+import { enviarMensagem } from '@/services/api/pedidos.servico'
+import { avisar } from '@/components/feedback/Avisos'
 import { type Mensagem } from '@/types/dominio'
 
 type Props = {
+  pedidoId: string
   iniciais: Mensagem[]
   atelie?: string
   imagem?: string
   id?: string
 }
 
-export default function ConversaPedido({ iniciais, atelie, imagem, id }: Props) {
+export default function ConversaPedido({ iniciais, atelie, imagem, id, pedidoId }: Props) {
+  const [salvando, definirSalvando] = useState(false)
   const [mensagens, definirMensagens] = useState(iniciais)
   const [rascunho, definirRascunho] = useState('')
 
-  function enviar(evento: FormEvent<HTMLFormElement>) {
+  async function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
     const texto = rascunho.trim()
-    if (!texto) return
-    definirMensagens([...mensagens, { autor: 'comprador', texto, hora: 'agora' }])
+    if (!texto || salvando) return
+    definirSalvando(true)
+    const resposta = await enviarMensagem(pedidoId, { autor: 'comprador', texto, hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) })
+    definirSalvando(false)
+    if (resposta.erro || !resposta.dados) { avisar.erro('Mensagem não enviada', resposta.erro?.mensagem); return }
+    definirMensagens((atuais) => [...atuais, resposta.dados!])
     definirRascunho('')
   }
 
@@ -58,7 +66,7 @@ export default function ConversaPedido({ iniciais, atelie, imagem, id }: Props) 
           value={rascunho}
           onChange={(evento) => definirRascunho(evento.target.value)}
         />
-        <button type="submit" className="botao botao-primario" style={{ padding: '0 16px' }} aria-label="Enviar mensagem">
+        <button disabled={salvando} type="submit" className="botao botao-primario" style={{ padding: '0 16px' }} aria-label="Enviar mensagem">
           <IconeEnviar />
         </button>
       </form>

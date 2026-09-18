@@ -22,7 +22,7 @@ function resumirLegenda(legenda: string): string {
 
 export default async function PublicarVideo() {
   const [{ dados: todosVideos }, { dados: pecasArtesao }] = await Promise.all([
-    listarVideos(),
+    listarVideos(true),
     pecasPorArtesao('mestre-nuca'),
   ])
   const meus = (todosVideos ?? []).filter((v) => v.artesao === 'mestre-nuca')

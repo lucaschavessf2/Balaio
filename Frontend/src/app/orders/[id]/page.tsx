@@ -1,24 +1,22 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import Pagina from '@/components/layout/Pagina'
-import { Foto, Migalhas } from '@/components/ui/Basicos'
+import ResumoItensPedido from '@/components/pedido/ResumoItensPedido'
+import { Migalhas } from '@/components/ui/Basicos'
 import ConversaPedido from '@/components/pedido/ConversaPedido'
 import BotaoSimulado from '@/components/ui/BotaoSimulado'
 import { IconeCaminhao, IconeCheck, IconeSetaDireita } from '@/components/ui/Icones'
-import { obterPedido, conversaDoPedido, listarPedidos } from '@/services/api/pedidos.servico'
+import { obterPedido, conversaDoPedido } from '@/services/api/pedidos.servico'
 import { obterPeca } from '@/services/api/pecas.servico'
 import { obterArtesao } from '@/services/api/artesaos.servico'
-import { emReais } from '@/utils/formato'
 import { rotuloEstadoPedido } from '@/constants/rotulos'
 
-export async function generateStaticParams() {
-  const { dados } = await listarPedidos()
-  return (dados ?? []).map((p) => ({ id: p.id }))
-}
+export const dynamic = 'force-dynamic'
 
 export default async function Acompanhamento({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const { dados: pedido } = await obterPedido(id)
+  const { dados: pedido, erro } = await obterPedido(id)
+  if (erro && erro.codigo !== 'RECURSO_NAO_ENCONTRADO') throw new Error(erro.mensagem)
   if (!pedido) notFound()
 
   const { dados: peca } = await obterPeca(pedido.pecaSlug)
@@ -60,28 +58,7 @@ export default async function Acompanhamento({ params }: { params: Promise<{ id:
               </div>
             </div>
 
-            {peca && (
-              <div className="item-sacola acima-3" style={{ borderBottom: 0 }}>
-                <div className="item-sacola-figura">
-                  <Foto nome={peca.nome} imagem={peca.imagem} decorativa />
-                </div>
-                <div className="linha-flex linha-entre encolhivel" style={{ alignItems: 'flex-start' }}>
-                  <div className="encolhivel">
-                    <Link href={`/pieces/${peca.slug}`} className="texto-forte" style={{ color: 'var(--tinta)' }}>
-                      {peca.nome}
-                    </Link>
-                    <p className="autoria">
-                      Artesão: {artesao && <Link href={`/artisans/${artesao.slug}`}>{artesao.nome}</Link>}
-                    </p>
-                    <p className="autoria">Origem: {peca.territorio}</p>
-                  </div>
-                  <div className="texto-direita">
-                    <p className="dado-rotulo">Total</p>
-                    <p className="preco preco-destaque">{emReais(pedido.total)}</p>
-                  </div>
-                </div>
-              </div>
-            )}
+            <ResumoItensPedido pedido={pedido} />
           </section>
 
           <section className="cartao abaixo-5">
@@ -153,7 +130,7 @@ export default async function Acompanhamento({ params }: { params: Promise<{ id:
           </section>
         </div>
 
-        <ConversaPedido id="conversa-pedido" iniciais={conversa ?? []} atelie={artesao?.atelie} imagem={artesao?.imagem} />
+        <ConversaPedido pedidoId={pedido.id} id="conversa-pedido" iniciais={conversa ?? []} atelie={artesao?.atelie} imagem={artesao?.imagem} />
       </div>
     </Pagina>
   )

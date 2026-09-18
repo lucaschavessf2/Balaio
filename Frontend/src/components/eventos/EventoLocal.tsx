@@ -5,14 +5,16 @@ import { useEffect, useState } from 'react'
 import { EstadoVazio } from '@/components/ui/Basicos'
 import { IconeCalendario } from '@/components/ui/Icones'
 import DetalheEvento from '@/components/eventos/DetalheEvento'
-import { acharEventoLocal } from '@/components/eventos/eventosLocais'
+import { obterEvento } from '@/services/api/eventos.servico'
 import type { Evento } from '@/mocks/eventos'
 
 export default function EventoLocal({ slug }: { slug: string }) {
   const [evento, definirEvento] = useState<Evento | null | undefined>(undefined)
 
   useEffect(() => {
-    definirEvento(acharEventoLocal(slug) ?? null)
+    let vivo = true
+    obterEvento(slug).then((r) => { if (vivo) definirEvento(r.dados) })
+    return () => { vivo = false }
   }, [slug])
 
   if (evento === undefined) return null
@@ -22,7 +24,7 @@ export default function EventoLocal({ slug }: { slug: string }) {
       <EstadoVazio
         icone={<IconeCalendario tamanho={34} />}
         titulo="Evento não encontrado"
-        descricao="Ele pode ter sido publicado em outro navegador. Sem o backend, cada evento criado fica salvo só no aparelho de quem criou."
+        descricao="O evento não está disponível. Volte para a agenda e tente novamente."
         acao={
           <Link href="/events" className="botao botao-primario">
             Ver a agenda de eventos

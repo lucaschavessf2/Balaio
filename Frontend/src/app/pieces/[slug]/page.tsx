@@ -8,14 +8,11 @@ import GaleriaPeca from '@/components/produto/GaleriaPeca'
 import CalculoFrete from '@/components/produto/CalculoFrete'
 import PerguntasPublicas from '@/components/produto/PerguntasPublicas'
 import { IconeEtiqueta, IconeMapa, IconeSelo, IconeSetaDireita } from '@/components/ui/Icones'
-import { pecas } from '@/mocks/pecas'
 import { obterArtesao } from '@/services/api/artesaos.servico'
 import { emReais, precoComDesconto } from '@/utils/formato'
 import { obterPeca, pecasRelacionadas } from '@/services/api/pecas.servico'
 
-export function generateStaticParams() {
-  return pecas.map((p) => ({ slug: p.slug }))
-}
+export const dynamic = 'force-dynamic'
 
 const perguntas = [
   {
@@ -32,7 +29,8 @@ const perguntas = [
 
 export default async function DetalhePeca({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const { dados: peca } = await obterPeca(slug)
+  const { dados: peca, erro } = await obterPeca(slug)
+  if (erro && erro.codigo !== 'RECURSO_NAO_ENCONTRADO') throw new Error(erro.mensagem)
   if (!peca) notFound()
 
   const { dados: artesao } = await obterArtesao(peca.artesao)

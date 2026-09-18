@@ -5,11 +5,17 @@ import CartaoPeca from '@/components/produto/CartaoPeca'
 import { EstadoVazio } from '@/components/ui/Basicos'
 import { IconeCoracao } from '@/components/ui/Icones'
 import { useFavoritos } from '@/store/favoritos'
-import { acharPeca } from '@/mocks/pecas'
+import { usePecas } from '@/hooks/usePecas'
+import EstadoErro from '@/components/feedback/EstadoErro'
+import EstadoCarregando from '@/components/feedback/EstadoCarregando'
 
 export default function ListaFavoritos() {
+  const { mapaPecas, carregando, erro } = usePecas()
   const { slugs } = useFavoritos()
-  const pecas = slugs.map((slug) => acharPeca(slug)).filter((p) => p !== undefined)
+  const pecas = slugs.map((slug) => mapaPecas.get(slug)).filter((p) => p !== undefined)
+
+  if (carregando) return <EstadoCarregando />
+  if (erro) return <EstadoErro mensagem={erro} />
 
   if (pecas.length === 0) {
     return (

@@ -11,12 +11,6 @@ const situacoes: Record<string, { texto: string; classe: string }> = {
   rascunho: { texto: 'Rascunho', classe: 'selo-neutro' },
 }
 
-const situacaoPorPeca: Record<string, string> = {
-  'leao-imperial-de-tracunhaem': 'publicada',
-  'jarra-de-ceramica-imperial': 'publicada',
-  'leaozinho-de-bolso': 'publicada',
-  'jarra-boiadeira': 'curadoria',
-}
 
 export default async function MinhasPecas() {
   const { dados: pecas } = await pecasPorArtesao('mestre-nuca')
@@ -39,7 +33,7 @@ export default async function MinhasPecas() {
       </p>
 
       {(pecas ?? []).map((peca) => {
-        const chave = situacaoPorPeca[peca.slug] ?? 'rascunho'
+        const chave = peca.situacao ?? 'publicada'
         const situacao = situacoes[chave]
 
         return (

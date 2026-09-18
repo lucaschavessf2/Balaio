@@ -4,14 +4,11 @@ import Pagina from '@/components/layout/Pagina'
 import CartaoPeca from '@/components/produto/CartaoPeca'
 import { Estrelas, Migalhas, Retrato } from '@/components/ui/Basicos'
 import { IconeConversa, IconeMapa, IconeSelo } from '@/components/ui/Icones'
-import { artesaos } from '@/mocks/artesaos'
 import { obterArtesao } from '@/services/api/artesaos.servico'
 import { pecasPorArtesao } from '@/services/api/pecas.servico'
 import { listarPedidos } from '@/services/api/pedidos.servico'
 
-export function generateStaticParams() {
-  return artesaos.map((a) => ({ slug: a.slug }))
-}
+export const dynamic = 'force-dynamic'
 
 const depoimentos = [
   {
@@ -28,7 +25,8 @@ const depoimentos = [
 
 export default async function PerfilArtesao({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const { dados: artesao } = await obterArtesao(slug)
+  const { dados: artesao, erro } = await obterArtesao(slug)
+  if (erro && erro.codigo !== 'RECURSO_NAO_ENCONTRADO') throw new Error(erro.mensagem)
   if (!artesao) notFound()
 
   const [{ dados: pecasArtesao }, { dados: todosPedidos }] = await Promise.all([
