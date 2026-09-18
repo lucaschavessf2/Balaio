@@ -59,6 +59,8 @@ test('contrato HTTP, filtros, relações, CRUD e persistência', async (t) => {
   const estado = await request('/estado')
   const cookieCliente = estado.cookie.split(';')[0]
   assert.deepEqual((await request('/estado/favoritos', { favoritos: ['teste'] }, 'PUT', { Cookie: cookieCliente })).dados, ['teste'])
+  assert.deepEqual((await request('/estado/videosCurtidos', { videosCurtidos: ['v-001'] }, 'PUT', { Cookie: cookieCliente })).dados, ['v-001'])
+  assert.deepEqual((await request('/estado', undefined, 'GET', { Cookie: cookieCliente })).dados.videosCurtidos, ['v-001'])
   const todas = await request('/pecas')
   const pagina = await request('/pecas?pagina=2&tamanho=3&ordenar=preco-asc')
   assert.equal(pagina.dados.length, 3)
@@ -85,10 +87,13 @@ test('contrato HTTP, filtros, relações, CRUD e persistência', async (t) => {
   assert.equal((await request('/eventos', { ...evento, slug: 'evento-teste' })).status, 409)
   assert.equal((await request('/eventos/evento-teste', { nome: 'Atualizado' }, 'PATCH')).dados.nome, 'Atualizado')
   const compra = { itens: [{ slug: primeira.slug, quantidade: 1 }, { slug: todas.dados[1].slug, quantidade: 2 }], freteId: 'padrao', meio: 'pix', endereco: { cep: '52021030', endereco: 'Rua de teste', cidade: 'Recife', estado: 'PE' } }
-  const pedido = await request('/checkout', compra)
+  const cookieComprador = login.cookie.split(';')[0]
+  const pedido = await request('/checkout', compra, 'POST', { Cookie: cookieComprador })
   assert.equal(pedido.status, 201)
   assert.equal(pedido.dados.total, Math.round((preco(primeira) + 2 * preco(todas.dados[1]) + 38.9) * 100) / 100)
   assert.equal(pedido.dados.itens.length, 2)
+  assert.ok((await request('/pedidos', undefined, 'GET', { Cookie: cookieComprador })).dados.some((item) => item.id === pedido.dados.id))
+  assert.ok(!(await request('/pedidos', undefined, 'GET', { Cookie: cookieVendedor })).dados.some((item) => item.id === pedido.dados.id))
   const emProducao = await request(`/pedidos/${pedido.dados.id}/estado`, { estado: 'producao' }, 'PATCH')
   assert.equal(emProducao.dados.estado, 'producao')
   assert.equal(emProducao.dados.etapas.find((etapa) => etapa.estado === 'producao').atual, true)

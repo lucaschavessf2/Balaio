@@ -4,12 +4,13 @@ import { Migalhas } from '@/components/ui/Basicos'
 import MenuDrawer from '@/components/navegacao/MenuDrawer'
 import MenuConta from '@/components/conta/MenuConta'
 import { IconeCadeado } from '@/components/ui/Icones'
-import { exigirUsuario } from '@/services/autenticacao'
+import { exigirSessao } from '@/services/autenticacao'
 import { listarPedidos } from '@/services/api/pedidos.servico'
 import FormDadosConta from '@/components/forms/FormDadosConta'
 
 export default async function DadosDaConta() {
-  const [usuario, { dados: pedidos }] = await Promise.all([exigirUsuario(), listarPedidos()])
+  const { usuario, token } = await exigirSessao()
+  const { dados: pedidos } = await listarPedidos(token)
   return (
     <Pagina>
       <Migalhas

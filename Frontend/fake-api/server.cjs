@@ -71,7 +71,12 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
       res.cookie('balaio_cliente', clienteId, { httpOnly: true, sameSite: 'lax', maxAge: 365 * 24 * 60 * 60 * 1000, path: '/' })
     }
     let estado = encontrar('estadosCliente', clienteId)
-    if (!estado) estado = inserir('estadosCliente', { id: clienteId, favoritos: [], sacola: [], historicoBusca: [] })
+    if (!estado) estado = inserir('estadosCliente', { id: clienteId, favoritos: [], sacola: [], historicoBusca: [], videosCurtidos: [], videosSalvos: [] })
+    const faltantes = Object.fromEntries(['favoritos', 'sacola', 'historicoBusca', 'videosCurtidos', 'videosSalvos'].filter((campo) => !Array.isArray(estado[campo])).map((campo) => [campo, []]))
+    if (Object.keys(faltantes).length) {
+      db.get('estadosCliente').find({ id: estado.id }).assign(faltantes).write()
+      estado = encontrar('estadosCliente', estado.id)
+    }
     return estado
   }
   const exigirUsuario = (req, res) => {
@@ -202,7 +207,7 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
   })
 
   server.get('/api/v1/estado', (req, res) => res.json(ok(estadoDaRequisicao(req, res))))
-  for (const campo of ['favoritos', 'sacola', 'historicoBusca']) {
+  for (const campo of ['favoritos', 'sacola', 'historicoBusca', 'videosCurtidos', 'videosSalvos']) {
     server.put(`/api/v1/estado/${campo}`, (req, res) => {
       const estado = estadoDaRequisicao(req, res)
       const valor = req.body[campo]

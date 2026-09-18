@@ -7,12 +7,16 @@ import { obterMeuAtelie } from '@/services/api/artesaos.servico'
 
 export const COOKIE_SESSAO = 'balaio_sessao'
 
-export async function exigirUsuario() {
+export async function exigirSessao() {
   const token = (await cookies()).get(COOKIE_SESSAO)?.value
   if (!token) redirect('/login')
   const { dados } = await obterUsuario(token)
   if (!dados) redirect('/login')
-  return dados
+  return { usuario: dados, token }
+}
+
+export async function exigirUsuario() {
+  return (await exigirSessao()).usuario
 }
 
 export async function exigirArtesao() {

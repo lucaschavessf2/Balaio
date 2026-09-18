@@ -30,12 +30,12 @@ export function criarMediacao(mediacao: Mediacao & { relato: string; solucao: st
   return enviar('/admin/mediacoes', mediacao)
 }
 
-export async function listarPedidos(): Promise<RespostaApi<Pedido[]>> {
-  return buscar<Pedido[]>('/pedidos')
+export async function listarPedidos(token?: string): Promise<RespostaApi<Pedido[]>> {
+  return buscar<Pedido[]>('/pedidos', token ? { headers: { Authorization: `Bearer ${token}` } } : undefined)
 }
 
-export async function obterPedido(id: string): Promise<RespostaApi<Pedido>> {
-  return buscar<Pedido>(`/pedidos/${encodeURIComponent(id)}`)
+export async function obterPedido(id: string, token?: string): Promise<RespostaApi<Pedido>> {
+  return buscar<Pedido>(`/pedidos/${encodeURIComponent(id)}`, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined)
 }
 
 export async function conversaDoPedido(id: string): Promise<RespostaApi<Mensagem[]>> {
