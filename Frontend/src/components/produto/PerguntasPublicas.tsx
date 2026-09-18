@@ -4,42 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Retrato } from '@/components/ui/Basicos'
 import { IconeEnviar } from '@/components/ui/Icones'
 import { avisar } from '@/components/feedback/Avisos'
-import { usuarioAtual } from '@/mocks/usuario'
-
-export type PerguntaPublica = { pergunta: string; autor?: string; resposta?: string }
-
-type Guardado = { perguntas: PerguntaPublica[]; respostas: Record<string, string> }
-
-const CHAVE_PERGUNTAS = 'al-perguntas'
-const VAZIO: Guardado = { perguntas: [], respostas: {} }
-
-function lerMapa() {
-  try {
-    const bruto = window.localStorage.getItem(CHAVE_PERGUNTAS)
-    return bruto ? JSON.parse(bruto) : {}
-  } catch {
-    return {}
-  }
-}
-
-function lerGuardado(slug: string): Guardado {
-  const item = lerMapa()?.[slug]
-  if (Array.isArray(item)) {
-    return { perguntas: item.filter((p) => p && typeof p.pergunta === 'string'), respostas: {} }
-  }
-  return {
-    perguntas: Array.isArray(item?.perguntas)
-      ? item.perguntas.filter((p: PerguntaPublica) => p && typeof p.pergunta === 'string')
-      : [],
-    respostas: item?.respostas && typeof item.respostas === 'object' ? item.respostas : {},
-  }
-}
-
-function guardar(slug: string, dados: Guardado) {
-  try {
-    window.localStorage.setItem(CHAVE_PERGUNTAS, JSON.stringify({ ...lerMapa(), [slug]: dados }))
-  } catch {}
-}
+import { criarPergunta, responderPergunta, type PerguntaPublica } from '@/services/api/perguntas.servico'
 
 type Props = {
   iniciais: PerguntaPublica[]
@@ -49,27 +14,22 @@ type Props = {
 }
 
 export default function PerguntasPublicas({ iniciais, slug, artesaoNome, artesaoImagem }: Props) {
-  const [guardado, definirGuardado] = useState<Guardado>(VAZIO)
+  const [perguntas, definirPerguntas] = useState(iniciais)
   const [texto, definirTexto] = useState('')
   const [erro, definirErro] = useState<string | null>(null)
   const [respondendo, definirRespondendo] = useState<string | null>(null)
   const [rascunhoResposta, definirRascunhoResposta] = useState('')
   const campoResposta = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    definirGuardado(lerGuardado(slug))
-  }, [slug])
+  useEffect(() => definirPerguntas(iniciais), [iniciais])
 
   useEffect(() => {
     if (respondendo) campoResposta.current?.focus()
   }, [respondendo])
 
-  const todas = [...iniciais, ...guardado.perguntas].map((p) => ({
-    ...p,
-    resposta: p.resposta ?? guardado.respostas[p.pergunta],
-  }))
+  const todas = perguntas
 
-  function enviar(evento: FormEvent<HTMLFormElement>) {
+  async function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
     const limpo = texto.trim()
     if (!limpo) {
@@ -77,21 +37,20 @@ export default function PerguntasPublicas({ iniciais, slug, artesaoNome, artesao
       return
     }
     definirErro(null)
-    const nova = { pergunta: limpo, autor: usuarioAtual.nome }
-    const proximo = { ...guardado, perguntas: [...guardado.perguntas, nova] }
-    definirGuardado(proximo)
-    guardar(slug, proximo)
+    const resposta = await criarPergunta(slug, limpo)
+    if (!resposta.dados) return avisar.erro('Não foi possível enviar', resposta.erro?.mensagem)
+    definirPerguntas([...perguntas, resposta.dados])
     definirTexto('')
     avisar.sucesso('Pergunta enviada', 'Ela já aparece aqui com o seu nome.')
   }
 
-  function responder(evento: FormEvent<HTMLFormElement>, pergunta: string) {
+  async function responder(evento: FormEvent<HTMLFormElement>, pergunta: PerguntaPublica) {
     evento.preventDefault()
     const limpo = rascunhoResposta.trim()
     if (!limpo) return
-    const proximo = { ...guardado, respostas: { ...guardado.respostas, [pergunta]: limpo } }
-    definirGuardado(proximo)
-    guardar(slug, proximo)
+    const resposta = await responderPergunta(slug, pergunta.id, limpo)
+    if (!resposta.dados) return avisar.erro('Não foi possível responder', resposta.erro?.mensagem)
+    definirPerguntas(perguntas.map((item) => item.id === pergunta.id ? resposta.dados! : item))
     definirRespondendo(null)
     definirRascunhoResposta('')
     avisar.sucesso('Resposta publicada', 'Ela fica visível para quem visitar a peça.')
@@ -107,19 +66,12 @@ export default function PerguntasPublicas({ iniciais, slug, artesaoNome, artesao
         aria-label={todas.length > 3 ? 'Lista de perguntas, role para ver todas' : undefined}
       >
         {todas.map((p) => (
-          <li className="fio-pergunta" key={p.pergunta}>
+          <li className="fio-pergunta" key={p.id}>
             <div className="pergunta-bloco">
-              {p.autor === usuarioAtual.nome ? (
-                <Retrato imagem={usuarioAtual.imagem} tamanho={28} />
-              ) : (
-                <span className="pergunta-inicial" aria-hidden>
-                  {(p.autor ?? '?').charAt(0)}
-                </span>
-              )}
+              <span className="pergunta-inicial" aria-hidden>{(p.autor ?? '?').charAt(0)}</span>
               <div className="encolhivel">
                 <p className="pergunta-autor">
                   {p.autor ?? 'Visitante'}
-                  {p.autor === usuarioAtual.nome && <span className="selo selo-neutro">você</span>}
                 </p>
                 <p className="balao balao-pergunta">{p.pergunta}</p>
               </div>
@@ -137,7 +89,7 @@ export default function PerguntasPublicas({ iniciais, slug, artesaoNome, artesao
                 </div>
               </div>
             ) : respondendo === p.pergunta ? (
-              <form className="conversa-envio resposta-envio" onSubmit={(e) => responder(e, p.pergunta)}>
+              <form className="conversa-envio resposta-envio" onSubmit={(e) => responder(e, p)}>
                 <label className="so-leitor" htmlFor={`responder-${p.pergunta.slice(0, 20)}`}>
                   Escreva a resposta do artesão
                 </label>

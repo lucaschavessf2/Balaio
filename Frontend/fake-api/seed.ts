@@ -17,7 +17,7 @@ const dados = {
   curadoria: filaCuradoria, mediacoes,
   mensagens: conversa.map((mensagem, i) => ({ ...mensagem, id: `msg-${i + 1}`, pedidoId: pedidos[0].id })),
   comentarios: Object.entries(comentarios).flatMap(([videoId, itens]) => itens.map((item, i) => ({ ...item, id: `${videoId}-${i}`, videoId }))),
-  usuario: usuarioAtual, usuarios: [], sessoes: [], fretes: opcoesFrete,
+  usuario: usuarioAtual, usuarios: [], sessoes: [], estadosCliente: [], perguntas: [], recuperacoes: [], fretes: opcoesFrete,
   referencias: { tecnicas, territorios, categorias, etiquetas: etiquetasEmAlta },
   avaliacoes: [],
 }

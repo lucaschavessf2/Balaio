@@ -42,7 +42,7 @@ export default function FormPublicarVideo({ pecas }: { pecas: PecaVinculavel[] }
     const dados = new FormData(formulario.current!)
     definirSalvando(true)
     const resposta = await criarVideo({
-      id: crypto.randomUUID(), artesao: 'mestre-nuca', peca: String(dados.get('peca') || ''),
+      id: crypto.randomUUID(), artesao: '', peca: String(dados.get('peca') || ''),
       legenda: String(dados.get('legenda')), etiquetas: String(dados.get('etiquetas') || '').split(/\s+/).filter(Boolean),
       duracao: '0:00', visualizacoes: 0, curtidas: 0, comentarios: 0,
       publicadoEm: rascunho ? 'Rascunho' : 'agora', capa: '/fotos/ImagemBase.webp', situacao: rascunho ? 'rascunho' : 'publicada',

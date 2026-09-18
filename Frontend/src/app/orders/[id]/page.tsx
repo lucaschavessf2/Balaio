@@ -4,7 +4,7 @@ import Pagina from '@/components/layout/Pagina'
 import ResumoItensPedido from '@/components/pedido/ResumoItensPedido'
 import { Migalhas } from '@/components/ui/Basicos'
 import ConversaPedido from '@/components/pedido/ConversaPedido'
-import BotaoSimulado from '@/components/ui/BotaoSimulado'
+import BotaoRastreio from '@/components/pedido/BotaoRastreio'
 import { IconeCaminhao, IconeCheck, IconeSetaDireita } from '@/components/ui/Icones'
 import { obterPedido, conversaDoPedido } from '@/services/api/pedidos.servico'
 import { obterPeca } from '@/services/api/pecas.servico'
@@ -108,14 +108,14 @@ export default async function Acompanhamento({ params }: { params: Promise<{ id:
                 </span>
               </div>
             </div>
-            <BotaoSimulado
+            <BotaoRastreio
               className="botao botao-secundario acima-4"
-              titulo="Rastreio copiado para acompanhar na transportadora"
-              descricao={`Use o código ${pedido.rastreio} no site da ${pedido.transportadora}.`}
+              codigo={pedido.rastreio}
+              transportadora={pedido.transportadora}
             >
               Acompanhar na transportadora
               <IconeSetaDireita />
-            </BotaoSimulado>
+            </BotaoRastreio>
           </section>
 
           <section className="cartao acima-5">

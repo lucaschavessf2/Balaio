@@ -6,19 +6,6 @@ import MenuConta from '@/components/conta/MenuConta'
 import { exigirUsuario } from '@/services/autenticacao'
 import { listarPedidos } from '@/services/api/pedidos.servico'
 
-const enderecos = [
-  {
-    apelido: 'Casa',
-    principal: true,
-    linhas: ['Rua da Aurora, 240, apto 902', 'Boa Vista, Recife, PE', 'CEP 52021-030'],
-  },
-  {
-    apelido: 'Trabalho',
-    principal: false,
-    linhas: ['Av. Conselheiro Aguiar, 1580, sala 4', 'Boa Viagem, Recife, PE', 'CEP 51111-010'],
-  },
-]
-
 export default async function EnderecosDaConta() {
   const [usuario, { dados: pedidos }] = await Promise.all([exigirUsuario(), listarPedidos()])
   return (
@@ -35,7 +22,7 @@ export default async function EnderecosDaConta() {
       <p className="subtitulo-pagina">Onde você costuma receber as suas peças.</p>
 
       <div className="conta-hub">
-        <EnderecosEntrega iniciais={enderecos} />
+        <EnderecosEntrega iniciais={usuario.enderecos ?? []} />
       </div>
     </Pagina>
   )

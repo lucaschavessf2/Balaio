@@ -4,6 +4,8 @@ import { Foto, Migalhas, SeloDisponibilidade } from '@/components/ui/Basicos'
 import { IconeSetaDireita } from '@/components/ui/Icones'
 import { pecasPorArtesao } from '@/services/api/pecas.servico'
 import { emReais } from '@/utils/formato'
+import { exigirArtesao } from '@/services/autenticacao'
+import AcoesPecaPainel from '@/components/painel/AcoesPecaPainel'
 
 const situacoes: Record<string, { texto: string; classe: string }> = {
   publicada: { texto: 'Publicada', classe: 'selo-disponivel' },
@@ -13,7 +15,8 @@ const situacoes: Record<string, { texto: string; classe: string }> = {
 
 
 export default async function MinhasPecas() {
-  const { dados: pecas } = await pecasPorArtesao('mestre-nuca')
+  const { artesao } = await exigirArtesao()
+  const { dados: pecas } = await pecasPorArtesao(artesao.slug)
 
   return (
     <LayoutPainel ativo="pecas">
@@ -73,6 +76,7 @@ export default async function MinhasPecas() {
               <Link href="/dashboard/pieces/new" className="botao botao-secundario">
                 Cadastrar semelhante
               </Link>
+              <AcoesPecaPainel slug={peca.slug} situacao={peca.situacao} />
             </div>
           </article>
         )

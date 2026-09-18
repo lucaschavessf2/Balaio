@@ -6,6 +6,7 @@ import { Campo } from '@/components/ui/Basicos'
 import { avisar } from '@/components/feedback/Avisos'
 import { validarEmail } from '@/utils/validacao'
 import { IconeCheck } from '@/components/ui/Icones'
+import { solicitarRecuperacao } from '@/services/api/conta.servico'
 
 export default function FormRecuperar() {
   const [erro, definirErro] = useState<string | null>(null)
@@ -16,7 +17,7 @@ export default function FormRecuperar() {
     if (enviadoPara) refCartaoSucesso.current?.focus()
   }, [enviadoPara])
 
-  function enviar(evento: FormEvent<HTMLFormElement>) {
+  async function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
     const email = String(new FormData(evento.currentTarget).get('email') ?? '')
     const problema = validarEmail(email)
@@ -25,6 +26,8 @@ export default function FormRecuperar() {
       document.getElementById('recuperar-email')?.focus()
       return
     }
+    const resposta = await solicitarRecuperacao(email)
+    if (!resposta.dados) return avisar.erro('Não foi possível solicitar', resposta.erro?.mensagem)
     definirEnviadoPara(email)
     avisar.sucesso('Link de recuperação enviado', 'Confira sua caixa de entrada e o spam.')
   }

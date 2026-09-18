@@ -36,6 +36,10 @@ export type Artesao = {
   avaliacaoMedia: number
   selo: boolean
   imagem: string
+  cepOrigem?: string
+  prazoPadraoDias?: number
+  aceitaEncomendas?: boolean
+  chavePix?: string
 }
 
 export type EstadoPedido = 'confirmado' | 'producao' | 'enviado' | 'entregue'

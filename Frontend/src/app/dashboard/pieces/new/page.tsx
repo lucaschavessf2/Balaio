@@ -84,7 +84,7 @@ export default function NovaPeca() {
     definirSalvando(true)
     const resposta = await criarPeca({
       slug: gerarSlugEvento(String(dados.get('nome'))), nome: String(dados.get('nome')).trim(),
-      artesao: 'mestre-nuca', tecnica: String(dados.get('tecnica')) as Tecnica,
+      artesao: '', tecnica: String(dados.get('tecnica')) as Tecnica,
       territorio: String(dados.get('territorio')), categoria: String(dados.get('categoria')),
       historia: [String(dados.get('historia') || '')],
       preco: Number(String(dados.get('preco') || '0').replace(/\./g, '').replace(',', '.')) || 0,

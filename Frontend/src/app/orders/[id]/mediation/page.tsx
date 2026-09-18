@@ -6,11 +6,13 @@ import FormMediacao from '@/components/forms/FormMediacao'
 import { obterPedido } from '@/services/api/pedidos.servico'
 import { obterPeca } from '@/services/api/pecas.servico'
 import { obterArtesao } from '@/services/api/artesaos.servico'
+import { exigirUsuario } from '@/services/autenticacao'
 
 export const dynamic = 'force-dynamic'
 
 export default async function Mediacao({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+  const usuario = await exigirUsuario()
   const { dados: pedido, erro } = await obterPedido(id)
   if (erro && erro.codigo !== 'RECURSO_NAO_ENCONTRADO') throw new Error(erro.mensagem)
   if (!pedido) notFound()
@@ -40,6 +42,7 @@ export default async function Mediacao({ params }: { params: Promise<{ id: strin
           pecaNome={peca?.nome}
           pecaImagem={peca?.imagem}
           atelie={artesao?.atelie}
+          usuarioNome={usuario.nome}
         />
 
         <aside className="cartao">

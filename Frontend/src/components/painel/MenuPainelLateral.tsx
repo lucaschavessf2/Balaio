@@ -3,12 +3,14 @@
 import Link from 'next/link'
 import { Retrato } from '@/components/ui/Basicos'
 import { IconeSelo, IconeSetaDireita } from '@/components/ui/Icones'
-import { useDados } from '@/store/dados'
-import { artesaoDoPainel, itensPorGrupo, type ChavePainel } from '@/components/painel/itensPainel'
+import { itensPorGrupo, type ChavePainel } from '@/components/painel/itensPainel'
+import { useEffect, useState } from 'react'
+import { obterMeuAtelie } from '@/services/api/artesaos.servico'
+import type { Artesao } from '@/types/dominio'
 
 export default function MenuPainelLateral({ ativo }: { ativo: ChavePainel }) {
-  const { artesaos } = useDados()
-  const artesao = artesaos.find((a) => a.slug === artesaoDoPainel)
+  const [artesao, definirArtesao] = useState<Artesao | undefined>()
+  useEffect(() => { obterMeuAtelie().then(({ dados }) => definirArtesao(dados ?? undefined)) }, [])
 
   return (
     <nav className="menu-lateral" aria-label="Menu do painel">

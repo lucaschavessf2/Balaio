@@ -1274,6 +1274,9 @@
   },
   "usuarios": [],
   "sessoes": [],
+  "estadosCliente": [],
+  "perguntas": [],
+  "recuperacoes": [],
   "fretes": [
     {
       "id": "padrao",

@@ -9,6 +9,17 @@ export type Usuario = {
   tipoComprador?: string
   territorio?: string
   tecnica?: string
+  artesaoId?: string
+  enderecos?: EnderecoUsuario[]
+}
+
+export type EnderecoUsuario = {
+  id: string
+  apelido: string
+  rua: string
+  bairro: string
+  cep: string
+  principal: boolean
 }
 
 export const usuarioAtual: Usuario = {

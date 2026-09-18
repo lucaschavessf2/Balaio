@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 import { IconeConversa, IconeEngrenagem, IconeGrafico, IconePacote, IconePincel, IconePlay } from '@/components/ui/Icones'
-import { conversasArtesao, pedidosPendentesArtesao } from '@/mocks/pedidos'
 
 export type ChavePainel = 'pedidos' | 'pecas' | 'videos' | 'conversas' | 'vendas' | 'config'
 
@@ -22,12 +21,7 @@ export const rotulosGrupo: Record<GrupoPainel, string> = {
   oficina: 'Oficina',
 }
 
-export const artesaoDoPainel = 'mestre-nuca'
-
 export function itensPainel(): ItemPainel[] {
-  const pendentes = pedidosPendentesArtesao.length
-  const naoLidas = conversasArtesao.filter((c) => c.naoLida).length
-
   return [
     {
       chave: 'pedidos',
@@ -36,7 +30,6 @@ export function itensPainel(): ItemPainel[] {
       href: '/dashboard',
       icone: <IconePacote />,
       grupo: 'vender',
-      marcador: pendentes > 0 ? { texto: `${pendentes} ${pendentes === 1 ? 'pendente' : 'pendentes'}` } : undefined,
     },
     {
       chave: 'pecas',
@@ -61,8 +54,6 @@ export function itensPainel(): ItemPainel[] {
       href: '/dashboard/messages',
       icone: <IconeConversa />,
       grupo: 'divulgar',
-      marcador:
-        naoLidas > 0 ? { texto: `${naoLidas} não ${naoLidas === 1 ? 'lida' : 'lidas'}`, alerta: true } : undefined,
     },
     {
       chave: 'videos',

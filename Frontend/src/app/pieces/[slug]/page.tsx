@@ -11,21 +11,9 @@ import { IconeEtiqueta, IconeMapa, IconeSelo, IconeSetaDireita } from '@/compone
 import { obterArtesao } from '@/services/api/artesaos.servico'
 import { emReais, precoComDesconto } from '@/utils/formato'
 import { obterPeca, pecasRelacionadas } from '@/services/api/pecas.servico'
+import { listarPerguntas } from '@/services/api/perguntas.servico'
 
 export const dynamic = 'force-dynamic'
-
-const perguntas = [
-  {
-    pergunta: 'A peça acompanha algum certificado?',
-    autor: 'Clarissa M. Reis',
-    resposta: 'Sim, acompanha o Selo de Origem e a biografia impressa do atelier.',
-  },
-  {
-    pergunta: 'É possível encomendar em tamanho maior?',
-    autor: 'Renato Albuquerque',
-    resposta: 'No momento, o atelier produz apenas neste formato tradicional de 40 cm.',
-  },
-]
 
 export default async function DetalhePeca({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -35,6 +23,7 @@ export default async function DetalhePeca({ params }: { params: Promise<{ slug: 
 
   const { dados: artesao } = await obterArtesao(peca.artesao)
   const relacionadas = (await pecasRelacionadas(peca.slug)).dados ?? []
+  const perguntas = (await listarPerguntas(peca.slug)).dados ?? []
 
   return (
     <Pagina>

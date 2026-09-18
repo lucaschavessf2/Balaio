@@ -42,13 +42,15 @@ export async function conversaDoPedido(id: string): Promise<RespostaApi<Mensagem
   return buscar<Mensagem[]>(`/pedidos/${encodeURIComponent(id)}/conversa`)
 }
 
-export async function listarConversasArtesao(): Promise<RespostaApi<ConversaArtesao[]>> {
-  return buscar<ConversaArtesao[]>('/artesao/conversas')
+export async function listarConversasArtesao(artesao?: string): Promise<RespostaApi<ConversaArtesao[]>> {
+  return buscar<ConversaArtesao[]>(`/artesao/conversas${artesao ? `?artesao=${encodeURIComponent(artesao)}` : ''}`)
 }
 
-export async function listarPedidosPendentes(): Promise<RespostaApi<PedidoPendente[]>> {
-  return buscar<PedidoPendente[]>('/artesao/pedidos-pendentes')
+export async function listarPedidosPendentes(artesao?: string): Promise<RespostaApi<PedidoPendente[]>> {
+  return buscar<PedidoPendente[]>(`/artesao/pedidos-pendentes${artesao ? `?artesao=${encodeURIComponent(artesao)}` : ''}`)
 }
+
+export const atualizarEstadoPedido = (id: string, estado: Pedido['estado']) => enviar<Pedido>(`/pedidos/${encodeURIComponent(id)}/estado`, { estado }, 'PATCH')
 
 export async function listarFilaCuradoria(): Promise<RespostaApi<ItemCuradoria[]>> {
   return buscar<ItemCuradoria[]>('/admin/curadoria')
