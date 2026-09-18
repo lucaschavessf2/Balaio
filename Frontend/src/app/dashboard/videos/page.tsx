@@ -8,6 +8,7 @@ import { emMilhares } from '@/mocks/videos'
 import { fallbackDe } from '@/mocks/imagens'
 import { listarVideos } from '@/services/api/videos.servico'
 import { pecasPorArtesao } from '@/services/api/pecas.servico'
+import { exigirArtesao } from '@/services/sessao/servidor'
 
 const dicas = [
   'Filme na horizontal do celular apoiado, ou na vertical se for mostrar as mãos de perto.',
@@ -21,11 +22,12 @@ function resumirLegenda(legenda: string): string {
 }
 
 export default async function PublicarVideo() {
+  const { artesao } = await exigirArtesao()
   const [{ dados: todosVideos }, { dados: pecasArtesao }] = await Promise.all([
     listarVideos(true),
-    pecasPorArtesao('mestre-nuca'),
+    pecasPorArtesao(artesao),
   ])
-  const meus = (todosVideos ?? []).filter((v) => v.artesao === 'mestre-nuca')
+  const meus = (todosVideos ?? []).filter((v) => v.artesao === artesao)
   const pecas = (pecasArtesao ?? []).map((p) => ({ slug: p.slug, nome: p.nome }))
 
   return (

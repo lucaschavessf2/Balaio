@@ -12,12 +12,11 @@ import {
   IconeUsuario,
 } from '@/components/ui/Icones'
 import { listarPedidos } from '@/services/api/pedidos.servico'
-import { obterUsuario } from '@/services/api/conta.servico'
-import EstadoErro from '@/components/feedback/EstadoErro'
+import { exigirSessao } from '@/services/sessao/servidor'
 
 export default async function Conta() {
-  const [{ dados: pedidos }, { dados: usuarioAtual, erro }] = await Promise.all([listarPedidos(), obterUsuario()])
-  if (!usuarioAtual) return <Pagina><EstadoErro mensagem={erro?.mensagem} /></Pagina>
+  const usuarioAtual = await exigirSessao('/account')
+  const { dados: pedidos } = await listarPedidos(usuarioAtual.id)
   const totalPedidos = (pedidos ?? []).length
   return (
     <Pagina>
@@ -65,20 +64,31 @@ export default async function Conta() {
               <IconeSetaDireita />
             </span>
           </Link>
-          <Link href="/login/recover" className="menu-item">
+          <Link href="/account/details#seguranca" className="menu-item">
             <IconeCadeado />
             Alterar senha
             <span className="menu-item-seta">
               <IconeSetaDireita />
             </span>
           </Link>
-          <Link href="/dashboard" className="menu-item">
-            <IconePincel />
-            Painel do artesão
-            <span className="menu-item-seta">
-              <IconeSetaDireita />
-            </span>
-          </Link>
+          {usuarioAtual.papel === 'admin' && (
+            <Link href="/admin" className="menu-item">
+              <IconePincel />
+              Curadoria e mediações
+              <span className="menu-item-seta">
+                <IconeSetaDireita />
+              </span>
+            </Link>
+          )}
+          {usuarioAtual.papel === 'artesao' && (
+            <Link href="/dashboard" className="menu-item">
+              <IconePincel />
+              Painel do artesão
+              <span className="menu-item-seta">
+                <IconeSetaDireita />
+              </span>
+            </Link>
+          )}
           <BotaoSair />
         </nav>
       </div>

@@ -203,3 +203,31 @@ details[open] > .filtros-titulo .seta-grupo {
     background: none;
   }
 }
+
+a.chip-filtro:hover {
+  @apply no-underline;
+}
+
+.filtros-grupo-fixo {
+  @apply pb-3 border-b border-linha;
+}
+
+.filtros-ativos {
+  @apply flex flex-wrap items-center gap-2 list-none m-0 mb-4 p-0;
+}
+
+.filtro-ativo {
+  @apply inline-flex items-center gap-1.5 min-h-9 py-1 px-3 rounded-pilula bg-barro-fundo border border-barro text-barro-tinta text-[13px] font-semibold;
+}
+
+.filtro-ativo:hover {
+  @apply no-underline border-destaque text-destaque;
+}
+
+.filtro-ativo-rotulo {
+  @apply font-normal text-tinta-suave;
+}
+
+.ordenar-listagem {
+  @apply flex items-center gap-2;
+}

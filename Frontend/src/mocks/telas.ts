@@ -17,7 +17,9 @@ export const fluxos: { chave: Fluxo; titulo: string; resumo: string }[] = [
 ]
 
 export const telas: Tela[] = [
-  { rota: '/', nome: 'Vitrine', descricao: 'Catálogo com destaque da semana e filtros por técnica, território e disponibilidade.', fluxo: 'comprador', requisitos: ['RF-04', 'RF-05', 'RF-07'] },
+  { rota: '/', nome: 'Vitrine', descricao: 'Destaques com o mapa de feiras, atalhos por tipo, ofertas, mais bem avaliadas e artesãos em destaque.', fluxo: 'comprador', requisitos: ['RF-04', 'RF-05', 'RF-07'] },
+  { rota: '/search?tipo=Jarras%20%26%20Vasos&ordenar=preco-asc', nome: 'Listagem por tipo', descricao: 'Catálogo filtrado por tipo de peça, com filtros e ordenação na URL.', fluxo: 'comprador', requisitos: ['RF-05'] },
+  { rota: '/search?desconto=true', nome: 'Ofertas', descricao: 'Peças com desconto definido pelo artesão.', fluxo: 'comprador', requisitos: ['RF-05'] },
   { rota: '/search?q=renda', nome: 'Busca com resultados', descricao: 'Resultado da busca por termo livre.', fluxo: 'comprador', requisitos: ['RF-05'] },
   { rota: '/search?q=zzzz', nome: 'Busca sem resultados', descricao: 'Estado vazio com sugestões de técnicas.', fluxo: 'comprador', requisitos: ['RF-05'] },
   { rota: '/pieces/leao-imperial-de-tracunhaem', nome: 'Peça única', descricao: 'Detalhe com galeria, história, frete por CEP e perguntas públicas.', fluxo: 'comprador', requisitos: ['RF-03', 'RF-10', 'RF-17'] },
@@ -57,7 +59,6 @@ export const telas: Tela[] = [
   { rota: '/admin/criteria', nome: 'Critérios de curadoria', descricao: 'Regras que a plataforma aplica ao aprovar ou recusar uma peça.', fluxo: 'plataforma', requisitos: ['RF-16'] },
   { rota: '/route-that-does-not-exist', nome: 'Página não encontrada', descricao: 'Estado de erro 404 do sistema.', fluxo: 'plataforma', requisitos: [] },
 
-  { rota: '/how-it-works', nome: 'Como funciona', descricao: 'O caminho de quem compra e de quem vende, e o que garantimos.', fluxo: 'institucional', requisitos: [] },
   { rota: '/about/who-we-are', nome: 'Quem somos', descricao: 'A origem do projeto e o que ele defende.', fluxo: 'institucional', requisitos: [] },
   { rota: '/about/terms', nome: 'Termos de uso', descricao: 'Regras entre comprador, artesão e plataforma.', fluxo: 'institucional', requisitos: [] },
   { rota: '/about/privacy', nome: 'Privacidade', descricao: 'Dados coletados, uso e direitos.', fluxo: 'institucional', requisitos: [] },

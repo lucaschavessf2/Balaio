@@ -8,7 +8,7 @@ type Props = { ativo: ChavePainel; children: ReactNode }
 
 export default function LayoutPainel({ ativo, children }: Props) {
   return (
-    <Pagina comoArtesao>
+    <Pagina>
       <MenuDrawer titulo="Painel do artesão" rotulo="Menu do painel">
         <MenuPainelLateral ativo={ativo} />
       </MenuDrawer>

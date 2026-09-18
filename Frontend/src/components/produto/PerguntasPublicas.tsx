@@ -1,10 +1,13 @@
 'use client'
 
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Retrato } from '@/components/ui/Basicos'
 import { IconeEnviar } from '@/components/ui/Icones'
 import { avisar } from '@/components/feedback/Avisos'
-import { usuarioAtual } from '@/mocks/usuario'
+import { useSessao } from '@/store/sessao'
+import { rotaDeLogin } from '@/services/sessao/cookie'
 
 export type PerguntaPublica = { pergunta: string; autor?: string; resposta?: string }
 
@@ -44,11 +47,15 @@ function guardar(slug: string, dados: Guardado) {
 type Props = {
   iniciais: PerguntaPublica[]
   slug: string
+  artesaoSlug?: string
   artesaoNome?: string
   artesaoImagem?: string
 }
 
-export default function PerguntasPublicas({ iniciais, slug, artesaoNome, artesaoImagem }: Props) {
+export default function PerguntasPublicas({ iniciais, slug, artesaoSlug, artesaoNome, artesaoImagem }: Props) {
+  const caminho = usePathname()
+  const { sessao } = useSessao()
+  const ehDonoDaPeca = Boolean(sessao?.artesao && sessao.artesao === artesaoSlug)
   const [guardado, definirGuardado] = useState<Guardado>(VAZIO)
   const [texto, definirTexto] = useState('')
   const [erro, definirErro] = useState<string | null>(null)
@@ -71,13 +78,14 @@ export default function PerguntasPublicas({ iniciais, slug, artesaoNome, artesao
 
   function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
+    if (!sessao) return
     const limpo = texto.trim()
     if (!limpo) {
       definirErro('Escreva sua pergunta antes de enviar')
       return
     }
     definirErro(null)
-    const nova = { pergunta: limpo, autor: usuarioAtual.nome }
+    const nova = { pergunta: limpo, autor: sessao.nome }
     const proximo = { ...guardado, perguntas: [...guardado.perguntas, nova] }
     definirGuardado(proximo)
     guardar(slug, proximo)
@@ -88,7 +96,7 @@ export default function PerguntasPublicas({ iniciais, slug, artesaoNome, artesao
   function responder(evento: FormEvent<HTMLFormElement>, pergunta: string) {
     evento.preventDefault()
     const limpo = rascunhoResposta.trim()
-    if (!limpo) return
+    if (!limpo || !ehDonoDaPeca) return
     const proximo = { ...guardado, respostas: { ...guardado.respostas, [pergunta]: limpo } }
     definirGuardado(proximo)
     guardar(slug, proximo)
@@ -109,8 +117,8 @@ export default function PerguntasPublicas({ iniciais, slug, artesaoNome, artesao
         {todas.map((p) => (
           <li className="fio-pergunta" key={p.pergunta}>
             <div className="pergunta-bloco">
-              {p.autor === usuarioAtual.nome ? (
-                <Retrato imagem={usuarioAtual.imagem} tamanho={28} />
+              {sessao && p.autor === sessao.nome ? (
+                <Retrato imagem={sessao.imagem} tamanho={28} />
               ) : (
                 <span className="pergunta-inicial" aria-hidden>
                   {(p.autor ?? '?').charAt(0)}
@@ -119,7 +127,7 @@ export default function PerguntasPublicas({ iniciais, slug, artesaoNome, artesao
               <div className="encolhivel">
                 <p className="pergunta-autor">
                   {p.autor ?? 'Visitante'}
-                  {p.autor === usuarioAtual.nome && <span className="selo selo-neutro">você</span>}
+                  {sessao && p.autor === sessao.nome && <span className="selo selo-neutro">você</span>}
                 </p>
                 <p className="balao balao-pergunta">{p.pergunta}</p>
               </div>
@@ -167,49 +175,59 @@ export default function PerguntasPublicas({ iniciais, slug, artesaoNome, artesao
             ) : (
               <p className="pergunta-aguardando">
                 <span className="selo selo-neutro">Aguardando resposta do artesão</span>
-                <button
-                  type="button"
-                  className="botao-texto"
-                  onClick={() => {
-                    definirRespondendo(p.pergunta)
-                    definirRascunhoResposta('')
-                  }}
-                >
-                  Responder
-                </button>
+                {ehDonoDaPeca && (
+                  <button
+                    type="button"
+                    className="botao-texto"
+                    onClick={() => {
+                      definirRespondendo(p.pergunta)
+                      definirRascunhoResposta('')
+                    }}
+                  >
+                    Responder
+                  </button>
+                )}
               </p>
             )}
           </li>
         ))}
       </ul>
 
-      <form className="conversa-envio acima-4" onSubmit={enviar} noValidate>
-        <label className="so-leitor" htmlFor="nova-pergunta">
-          Escreva sua pergunta
-        </label>
-        <input
-          id="nova-pergunta"
-          className="campo-select"
-          placeholder="Pergunte sobre a peça, o prazo ou o envio"
-          value={texto}
-          enterKeyHint="send"
-          onChange={(evento) => {
-            definirTexto(evento.target.value)
-            if (erro) definirErro(null)
-          }}
-        />
-        <button type="submit" className="botao botao-primario" aria-label="Enviar pergunta">
-          <IconeEnviar />
-        </button>
-      </form>
+      {sessao ? (
+        <>
+        <form className="conversa-envio acima-4" onSubmit={enviar} noValidate>
+          <label className="so-leitor" htmlFor="nova-pergunta">
+            Escreva sua pergunta
+          </label>
+          <input
+            id="nova-pergunta"
+            className="campo-select"
+            placeholder="Pergunte sobre a peça, o prazo ou o envio"
+            value={texto}
+            enterKeyHint="send"
+            onChange={(evento) => {
+              definirTexto(evento.target.value)
+              if (erro) definirErro(null)
+            }}
+          />
+          <button type="submit" className="botao botao-primario" aria-label="Enviar pergunta">
+            <IconeEnviar />
+          </button>
+        </form>
 
-      {erro && (
-        <p className="campo-erro acima-2" role="status">
-          {erro}
+        {erro && (
+          <p className="campo-erro acima-2" role="status">
+            {erro}
+          </p>
+        )}
+
+          <p className="campo-ajuda acima-2">Sua pergunta e a resposta ficam visíveis para todos.</p>
+        </>
+      ) : (
+        <p className="campo-ajuda acima-4">
+          <Link href={rotaDeLogin(caminho)}>Entre na sua conta</Link> para perguntar ao artesão.
         </p>
       )}
-
-      <p className="campo-ajuda acima-2">Sua pergunta e a resposta ficam visíveis para todos.</p>
     </>
   )
 }

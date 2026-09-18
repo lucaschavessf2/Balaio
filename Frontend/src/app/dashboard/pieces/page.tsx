@@ -4,6 +4,7 @@ import { Foto, Migalhas, SeloDisponibilidade } from '@/components/ui/Basicos'
 import { IconeSetaDireita } from '@/components/ui/Icones'
 import { pecasPorArtesao } from '@/services/api/pecas.servico'
 import { emReais } from '@/utils/formato'
+import { exigirArtesao } from '@/services/sessao/servidor'
 
 const situacoes: Record<string, { texto: string; classe: string }> = {
   publicada: { texto: 'Publicada', classe: 'selo-disponivel' },
@@ -13,7 +14,8 @@ const situacoes: Record<string, { texto: string; classe: string }> = {
 
 
 export default async function MinhasPecas() {
-  const { dados: pecas } = await pecasPorArtesao('mestre-nuca')
+  const { artesao } = await exigirArtesao()
+  const { dados: pecas } = await pecasPorArtesao(artesao)
 
   return (
     <LayoutPainel ativo="pecas">

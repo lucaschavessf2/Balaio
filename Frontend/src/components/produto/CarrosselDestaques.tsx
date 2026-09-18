@@ -3,9 +3,10 @@
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { Foto } from '@/components/ui/Basicos'
-import { IconeSetaDireita, IconeSetaEsquerda } from '@/components/ui/Icones'
+import { IconePlay, IconeSetaDireita, IconeSetaEsquerda } from '@/components/ui/Icones'
+import ImagemComFallback from '@/components/ui/ImagemComFallback'
 import MiniaturaMapa from '@/components/eventos/MiniaturaMapa'
-import { emReais } from '@/utils/formato'
+import { fallbackDe } from '@/mocks/imagens'
 
 export type Destaque = {
   slug: string
@@ -13,9 +14,15 @@ export type Destaque = {
   titulo: string
   territorio: string
   resumo: string
-  preco: number
   imagem: string
 }
+
+export type VideosDestaque = {
+  capas: string[]
+  total: number
+}
+
+const CAPAS_NO_MOSAICO = 4
 
 const INTERVALO_MS = 7000
 const SAIDA_MS = 220
@@ -23,10 +30,15 @@ const SAIDA_MS = 220
 export default function CarrosselDestaques({
   destaques,
   comEventos = false,
+  videos,
+  tituloPrincipal = false,
 }: {
   destaques: Destaque[]
   comEventos?: boolean
+  videos?: VideosDestaque
+  tituloPrincipal?: boolean
 }) {
+  const Titulo = tituloPrincipal ? 'h1' : 'h2'
   const [indice, definirIndice] = useState(0)
   const [pausado, definirPausado] = useState(false)
   const [semMovimento, definirSemMovimento] = useState(false)
@@ -35,8 +47,9 @@ export default function CarrosselDestaques({
   const indiceRef = useRef(indice)
   indiceRef.current = indice
 
-  const totalSlides = destaques.length + (comEventos ? 1 : 0)
   const indiceEventos = destaques.length
+  const indiceVideo = indiceEventos + (comEventos ? 1 : 0)
+  const totalSlides = indiceVideo + (videos ? 1 : 0)
 
   useEffect(() => {
     const consulta = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -74,10 +87,15 @@ export default function CarrosselDestaques({
   }, [indice, pausado, semMovimento, totalSlides])
 
   const noSlideEventos = comEventos && indice === indiceEventos
-  const destaque = noSlideEventos ? null : destaques[indice]
-  if (!noSlideEventos && !destaque) return null
+  const noSlideVideo = Boolean(videos) && indice === indiceVideo
+  const destaque = noSlideEventos || noSlideVideo ? null : destaques[indice]
+  if (!noSlideEventos && !noSlideVideo && !destaque) return null
 
-  const nomeSlideAtual = noSlideEventos ? 'Mapa de eventos perto de você' : destaque!.nome
+  const nomeSlideAtual = noSlideEventos
+    ? 'Mapa de eventos perto de você'
+    : noSlideVideo
+      ? 'Vídeos do ateliê'
+      : destaque!.nome
 
   function anterior() {
     irPara((indice - 1 + totalSlides) % totalSlides)
@@ -106,7 +124,7 @@ export default function CarrosselDestaques({
           </Link>
           <div className="hero-texto" key="texto-eventos">
             <p className="hero-kicker">Eventos perto de você</p>
-            <h1 className="titulo-pagina">Feiras e festivais no mapa</h1>
+            <Titulo className="titulo-pagina">Feiras e festivais no mapa</Titulo>
             <p className="subtitulo-pagina">
               Veja no mapa os eventos de artesanato mais próximos, como a Fenearte, e descubra quem da plataforma
               vai estar em cada um.
@@ -119,6 +137,35 @@ export default function CarrosselDestaques({
             </div>
           </div>
         </>
+      ) : noSlideVideo && videos ? (
+        <>
+          <Link href="/videos" className="hero-figura hero-figura-video" key="figura-video" tabIndex={-1}>
+            <span className="hero-video-mosaico">
+              {videos.capas.slice(0, CAPAS_NO_MOSAICO).map((capa, posicao) => (
+                <ImagemComFallback key={`${capa}-${posicao}`} src={capa} reserva={fallbackDe(capa)} alt="" />
+              ))}
+            </span>
+            <span className="hero-video-play">
+              <IconePlay tamanho={30} />
+            </span>
+          </Link>
+          <div className="hero-texto" key="texto-video">
+            <p className="hero-kicker">
+              Ateliê ao vivo · {videos.total} {videos.total === 1 ? 'vídeo' : 'vídeos'}
+            </p>
+            <Titulo className="titulo-pagina">O processo de perto, gravado na bancada</Titulo>
+            <p className="subtitulo-pagina">
+              Vídeos curtos dos artesãos mostrando como cada peça nasce: o barro no torno, a renda na almofada, a
+              goiva na madeira. Assista antes de escolher a sua.
+            </p>
+            <div className="acoes-linha">
+              <Link href="/videos" className="botao botao-primario">
+                Assistir aos vídeos
+                <IconeSetaDireita />
+              </Link>
+            </div>
+          </div>
+        </>
       ) : (
         <>
           <div className="hero-figura" key={`figura-${destaque!.slug}`}>
@@ -126,14 +173,13 @@ export default function CarrosselDestaques({
           </div>
           <div className="hero-texto" key={`texto-${destaque!.slug}`}>
             <p className="hero-kicker">Destaque da semana · {destaque!.territorio}</p>
-            <h1 className="titulo-pagina">{destaque!.titulo}</h1>
+            <Titulo className="titulo-pagina">{destaque!.titulo}</Titulo>
             <p className="subtitulo-pagina">{destaque!.resumo}</p>
             <div className="acoes-linha">
               <Link href={`/pieces/${destaque!.slug}`} className="botao botao-primario">
                 Conhecer peça
                 <IconeSetaDireita />
               </Link>
-              <span className="preco preco-destaque">{emReais(destaque!.preco)}</span>
             </div>
           </div>
         </>
@@ -162,6 +208,16 @@ export default function CarrosselDestaques({
               aria-label={`Ver destaque ${indiceEventos + 1} de ${totalSlides}: mapa de eventos perto de você`}
               aria-current={indice === indiceEventos}
               onClick={() => irPara(indiceEventos)}
+            />
+          )}
+          {videos && (
+            <button
+              key="video"
+              type="button"
+              className="hero-ponto"
+              aria-label={`Ver destaque ${indiceVideo + 1} de ${totalSlides}: vídeos do ateliê`}
+              aria-current={indice === indiceVideo}
+              onClick={() => irPara(indiceVideo)}
             />
           )}
         </div>

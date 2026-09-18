@@ -5,7 +5,9 @@ import { useFavoritos } from '@/store/favoritos'
 import { avisar } from '@/components/feedback/Avisos'
 import { IconeCoracao } from '@/components/ui/Icones'
 
-export default function BotaoFavoritar({ slug, nome }: { slug: string; nome: string }) {
+type Props = { slug: string; nome: string; variante?: 'flutuante' | 'rotulado' }
+
+export default function BotaoFavoritar({ slug, nome, variante = 'flutuante' }: Props) {
   const { ehFavorito, alternar } = useFavoritos()
   const roteador = useRouter()
   const salvo = ehFavorito(slug)
@@ -22,12 +24,13 @@ export default function BotaoFavoritar({ slug, nome }: { slug: string; nome: str
   return (
     <button
       type="button"
-      className="botao-favoritar"
+      className={variante === 'rotulado' ? 'botao botao-secundario botao-favoritar-rotulado' : 'botao-favoritar'}
       onClick={clicar}
       aria-pressed={salvo}
       aria-label={salvo ? `Remover ${nome} das peças salvas` : `Guardar ${nome} nas peças salvas`}
     >
       <IconeCoracao preenchido={salvo} tamanho={20} />
+      {variante === 'rotulado' && (salvo ? 'Salva' : 'Salvar')}
     </button>
   )
 }

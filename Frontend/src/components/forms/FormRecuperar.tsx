@@ -68,10 +68,6 @@ export default function FormRecuperar() {
       <button type="submit" className="botao botao-primario botao-largo">
         Enviar link de recuperação
       </button>
-
-      <p className="voltar-login">
-        <Link href="/login">Voltar para o login</Link>
-      </p>
     </form>
   )
 }

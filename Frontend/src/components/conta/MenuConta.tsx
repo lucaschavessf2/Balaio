@@ -1,13 +1,17 @@
+'use client'
+
 import Link from 'next/link'
 import { Retrato } from '@/components/ui/Basicos'
 import BotaoSair from '@/components/conta/BotaoSair'
 import { IconeCadeado, IconeCoracao, IconeMapa, IconePacote, IconePincel, IconeUsuario } from '@/components/ui/Icones'
-import { pedidos } from '@/mocks/pedidos'
-import { usuarioAtual } from '@/mocks/usuario'
+import { useSessao } from '@/store/sessao'
 
 export type ChaveConta = 'pedidos' | 'favoritos' | 'enderecos' | 'dados'
 
 export default function MenuConta({ ativo }: { ativo?: ChaveConta }) {
+  const { sessao: usuarioAtual } = useSessao()
+  if (!usuarioAtual) return null
+
   return (
     <nav className="menu-lateral" aria-label="Minha conta">
       <div className="menu-oficina">
@@ -26,7 +30,6 @@ export default function MenuConta({ ativo }: { ativo?: ChaveConta }) {
         >
           <IconePacote />
           Meus pedidos
-          <span className="menu-marcador">{pedidos.length}</span>
         </Link>
         <Link
           href="/favorites"
@@ -52,14 +55,16 @@ export default function MenuConta({ ativo }: { ativo?: ChaveConta }) {
           <IconeUsuario />
           Meus dados
         </Link>
-        <Link href="/login/recover" className="menu-item">
+        <Link href="/account/details#seguranca" className="menu-item">
           <IconeCadeado />
           Alterar senha
         </Link>
-        <Link href="/dashboard" className="menu-item">
-          <IconePincel />
-          Painel do artesão
-        </Link>
+        {usuarioAtual.papel === 'artesao' && (
+          <Link href="/dashboard" className="menu-item">
+            <IconePincel />
+            Painel do artesão
+          </Link>
+        )}
         <BotaoSair />
       </div>
     </nav>

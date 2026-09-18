@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { criarPeca } from '@/services/api/pecas.servico'
 import { gerarSlugEvento } from '@/components/eventos/eventosLocais'
 import type { Tecnica } from '@/types/dominio'
+import type { TipoPeca } from '@/constants/referencias'
 import { useRef, useState, type FormEvent } from 'react'
 import LayoutPainel from '@/components/painel/LayoutPainel'
 import { Campo, Migalhas } from '@/components/ui/Basicos'
@@ -12,6 +13,7 @@ import { validarObrigatorio, validarPreco, validarPrazoDias } from '@/utils/vali
 import { IconeAviso, IconePincel } from '@/components/ui/Icones'
 import EstadoCarregando from '@/components/feedback/EstadoCarregando'
 import { useReferencias } from '@/hooks/useReferencias'
+import { useSessao } from '@/store/sessao'
 import { type Disponibilidade } from '@/types/dominio'
 import { emReais } from '@/utils/formato'
 
@@ -19,8 +21,9 @@ const sugestao = { materiais: 180, horas: 14, valorHora: 22 }
 
 export default function NovaPeca() {
   const roteador = useRouter()
+  const { sessao } = useSessao()
   const [salvando, definirSalvando] = useState(false)
-  const { tecnicas, territorios, categorias, carregando } = useReferencias()
+  const { tecnicas, territorios, categorias, tipos, carregando } = useReferencias()
   const [disponibilidade, definirDisponibilidade] = useState<Disponibilidade>('disponivel')
   const [erros, definirErros] = useState<Record<string, string>>({})
   const [fotos, definirFotos] = useState(0)
@@ -79,13 +82,14 @@ export default function NovaPeca() {
   }
 
   async function salvar(rascunho: boolean) {
-    if (salvando || !validar(rascunho)) return
+    if (salvando || !validar(rascunho) || !sessao?.artesao) return
     const dados = new FormData(formulario.current!)
     definirSalvando(true)
     const resposta = await criarPeca({
       slug: gerarSlugEvento(String(dados.get('nome'))), nome: String(dados.get('nome')).trim(),
-      artesao: 'mestre-nuca', tecnica: String(dados.get('tecnica')) as Tecnica,
+      artesao: sessao.artesao, tecnica: String(dados.get('tecnica')) as Tecnica,
       territorio: String(dados.get('territorio')), categoria: String(dados.get('categoria')),
+      tipo: String(dados.get('tipo')) as TipoPeca,
       historia: [String(dados.get('historia') || '')],
       preco: Number(String(dados.get('preco') || '0').replace(/\./g, '').replace(',', '.')) || 0,
       disponibilidade, prazoProducaoDias: disponibilidade === 'encomenda' ? Number(dados.get('prazo')) : undefined,
@@ -127,13 +131,23 @@ export default function NovaPeca() {
               <input id="peca-nome" name="nome" placeholder="Ex.: Leão Imperial de Tracunhaém" />
             </Campo>
 
-            <Campo rotulo="Técnica" id="peca-tecnica">
-              <select id="peca-tecnica" name="tecnica" defaultValue={tecnicas[0]}>
-                {tecnicas.map((t) => (
-                  <option key={t}>{t}</option>
-                ))}
-              </select>
-            </Campo>
+            <div className="grade-dois">
+              <Campo rotulo="Técnica" id="peca-tecnica">
+                <select id="peca-tecnica" name="tecnica" defaultValue={tecnicas[0]}>
+                  {tecnicas.map((t) => (
+                    <option key={t}>{t}</option>
+                  ))}
+                </select>
+              </Campo>
+
+              <Campo rotulo="Tipo de peça" ajuda="É por aqui que o comprador filtra na loja." id="peca-tipo">
+                <select id="peca-tipo" name="tipo" defaultValue={tipos[0]}>
+                  {tipos.map((t) => (
+                    <option key={t}>{t}</option>
+                  ))}
+                </select>
+              </Campo>
+            </div>
 
             <div className="grade-dois">
               <Campo rotulo="Categoria" id="peca-categoria">

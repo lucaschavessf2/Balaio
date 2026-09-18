@@ -1,11 +1,12 @@
 import Link from 'next/link'
-import { IconeBusca, IconeGrade, IconePlay, IconeSacola, IconeUsuario } from '@/components/ui/Icones'
+import { Suspense } from 'react'
+import BarraDepartamentos from '@/components/layout/BarraDepartamentos'
+import { IconeBusca, IconeGrade, IconeSacola } from '@/components/ui/Icones'
 import AlternadorTema from '@/components/layout/AlternadorTema'
 import ContadorSacola from '@/components/carrinho/ContadorSacola'
+import LinkConta from '@/components/layout/LinkConta'
 
-type Props = { comoArtesao?: boolean }
-
-export default function Cabecalho({ comoArtesao = false }: Props) {
+export default function Cabecalho() {
   return (
     <header className="cabecalho">
       <div className="container cabecalho-linha">
@@ -33,26 +34,7 @@ export default function Cabecalho({ comoArtesao = false }: Props) {
             <span className="rotulo-acao">Telas</span>
           </Link>
 
-          <Link href="/videos" className="cabecalho-link" title="Ateliê ao vivo">
-            <IconePlay />
-            <span className="rotulo-acao">Vídeos</span>
-          </Link>
-
-          <Link href="/how-it-works" className="cabecalho-link esconde-mobile">
-            Como funciona
-          </Link>
-
-          {comoArtesao ? (
-            <Link href="/dashboard" className="cabecalho-link">
-              <IconeUsuario />
-              Meu painel
-            </Link>
-          ) : (
-            <Link href="/login" className="cabecalho-link">
-              <IconeUsuario />
-              <span className="rotulo-acao">Entrar</span>
-            </Link>
-          )}
+          <LinkConta />
 
           <Link href="/cart" className="cabecalho-link sacola">
             <IconeSacola />
@@ -61,6 +43,9 @@ export default function Cabecalho({ comoArtesao = false }: Props) {
           </Link>
         </div>
       </div>
+      <Suspense>
+        <BarraDepartamentos />
+      </Suspense>
     </header>
   )
 }

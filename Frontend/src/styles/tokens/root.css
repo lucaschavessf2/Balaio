@@ -71,7 +71,7 @@
   --nav-inferior-altura: 58px;
   --nav-inferior-espaco: calc(var(--nav-inferior-altura) + env(safe-area-inset-bottom, 0px));
   --barra-fixa-espaco: 0px;
-  --cabecalho-espaco: 60px;
+  --cabecalho-espaco: 106px;
 
   --mapa-a: light-dark(#cfe0c8, #2c3d28);
   --mapa-b: light-dark(#8fae86, #1b2618);
@@ -102,12 +102,12 @@
 
 @media (min-width: 700px) {
   :root {
-    --cabecalho-espaco: 197px;
+    --cabecalho-espaco: 247px;
   }
 }
 
 @media (min-width: 1000px) {
   :root {
-    --cabecalho-espaco: 72px;
+    --cabecalho-espaco: 121px;
   }
 }

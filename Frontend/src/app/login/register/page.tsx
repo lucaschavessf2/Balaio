@@ -1,7 +1,6 @@
-import Pagina from '@/components/layout/Pagina'
-import { Migalhas } from '@/components/ui/Basicos'
+import Link from 'next/link'
+import LayoutAuth from '@/components/auth/LayoutAuth'
 import FormCadastro from '@/components/forms/FormCadastro'
-import { IconeCadeado, IconeUsuario } from '@/components/ui/Icones'
 import { obterReferencias } from '@/services/api/referencias.servico'
 
 export const metadata = {
@@ -9,38 +8,29 @@ export const metadata = {
   description: 'Cadastro de comprador ou artesão no Balaio.',
 }
 
+const vantagens = [
+  'Uma conta só para comprar e para vender',
+  'Artesãos informais vendem normalmente, sem CNPJ',
+  'Seu ateliê ganha uma loja com a sua história',
+]
+
 export default async function Cadastrar() {
   const { dados } = await obterReferencias()
 
   return (
-    <Pagina>
-      <Migalhas
-        trilha={[{ texto: 'Início', href: '/' }, { texto: 'Entrar', href: '/login' }, { texto: 'Criar conta' }]}
-      />
-
-      <div className="tela-estreita">
-        <header className="cabeca-auth">
-          <span className="cabeca-auth-icone">
-            <IconeUsuario tamanho={26} />
-          </span>
-          <h1 className="titulo-pagina">Criar sua conta</h1>
-          <p className="subtitulo-pagina">
-            Leva menos de dois minutos. O que pedimos muda conforme você vem comprar ou vender.
-          </p>
-        </header>
-
-        <FormCadastro tecnicas={dados?.tecnicas ?? []} territorios={dados?.territorios ?? []} />
-
-        <div className="cartao ajuda-auth">
-          <p className="aviso">
-            <IconeCadeado />
-            <span>
-              <strong>Não exigimos formalização.</strong> Artesãos informais vendem normalmente. A plataforma ajuda com
-              a nota quando ela for necessária.
-            </span>
-          </p>
-        </div>
-      </div>
-    </Pagina>
+    <LayoutAuth
+      trilha={[{ texto: 'Início', href: '/' }, { texto: 'Entrar', href: '/login' }, { texto: 'Criar conta' }]}
+      titulo="Criar sua conta"
+      apoio="Leva menos de dois minutos. O que pedimos muda conforme você vem comprar ou vender."
+      frase="Quem faz e quem compra, no mesmo balaio."
+      destaques={vantagens}
+      rodape={
+        <p>
+          Já tem conta? <Link href="/login">Entrar</Link>
+        </p>
+      }
+    >
+      <FormCadastro tecnicas={dados?.tecnicas ?? []} territorios={dados?.territorios ?? []} />
+    </LayoutAuth>
   )
 }

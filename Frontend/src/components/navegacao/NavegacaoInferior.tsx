@@ -5,13 +5,15 @@ import { usePathname } from 'next/navigation'
 import ContadorSacola from '@/components/carrinho/ContadorSacola'
 import { useTotalSacola } from '@/store/sacola'
 import { itensNavegacao } from '@/components/navegacao/itensNavegacao'
+import { useSessao } from '@/store/sessao'
 
 function estaAtivo(caminho: string, href: string) {
   return href === '/' ? caminho === '/' : caminho === href || caminho.startsWith(`${href}/`)
 }
 
-export default function NavegacaoInferior({ comoArtesao = false }: { comoArtesao?: boolean }) {
+export default function NavegacaoInferior() {
   const caminho = usePathname()
+  const { sessao } = useSessao()
   const { total, pronto } = useTotalSacola()
 
   function rotuloSacola(texto: string) {
@@ -21,7 +23,7 @@ export default function NavegacaoInferior({ comoArtesao = false }: { comoArtesao
 
   return (
     <nav className="nav-inferior" aria-label="Navegação principal">
-      {itensNavegacao(comoArtesao).map((item) => {
+      {itensNavegacao(sessao).map((item) => {
         const ativo = estaAtivo(caminho, item.href)
         return (
           <Link

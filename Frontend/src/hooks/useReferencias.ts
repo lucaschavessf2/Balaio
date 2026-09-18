@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { obterReferencias, type Referencias } from '@/services/api/referencias.servico'
 
-const VAZIO: Referencias = { tecnicas: [], territorios: [], categorias: [], etiquetas: [] }
+const VAZIO: Referencias = { tecnicas: [], territorios: [], categorias: [], tipos: [], etiquetas: [] }
 
 export function useReferencias() {
   const [referencias, definirReferencias] = useState<Referencias>(VAZIO)
