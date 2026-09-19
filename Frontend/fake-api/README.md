@@ -38,6 +38,7 @@ Os mocks originais permanecem como fonte do seed, tipos, funções de apresenta�
 | --- | --- |
 | `GET /pecas` | Busca `q`, filtros `tecnica`, `territorio`, `categoria`, `tipo`, `disponibilidade`, `desconto=true` (só com desconto), ordenação `recentes`, `preco-asc`, `preco-desc`, `avaliacao`, `pagina` e `tamanho` |
 | `GET /pecas/:slug` | Detalhe da peça |
+| `GET /pecas/:slug/historico` | Dados da peça para preservar pedidos antigos, inclusive quando inativada |
 | `GET /pecas/:slug/relacionadas?limite=3` | Mesma técnica, excluindo a peça atual |
 | `GET /artesaos`, `/artesaos/:slug`, `/artesaos/:slug/pecas` | Perfis e coleções |
 | `GET /coletivos`, `/coletivos/:slug` | Coletivos |
@@ -51,6 +52,7 @@ Os mocks originais permanecem como fonte do seed, tipos, funções de apresenta�
 | `POST /pedidos/:id/avaliacao` | Nota 1–5, comentário e aspectos; somente pedido entregue e não avaliado |
 | `GET /artesao/conversas`, `/artesao/pedidos-pendentes` | Dados do painel; `?artesao=slug` filtra pelo dono da peça |
 | `POST /pecas` | Cadastro com situação `rascunho` ou `curadoria` |
+| `PATCH /pecas/:slug` | Edita os dados da peça ou define `inativadoEm` para removê-la do catálogo público |
 | `GET /admin/curadoria` | Fila de revisão |
 | `POST /admin/curadoria/:id/decisao` | `decisao: aprovada` publica a peça; `ajuste` volta para rascunho |
 | `GET/POST /admin/mediacoes` | Consulta e abertura com pedido, assunto, partes, relato e solução |

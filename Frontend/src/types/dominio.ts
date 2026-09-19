@@ -18,6 +18,7 @@ export type FotoPeca = {
 
 export type Peca = {
   situacao?: 'publicada' | 'curadoria' | 'rascunho'
+  inativadoEm?: string | null
   slug: string
   nome: string
   artesao: string

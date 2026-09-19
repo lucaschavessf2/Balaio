@@ -146,7 +146,7 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
   })
 
   server.get('/api/v1/pecas', (req, res) => {
-    let lista = ler('pecas').filter((p) => !p.situacao || p.situacao === 'publicada')
+    let lista = ler('pecas').filter((p) => !p.inativadoEm && (!p.situacao || p.situacao === 'publicada'))
     const q = normalizar(req.query.q || '').trim()
     if (q) lista = lista.filter((p) => normalizar([p.nome, p.artesao, encontrar('artesaos', p.artesao)?.nome, p.territorio, p.tecnica, p.categoria, p.tipo].join(' ')).includes(q))
     if (req.query.desconto === 'true') lista = lista.filter((p) => (p.desconto || 0) > 0)
@@ -163,11 +163,21 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
     const pagina = Math.min(totalPaginas, Math.max(1, Math.floor(Number(req.query.pagina) || 1)))
     res.json(ok(lista.slice((pagina - 1) * tamanho, pagina * tamanho), { pagina, tamanho, total, totalPaginas }))
   })
+  server.get('/api/v1/pecas/:id/historico', (req, res) => {
+    const peca = encontrar('pecas', req.params.id)
+    if (!peca) return erro(res, 404, 'Peça não encontrada.')
+    res.json(ok(peca))
+  })
   server.get('/api/v1/pecas/:id/relacionadas', (req, res) => {
     const peca = encontrar('pecas', req.params.id)
     if (!peca) return erro(res, 404, 'Peça não encontrada.')
     const limite = Math.max(1, Math.min(100, Number(req.query.limite) || 3))
-    res.json(ok(ler('pecas').filter((p) => (!p.situacao || p.situacao === 'publicada') && p.id !== peca.id && p.tecnica === peca.tecnica).slice(0, limite)))
+    res.json(ok(ler('pecas').filter((p) => !p.inativadoEm && (!p.situacao || p.situacao === 'publicada') && p.id !== peca.id && p.tecnica === peca.tecnica).slice(0, limite)))
+  })
+  server.get('/api/v1/pecas/:id', (req, res) => {
+    const peca = encontrar('pecas', req.params.id)
+    if (!peca || peca.inativadoEm) return erro(res, 404, 'Peça não encontrada.')
+    res.json(ok(peca))
   })
   server.get('/api/v1/videos', (req, res) => res.json(ok(ler('videos').filter((v) => req.query.painel === 'true' || !v.situacao || v.situacao === 'publicada'))))
   server.post('/api/v1/pecas', (req, res) => {
@@ -180,6 +190,15 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
       db.get('curadoria').push({ id: randomUUID(), pecaSlug: peca.slug, peca: peca.nome, artesao: encontrar('artesaos', peca.artesao).nome, artesaoSlug: peca.artesao, enviadoEm: 'agora', motivo: 'Nova publicação' }).value()
     }
     res.status(201).json(ok(inserir('pecas', peca)))
+  })
+  server.patch('/api/v1/pecas/:id', (req, res) => {
+    const peca = encontrar('pecas', req.params.id)
+    if (!peca) return erro(res, 404, 'Peça não encontrada.')
+    const campos = ['nome', 'territorio', 'tecnica', 'categoria', 'tipo', 'historia', 'preco', 'disponibilidade', 'prazoProducaoDias', 'imagem', 'fotos', 'ordemFotos', 'situacao', 'inativadoEm']
+    const alteracoes = Object.fromEntries(campos.filter((campo) => req.body[campo] !== undefined).map((campo) => [campo, req.body[campo]]))
+    if (alteracoes.nome !== undefined && (!String(alteracoes.nome).trim() || String(alteracoes.nome).length > 180)) return erro(res, 400, 'Informe um nome válido para a peça.')
+    if (alteracoes.preco !== undefined && (!Number.isFinite(alteracoes.preco) || alteracoes.preco < 0)) return erro(res, 400, 'Preço inválido.')
+    res.json(ok(db.get('pecas').find({ id: req.params.id }).assign(alteracoes).write()))
   })
   server.post('/api/v1/admin/curadoria/:id/decisao', (req, res) => {
     const item = encontrar('curadoria', req.params.id)

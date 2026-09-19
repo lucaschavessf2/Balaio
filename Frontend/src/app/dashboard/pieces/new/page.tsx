@@ -1,9 +1,9 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { criarPeca } from '@/services/api/pecas.servico'
+import { atualizarPeca, criarPeca } from '@/services/api/pecas.servico'
 import { gerarSlugEvento } from '@/components/eventos/eventosLocais'
-import type { Tecnica } from '@/types/dominio'
+import type { Peca, Tecnica } from '@/types/dominio'
 import type { TipoPeca } from '@/constants/referencias'
 import { useEffect, useRef, useState, type ChangeEvent, type DragEvent, type FormEvent } from 'react'
 import LayoutPainel from '@/components/painel/LayoutPainel'
@@ -25,8 +25,10 @@ type FotoSelecionada = {
   id: string
   nome: string
   url: string
-  arquivo: File
+  arquivo?: File
 }
+
+type Props = { initialPeca?: Peca }
 
 function lerImagem(arquivo: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -40,17 +42,22 @@ function lerImagem(arquivo: File): Promise<string> {
   })
 }
 
-export default function NovaPeca() {
+export default function NovaPeca({ initialPeca }: Props) {
   const roteador = useRouter()
   const { sessao } = useSessao()
   const [salvando, definirSalvando] = useState(false)
   const { tecnicas, territorios, categorias, tipos, carregando } = useReferencias()
-  const [disponibilidade, definirDisponibilidade] = useState<Disponibilidade>('disponivel')
+  const [disponibilidade, definirDisponibilidade] = useState<Disponibilidade>(initialPeca?.disponibilidade ?? 'disponivel')
   const [erros, definirErros] = useState<Record<string, string>>({})
-  const [fotosSelecionadas, definirFotosSelecionadas] = useState<FotoSelecionada[]>([])
+  const fotosIniciais = initialPeca
+    ? initialPeca.fotos?.length
+      ? initialPeca.fotos.map((foto) => ({ ...foto }))
+      : [{ id: `${initialPeca.slug}-capa`, nome: initialPeca.nome, url: initialPeca.imagem }]
+    : []
+  const [fotosSelecionadas, definirFotosSelecionadas] = useState<FotoSelecionada[]>(fotosIniciais)
   const formulario = useRef<HTMLFormElement>(null)
   const entradaFotos = useRef<HTMLInputElement>(null)
-  const fotosAtuais = useRef<FotoSelecionada[]>([])
+  const fotosAtuais = useRef<FotoSelecionada[]>(fotosIniciais)
   const urlsLocais = useRef(new Set<string>())
   const envioEmAndamento = useRef(false)
   const profundidadeArraste = useRef(0)
@@ -218,11 +225,11 @@ export default function NovaPeca() {
       const fotosParaEnviar = await Promise.all(fotosAtuais.current.map(async (foto, indice) => ({
         id: foto.id,
         nome: foto.nome,
-        url: await lerImagem(foto.arquivo),
+        url: foto.arquivo ? await lerImagem(foto.arquivo) : foto.url,
         ordem: indice,
       })))
-      const resposta = await criarPeca({
-        slug: gerarSlugEvento(String(dados.get('nome'))), nome: String(dados.get('nome')).trim(),
+      const peca = {
+        slug: initialPeca?.slug ?? gerarSlugEvento(String(dados.get('nome'))), nome: String(dados.get('nome')).trim(),
         artesao: sessao.artesao, tecnica: String(dados.get('tecnica')) as Tecnica,
         territorio: String(dados.get('territorio')), categoria: String(dados.get('categoria')),
         tipo: String(dados.get('tipo')) as TipoPeca,
@@ -232,11 +239,14 @@ export default function NovaPeca() {
         imagem: fotosParaEnviar[0]?.url ?? '/fotos/ImagemBase.webp',
         fotos: fotosParaEnviar,
         ordemFotos: fotosParaEnviar.map((foto) => foto.id),
-        situacao: rascunho ? 'rascunho' : 'curadoria',
-      })
+        situacao: initialPeca?.situacao ?? (rascunho ? 'rascunho' : 'curadoria'),
+      }
+      const resposta = initialPeca
+        ? await atualizarPeca(initialPeca.slug, peca)
+        : await criarPeca(peca)
       if (resposta.erro) { avisar.erro('Não foi possível salvar', resposta.erro.mensagem); return }
-      limparFormulario()
-      avisar.sucesso(rascunho ? 'Rascunho salvo' : 'Peça enviada para curadoria')
+      if (!initialPeca) limparFormulario()
+      avisar.sucesso(initialPeca ? 'Peça atualizada' : rascunho ? 'Rascunho salvo' : 'Peça enviada para curadoria')
       roteador.refresh()
     } catch {
       avisar.erro('Não foi possível salvar', 'Confira a conexão e tente novamente. Suas fotos foram mantidas.')
@@ -257,10 +267,10 @@ export default function NovaPeca() {
         trilha={[
           { texto: 'Painel do artesão', href: '/dashboard' },
           { texto: 'Minhas peças', href: '/dashboard/pieces' },
-          { texto: 'Nova peça' },
+          { texto: initialPeca ? 'Editar peça' : 'Nova peça' },
         ]}
       />
-      <h1 className="titulo-pagina">Cadastrar uma peça</h1>
+      <h1 className="titulo-pagina">{initialPeca ? 'Editar peça' : 'Cadastrar uma peça'}</h1>
       <p className="subtitulo-pagina">
         Preencha com calma. Quanto mais você contar sobre a origem e a técnica, mais fácil o comprador reconhecer o
         valor do seu trabalho.
@@ -272,12 +282,12 @@ export default function NovaPeca() {
             <h2 className="secao-titulo">O básico</h2>
 
             <Campo rotulo="Nome da peça" ajuda="Como você chamaria essa peça na feira." erro={erros['peca-nome']} id="peca-nome">
-              <input id="peca-nome" name="nome" placeholder="Ex.: Leão Imperial de Tracunhaém" />
+              <input id="peca-nome" name="nome" placeholder="Ex.: Leão Imperial de Tracunhaém" defaultValue={initialPeca?.nome} />
             </Campo>
 
             <div className="grade-dois">
               <Campo rotulo="Técnica" id="peca-tecnica">
-                <select id="peca-tecnica" name="tecnica" defaultValue={tecnicas[0]}>
+                <select id="peca-tecnica" name="tecnica" defaultValue={initialPeca?.tecnica ?? tecnicas[0]}>
                   {tecnicas.map((t) => (
                     <option key={t}>{t}</option>
                   ))}
@@ -285,7 +295,7 @@ export default function NovaPeca() {
               </Campo>
 
               <Campo rotulo="Tipo de peça" ajuda="É por aqui que o comprador filtra na loja." id="peca-tipo">
-                <select id="peca-tipo" name="tipo" defaultValue={tipos[0]}>
+                <select id="peca-tipo" name="tipo" defaultValue={initialPeca?.tipo ?? tipos[0]}>
                   {tipos.map((t) => (
                     <option key={t}>{t}</option>
                   ))}
@@ -295,7 +305,7 @@ export default function NovaPeca() {
 
             <div className="grade-dois">
               <Campo rotulo="Categoria" id="peca-categoria">
-                <select id="peca-categoria" name="categoria" defaultValue={categorias[0]}>
+                <select id="peca-categoria" name="categoria" defaultValue={initialPeca?.categoria ?? categorias[0]}>
                   {categorias.map((c) => (
                     <option key={c}>{c}</option>
                   ))}
@@ -303,7 +313,7 @@ export default function NovaPeca() {
               </Campo>
 
               <Campo rotulo="Território de origem" id="peca-territorio">
-                <select id="peca-territorio" name="territorio" defaultValue={territorios[0]}>
+                <select id="peca-territorio" name="territorio" defaultValue={initialPeca?.territorio ?? territorios[0]}>
                   {territorios.map((t) => (
                     <option key={t}>{t}</option>
                   ))}
@@ -316,7 +326,7 @@ export default function NovaPeca() {
               ajuda="Conte de onde vem, como é feita, quanto tempo leva. É isso que diferencia do industrializado."
               id="peca-historia"
             >
-              <textarea id="peca-historia" name="historia" placeholder="Cada linha da juba é esculpida uma a uma, num ritual de paciência que dura dias..." />
+              <textarea id="peca-historia" name="historia" placeholder="Cada linha da juba é esculpida uma a uma, num ritual de paciência que dura dias..." defaultValue={initialPeca?.historia.join('\n')} />
             </Campo>
           </section>
 
@@ -488,21 +498,19 @@ export default function NovaPeca() {
                 erro={erros['peca-prazo']}
                 id="peca-prazo"
               >
-                <input id="peca-prazo" name="prazo" type="number" defaultValue={15} min={1} max={120} />
+                <input id="peca-prazo" name="prazo" type="number" defaultValue={initialPeca?.prazoProducaoDias ?? 15} min={1} max={120} />
               </Campo>
             )}
 
             <Campo rotulo="Preço" erro={erros['peca-preco']} id="peca-preco">
-              <input id="peca-preco" name="preco" inputMode="decimal" placeholder="R$ 0,00" />
+              <input id="peca-preco" name="preco" inputMode="decimal" placeholder="R$ 0,00" defaultValue={initialPeca?.preco} />
             </Campo>
 
             <div className="acoes-linha acima-2">
               <button disabled={salvando} type="submit" className="botao botao-primario">
-                Enviar para curadoria
+                {initialPeca ? 'Salvar alterações' : 'Enviar para curadoria'}
               </button>
-              <button type="button" className="botao botao-fantasma" disabled={salvando} onClick={salvarRascunho}>
-                Salvar rascunho
-              </button>
+              {!initialPeca && <button type="button" className="botao botao-fantasma" disabled={salvando} onClick={salvarRascunho}>Salvar rascunho</button>}
             </div>
           </section>
         </form>
