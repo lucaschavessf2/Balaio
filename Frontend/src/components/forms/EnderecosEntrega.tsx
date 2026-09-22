@@ -5,12 +5,12 @@ import { Campo } from '@/components/ui/Basicos'
 import { avisar } from '@/components/feedback/Avisos'
 import { IconeEditar, IconeEstrela, IconeLixeira } from '@/components/ui/Icones'
 import { validarCEP, validarObrigatorio } from '@/utils/validacao'
-
-type Endereco = { apelido: string; principal: boolean; linhas: string[] }
+import type { EnderecoUsuario } from '@/mocks/usuario'
+import { atualizarEndereco, criarEndereco, excluirEndereco } from '@/services/api/conta.servico'
 
 const NOVO = '__novo__'
 
-export default function EnderecosEntrega({ iniciais }: { iniciais: Endereco[] }) {
+export default function EnderecosEntrega({ iniciais }: { iniciais: EnderecoUsuario[] }) {
   const [enderecos, definirEnderecos] = useState(iniciais)
   const [emEdicao, definirEmEdicao] = useState<string | null>(null)
   const [erros, definirErros] = useState<Record<string, string>>({})
@@ -20,25 +20,24 @@ export default function EnderecosEntrega({ iniciais }: { iniciais: Endereco[] })
     definirEmEdicao(apelido)
   }
 
-  function tornarPrincipal(apelido: string) {
-    definirEnderecos(enderecos.map((e) => ({ ...e, principal: e.apelido === apelido })))
-    avisar.sucesso(`"${apelido}" agora é o endereço principal`)
+  async function tornarPrincipal(endereco: EnderecoUsuario) {
+    const resposta = await atualizarEndereco(endereco.id, { principal: true })
+    if (!resposta.dados) return avisar.erro('Não foi possível atualizar', resposta.erro?.mensagem)
+    definirEnderecos(enderecos.map((e) => ({ ...e, principal: e.id === endereco.id })))
+    avisar.sucesso(`"${endereco.apelido}" agora é o endereço principal`)
   }
 
-  function excluir(apelido: string) {
-    const anteriores = enderecos
-    const alvo = anteriores.find((e) => e.apelido === apelido)
-    if (!alvo) return
-    let restantes = anteriores.filter((e) => e.apelido !== apelido)
-    if (alvo.principal && restantes.length > 0) {
-      restantes = restantes.map((e, indice) => ({ ...e, principal: indice === 0 }))
-    }
-    if (emEdicao === apelido) definirEmEdicao(null)
+  async function excluir(endereco: EnderecoUsuario) {
+    const resposta = await excluirEndereco(endereco.id)
+    if (!resposta.dados) return avisar.erro('Não foi possível excluir', resposta.erro?.mensagem)
+    let restantes = enderecos.filter((e) => e.id !== endereco.id)
+    if (endereco.principal && restantes.length > 0) restantes = restantes.map((e, indice) => ({ ...e, principal: indice === 0 }))
+    if (emEdicao === endereco.id) definirEmEdicao(null)
     definirEnderecos(restantes)
-    avisar.desfazivel(`Endereço "${apelido}" excluído`, () => definirEnderecos(anteriores))
+    avisar.sucesso(`Endereço "${endereco.apelido}" excluído`)
   }
 
-  function salvar(evento: FormEvent<HTMLFormElement>) {
+  async function salvar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
     const dados = new FormData(evento.currentTarget)
     const apelido = String(dados.get('apelido') ?? '')
@@ -62,27 +61,30 @@ export default function EnderecosEntrega({ iniciais }: { iniciais: Endereco[] })
       return
     }
 
-    const linhas = [rua, bairro, `CEP ${cep}`].filter(Boolean)
     if (emEdicao === NOVO) {
-      definirEnderecos([...enderecos, { apelido, principal: enderecos.length === 0, linhas }])
+      const resposta = await criarEndereco({ apelido, rua, bairro, cep })
+      if (!resposta.dados) return avisar.erro('Não foi possível salvar', resposta.erro?.mensagem)
+      definirEnderecos([...enderecos, resposta.dados])
     } else {
-      definirEnderecos(enderecos.map((e) => (e.apelido === emEdicao ? { ...e, apelido, linhas } : e)))
+      const resposta = await atualizarEndereco(emEdicao!, { apelido, rua, bairro, cep })
+      if (!resposta.dados) return avisar.erro('Não foi possível salvar', resposta.erro?.mensagem)
+      definirEnderecos(enderecos.map((e) => (e.id === emEdicao ? resposta.dados! : e)))
     }
     definirEmEdicao(null)
     avisar.sucesso('Endereço salvo')
   }
 
-  function formulario(endereco?: Endereco) {
+  function formulario(endereco?: EnderecoUsuario) {
     return (
       <form onSubmit={salvar} noValidate className="acima-3">
         <Campo rotulo="Nome do endereço" erro={erros['end-apelido']} id="end-apelido">
           <input id="end-apelido" name="apelido" defaultValue={endereco?.apelido} placeholder="Casa" />
         </Campo>
         <Campo rotulo="Rua e número" erro={erros['end-rua']} id="end-rua">
-          <input id="end-rua" name="rua" defaultValue={endereco?.linhas[0]} placeholder="Rua da Aurora, 240" />
+          <input id="end-rua" name="rua" defaultValue={endereco?.rua} placeholder="Rua da Aurora, 240" />
         </Campo>
         <Campo rotulo="Bairro, cidade e estado" id="end-bairro">
-          <input id="end-bairro" name="bairro" defaultValue={endereco?.linhas[1]} placeholder="Boa Vista, Recife, PE" />
+          <input id="end-bairro" name="bairro" defaultValue={endereco?.bairro} placeholder="Boa Vista, Recife, PE" />
         </Campo>
         <Campo rotulo="CEP" erro={erros['end-cep']} id="end-cep">
           <input
@@ -90,7 +92,7 @@ export default function EnderecosEntrega({ iniciais }: { iniciais: Endereco[] })
             name="cep"
             inputMode="numeric"
             maxLength={9}
-            defaultValue={endereco?.linhas[2]?.replace('CEP ', '')}
+            defaultValue={endereco?.cep}
             placeholder="50000-000"
           />
         </Campo>
@@ -110,29 +112,29 @@ export default function EnderecosEntrega({ iniciais }: { iniciais: Endereco[] })
     <section className="cartao">
       <h2 className="secao-titulo">Endereços de entrega</h2>
       {enderecos.map((e) => (
-        <div className="endereco" key={e.apelido}>
+        <div className="endereco" key={e.id}>
           <div className="encolhivel">
             <p className="linha-flex" style={{ gap: 8, fontWeight: 600 }}>
               {e.apelido}
               {e.principal && <span className="selo selo-neutro">Principal</span>}
             </p>
-            {emEdicao === e.apelido ? (
+            {emEdicao === e.id ? (
               formulario(e)
             ) : (
-              e.linhas.map((linha) => (
+              [e.rua, e.bairro, `CEP ${e.cep}`].filter(Boolean).map((linha) => (
                 <p className="autoria" key={linha}>
                   {linha}
                 </p>
               ))
             )}
           </div>
-          {emEdicao !== e.apelido && (
+          {emEdicao !== e.id && (
             <div className="acoes-linha">
               {!e.principal && (
                 <button
                   type="button"
                   className="botao botao-compacto botao-fantasma"
-                  onClick={() => tornarPrincipal(e.apelido)}
+                  onClick={() => tornarPrincipal(e)}
                   aria-label={`Tornar "${e.apelido}" o endereço principal`}
                 >
                   <IconeEstrela tamanho={15} />
@@ -142,7 +144,7 @@ export default function EnderecosEntrega({ iniciais }: { iniciais: Endereco[] })
               <button
                 type="button"
                 className="botao botao-compacto botao-fantasma"
-                onClick={() => abrir(e.apelido)}
+                onClick={() => abrir(e.id)}
                 aria-label={`Editar endereço ${e.apelido}`}
               >
                 <IconeEditar tamanho={15} />
@@ -151,7 +153,7 @@ export default function EnderecosEntrega({ iniciais }: { iniciais: Endereco[] })
               <button
                 type="button"
                 className="botao botao-compacto botao-perigo"
-                onClick={() => excluir(e.apelido)}
+                onClick={() => excluir(e)}
                 aria-label={`Excluir endereço ${e.apelido}`}
               >
                 <IconeLixeira tamanho={15} />

@@ -9,12 +9,12 @@ import { obterPecaHistorico } from '@/services/api/pecas.servico'
 import { listarArtesaos } from '@/services/api/artesaos.servico'
 import { emReais } from '@/utils/formato'
 import { rotuloEstadoPedido } from '@/constants/rotulos'
-import { exigirSessao } from '@/services/sessao/servidor'
+import { exigirSessao } from '@/services/autenticacao'
 
 export default async function MeusPedidos() {
-  const sessao = await exigirSessao('/orders')
+  const { token } = await exigirSessao()
   const [{ dados: pedidos, erro }, { dados: artesaos }] = await Promise.all([
-    listarPedidos(sessao.id),
+    listarPedidos(token),
     listarArtesaos(),
   ])
   if (erro) return <Pagina><EstadoErro mensagem={erro.mensagem} /></Pagina>

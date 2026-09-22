@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import Pagina from '@/components/layout/Pagina'
 import { Campo, EstadoVazio, Foto, Migalhas } from '@/components/ui/Basicos'
 import { IconeCadeado, IconeCaminhao, IconeCheck, IconeSacola, IconeSetaDireita } from '@/components/ui/Icones'
@@ -16,6 +16,7 @@ import { validarCEP, validarObrigatorio } from '@/utils/validacao'
 import { useDados } from '@/store/dados'
 import { useSessao } from '@/store/sessao'
 import { emReais, precoComDesconto } from '@/utils/formato'
+import { obterUsuario } from '@/services/api/conta.servico'
 
 type Meio = 'pix' | 'cartao' | 'boleto'
 
@@ -37,6 +38,16 @@ export default function Checkout() {
   const [erros, definirErros] = useState<Record<string, string>>({})
   const [salvando, definirSalvando] = useState(false)
   const [concluido, definirConcluido] = useState(false)
+  const [entrega, definirEntrega] = useState({ cep: '', endereco: '', cidade: '', estado: '' })
+
+  useEffect(() => {
+    obterUsuario().then(({ dados }) => {
+      const principal = dados?.enderecos?.find((item) => item.principal) ?? dados?.enderecos?.[0]
+      if (!principal) return
+      const partes = principal.bairro.split(',').map((item) => item.trim())
+      definirEntrega({ cep: principal.cep, endereco: principal.rua, cidade: partes.slice(0, -1).join(', '), estado: partes.at(-1) ?? '' })
+    })
+  }, [])
 
   const detalhados = itens.flatMap((item) => {
     const peca = mapaPecas.get(item.slug)
@@ -165,17 +176,17 @@ export default function Checkout() {
           <section className="cartao abaixo-5">
             <h2 className="secao-titulo">Endereço de entrega</h2>
             <Campo rotulo="CEP" erro={erros['cep-checkout']} id="cep-checkout">
-              <input id="cep-checkout" name="cep" inputMode="numeric" maxLength={9} placeholder="50000-000" defaultValue="52021-030" />
+              <input id="cep-checkout" name="cep" inputMode="numeric" maxLength={9} placeholder="50000-000" value={entrega.cep} onChange={(e) => definirEntrega({ ...entrega, cep: e.target.value })} />
             </Campo>
             <Campo rotulo="Endereço" erro={erros['endereco']} id="endereco">
-              <input id="endereco" name="endereco" defaultValue="Rua da Aurora, 240, apto 902" />
+              <input id="endereco" name="endereco" value={entrega.endereco} onChange={(e) => definirEntrega({ ...entrega, endereco: e.target.value })} />
             </Campo>
             <div className="grade-dois">
               <Campo rotulo="Cidade" erro={erros['cidade']} id="cidade">
-                <input id="cidade" name="cidade" defaultValue="Recife" />
+                <input id="cidade" name="cidade" value={entrega.cidade} onChange={(e) => definirEntrega({ ...entrega, cidade: e.target.value })} />
               </Campo>
               <Campo rotulo="Estado" erro={erros['estado']} id="estado">
-                <input id="estado" name="estado" maxLength={2} defaultValue="PE" />
+                <input id="estado" name="estado" maxLength={2} value={entrega.estado} onChange={(e) => definirEntrega({ ...entrega, estado: e.target.value })} />
               </Campo>
             </div>
           </section>

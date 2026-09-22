@@ -5,11 +5,12 @@ import { useState, type FormEvent } from 'react'
 import { Campo } from '@/components/ui/Basicos'
 import { avisar } from '@/components/feedback/Avisos'
 import { IconeAviso, IconeCadeado } from '@/components/ui/Icones'
-import { cadastrar, type PapelCadastro } from '@/services/api/auth.servico'
-import { destinoInicial } from '@/services/sessao/cookie'
+import type { PapelCadastro } from '@/services/api/auth.servico'
+import { destinoInicial, sessaoDoUsuario } from '@/services/sessao/cookie'
 import { useSessao } from '@/store/sessao'
 import SeletorComOutro from '@/components/forms/SeletorComOutro'
 import { validarEmail, validarObrigatorio, validarSenha } from '@/utils/validacao'
+import { cadastrarUsuario } from '@/services/api/conta.servico'
 
 const perfis: { chave: PapelCadastro; rotulo: string }[] = [
   { chave: 'comprador', rotulo: 'Quero comprar peças' },
@@ -26,12 +27,12 @@ export default function FormCadastro({ tecnicas, territorios }: Props) {
   const { iniciarSessao } = useSessao()
   const [perfil, definirPerfil] = useState<PapelCadastro>('comprador')
   const [erros, definirErros] = useState<Record<string, string>>({})
-  const [erroEnvio, definirErroEnvio] = useState<string | null>(null)
   const [enviando, definirEnviando] = useState(false)
+  const [erroEnvio, definirErroEnvio] = useState<string | null>(null)
 
   const vendedor = perfil === 'artesao'
 
-  async function aoEnviar(evento: FormEvent<HTMLFormElement>) {
+  async function cadastrar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
     if (enviando) return
     const dados = new FormData(evento.currentTarget)
@@ -56,37 +57,35 @@ export default function FormCadastro({ tecnicas, territorios }: Props) {
     }
 
     definirEnviando(true)
-    const { dados: usuario, erro } = await cadastrar({
-      nome: String(dados.get('nome')).trim(),
-      email: String(dados.get('email')).trim(),
+    const { dados: usuario, erro } = await cadastrarUsuario({
+      nome: String(dados.get('nome')),
+      email: String(dados.get('email')),
       senha: String(dados.get('senha')),
-      papel: perfil,
+      perfil,
       territorio: vendedor ? String(dados.get('territorio') ?? '') : undefined,
       tecnica: vendedor ? String(dados.get('tecnica') ?? '') : undefined,
     })
     definirEnviando(false)
-
     if (!usuario) {
-      if (erro?.codigo === 'EMAIL_EM_USO') {
-        definirErros({ 'cadastro-email': erro.mensagem })
-        document.getElementById('cadastro-email')?.focus()
-        return
-      }
-      definirErroEnvio(erro?.mensagem ?? 'Não foi possível criar a conta agora.')
+      definirErroEnvio(erro?.mensagem ?? 'Não foi possível criar a conta.')
+      avisar.erro('Não foi possível criar a conta', erro?.mensagem)
       return
     }
 
-    iniciarSessao(usuario)
+    const sessao = sessaoDoUsuario(usuario)
+    if (!sessao) { definirErroEnvio('A API não retornou uma conta válida.'); return }
+    iniciarSessao(sessao)
+    const destino = destinoInicial(sessao)
     avisar.sucesso(
       'Conta criada!',
       vendedor ? 'Seu ateliê já pode publicar a primeira peça.' : 'Boas compras: seu catálogo está liberado.',
     )
-    roteador.push(destinoInicial(usuario))
+    roteador.push(destino)
     roteador.refresh()
   }
 
   return (
-    <form className="cartao" onSubmit={aoEnviar} noValidate>
+    <form className="cartao" onSubmit={cadastrar} noValidate>
       {erroEnvio && (
         <p className="auth-erro" role="alert">
           <IconeAviso tamanho={18} />
@@ -178,7 +177,7 @@ export default function FormCadastro({ tecnicas, territorios }: Props) {
       )}
 
       <button type="submit" className="botao botao-primario botao-largo" disabled={enviando}>
-        {enviando ? 'Criando sua conta…' : 'Criar minha conta'}
+        {enviando ? 'Criando conta…' : 'Criar minha conta'}
       </button>
     </form>
   )

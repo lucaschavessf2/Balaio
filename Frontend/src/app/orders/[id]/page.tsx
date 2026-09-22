@@ -4,22 +4,22 @@ import Pagina from '@/components/layout/Pagina'
 import ResumoItensPedido from '@/components/pedido/ResumoItensPedido'
 import { Migalhas } from '@/components/ui/Basicos'
 import ConversaPedido from '@/components/pedido/ConversaPedido'
-import BotaoSimulado from '@/components/ui/BotaoSimulado'
+import BotaoRastreio from '@/components/pedido/BotaoRastreio'
 import { IconeCaminhao, IconeCheck, IconeSetaDireita } from '@/components/ui/Icones'
 import { obterPedido, conversaDoPedido } from '@/services/api/pedidos.servico'
 import { obterPecaHistorico } from '@/services/api/pecas.servico'
 import { obterArtesao } from '@/services/api/artesaos.servico'
 import { rotuloEstadoPedido } from '@/constants/rotulos'
-import { exigirDonoDoPedido } from '@/services/sessao/servidor'
+import { exigirSessao } from '@/services/autenticacao'
 
 export const dynamic = 'force-dynamic'
 
 export default async function Acompanhamento({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const { dados: pedido, erro } = await obterPedido(id)
+  const { usuario, token } = await exigirSessao()
+  const { dados: pedido, erro } = await obterPedido(id, token)
   if (erro && erro.codigo !== 'RECURSO_NAO_ENCONTRADO') throw new Error(erro.mensagem)
-  await exigirDonoDoPedido(pedido, `/orders/${id}`)
-  if (!pedido) notFound()
+  if (!pedido || (pedido.compradorId ?? pedido.usuarioId) !== usuario.id) notFound()
 
   const { dados: peca } = await obterPecaHistorico(pedido.pecaSlug)
   const artesao = peca ? (await obterArtesao(peca.artesao)).dados : null
@@ -110,14 +110,14 @@ export default async function Acompanhamento({ params }: { params: Promise<{ id:
                 </span>
               </div>
             </div>
-            <BotaoSimulado
+            <BotaoRastreio
               className="botao botao-secundario acima-4"
-              titulo="Rastreio copiado para acompanhar na transportadora"
-              descricao={`Use o código ${pedido.rastreio} no site da ${pedido.transportadora}.`}
+              codigo={pedido.rastreio}
+              transportadora={pedido.transportadora}
             >
               Acompanhar na transportadora
               <IconeSetaDireita />
-            </BotaoSimulado>
+            </BotaoRastreio>
           </section>
 
           <section className="cartao acima-5">

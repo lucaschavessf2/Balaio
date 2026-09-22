@@ -11,9 +11,11 @@ type ItemCuradoria = { id: string; peca: string; artesao: string; enviadoEm: str
 export default function FilaCuradoria({
   filaInicial,
   mediacoesAbertas,
+  artesaosAtivos,
 }: {
   filaInicial: ItemCuradoria[]
   mediacoesAbertas: number
+  artesaosAtivos: number
 }) {
   const [fila, definirFila] = useState(filaInicial)
   const [analisadas, definirAnalisadas] = useState(0)
@@ -26,7 +28,7 @@ export default function FilaCuradoria({
       nota: 'Nesta sessão',
       classe: 'metrica-verde',
     },
-    { rotulo: 'Artesãos ativos', valor: '48', nota: 'Com peça publicada', classe: 'metrica-azul' },
+    { rotulo: 'Artesãos ativos', valor: String(artesaosAtivos), nota: 'Com peça publicada', classe: 'metrica-azul' },
     {
       rotulo: 'Mediações abertas',
       valor: String(mediacoesAbertas),

@@ -7,14 +7,14 @@ import { IconeAviso, IconeSelo } from '@/components/ui/Icones'
 import { notFound } from 'next/navigation'
 import { obterArtesao, obterConfiguracoes } from '@/services/api/artesaos.servico'
 import { obterReferencias } from '@/services/api/referencias.servico'
-import { exigirArtesao } from '@/services/sessao/servidor'
+import { exigirArtesao } from '@/services/autenticacao'
 
 export default async function Configuracoes() {
-  const sessao = await exigirArtesao()
+  const { artesao: atelie } = await exigirArtesao()
   const [{ dados: artesao }, refs, { dados: configuracoes, erro: erroConfiguracoes }] = await Promise.all([
-    obterArtesao(sessao.artesao),
+    obterArtesao(atelie.slug),
     obterReferencias(),
-    obterConfiguracoes(sessao.artesao),
+    obterConfiguracoes(atelie.slug),
   ])
   if (!artesao) notFound()
   if (!configuracoes) throw new Error(erroConfiguracoes?.mensagem ?? 'Não foi possível carregar as configurações.')

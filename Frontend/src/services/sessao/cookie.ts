@@ -1,4 +1,5 @@
 import type { Papel, UsuarioAutenticado } from '@/services/api/auth.servico'
+import type { Usuario } from '@/mocks/usuario'
 
 export type Sessao = UsuarioAutenticado
 
@@ -17,6 +18,20 @@ export const ROTULO_AREA_POR_PAPEL: Record<Papel, string> = {
   comprador: 'Minha conta',
   artesao: 'Meu painel',
   admin: 'Curadoria',
+}
+
+export function sessaoDoUsuario(usuario: Usuario): Sessao | null {
+  if (!usuario.id) return null
+  const papel = usuario.papel ?? usuario.perfil ?? 'comprador'
+  return {
+    id: usuario.id,
+    nome: usuario.nome,
+    email: usuario.email,
+    imagem: usuario.imagem,
+    papel,
+    telefone: usuario.telefone,
+    artesao: usuario.artesaoId,
+  }
 }
 
 export function lerSessaoDoCookie(valor: string | undefined): Sessao | null {

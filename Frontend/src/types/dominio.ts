@@ -49,6 +49,10 @@ export type Artesao = {
   avaliacaoMedia: number
   selo: boolean
   imagem: string
+  cepOrigem?: string
+  prazoPadraoDias?: number
+  aceitaEncomendas?: boolean
+  chavePix?: string
 }
 
 export type EstadoPedido = 'confirmado' | 'producao' | 'enviado' | 'entregue'
@@ -68,6 +72,7 @@ export type Pedido = {
   id: string
   pecaSlug: string
   compradorId?: string
+  usuarioId?: string
   compradorNome: string
   data: string
   total: number

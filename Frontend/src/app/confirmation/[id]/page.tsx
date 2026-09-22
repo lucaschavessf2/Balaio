@@ -5,16 +5,16 @@ import ResumoItensPedido from '@/components/pedido/ResumoItensPedido'
 import { Migalhas } from '@/components/ui/Basicos'
 import { IconeCheck, IconeConversa, IconeSetaDireita } from '@/components/ui/Icones'
 import { obterPedido } from '@/services/api/pedidos.servico'
-import { exigirDonoDoPedido } from '@/services/sessao/servidor'
+import { exigirSessao } from '@/services/autenticacao'
 
 export const dynamic = 'force-dynamic'
 
 export default async function Confirmacao({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const { dados: pedido, erro } = await obterPedido(id)
+  const { usuario, token } = await exigirSessao()
+  const { dados: pedido, erro } = await obterPedido(id, token)
   if (erro && erro.codigo !== 'RECURSO_NAO_ENCONTRADO') throw new Error(erro.mensagem)
-  await exigirDonoDoPedido(pedido, `/confirmation/${id}`)
-  if (!pedido) notFound()
+  if (!pedido || (pedido.compradorId ?? pedido.usuarioId) !== usuario.id) notFound()
 
   return (
     <Pagina>

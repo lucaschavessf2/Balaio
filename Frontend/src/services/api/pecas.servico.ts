@@ -36,6 +36,9 @@ export function pecasPorArtesao(slug: string): Promise<RespostaApi<Peca[]>> {
 export function criarPeca(peca: Peca): Promise<RespostaApi<Peca>> {
   return enviar('/pecas', peca)
 }
-export function atualizarPeca(slug: string, peca: Partial<Peca>): Promise<RespostaApi<Peca>> {
-  return enviar('/pecas/' + encodeURIComponent(slug), peca, 'PATCH')
+export function atualizarPeca(slug: string, alteracoes: Partial<Peca>): Promise<RespostaApi<Peca>> {
+  return enviar(`/pecas/${encodeURIComponent(slug)}`, alteracoes, 'PATCH')
+}
+export function excluirPeca(slug: string): Promise<RespostaApi<Peca>> {
+  return buscar(`/pecas/${encodeURIComponent(slug)}`, { method: 'DELETE' })
 }

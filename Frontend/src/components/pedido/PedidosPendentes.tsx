@@ -5,6 +5,7 @@ import { EstadoVazio, Foto } from '@/components/ui/Basicos'
 import { avisar } from '@/components/feedback/Avisos'
 import { IconePacote } from '@/components/ui/Icones'
 import { emReais } from '@/utils/formato'
+import { atualizarEstadoPedido } from '@/services/api/pedidos.servico'
 
 export type PedidoPendente = {
   id: string
@@ -19,9 +20,13 @@ export type PedidoPendente = {
 export default function PedidosPendentes({
   iniciais,
   faturamentoMes,
+  emProducao,
+  enviadosMes,
 }: {
   iniciais: PedidoPendente[]
   faturamentoMes: number
+  emProducao: number
+  enviadosMes: number
 }) {
   const [pendentes, definirPendentes] = useState(iniciais)
 
@@ -32,17 +37,19 @@ export default function PedidosPendentes({
       nota: 'Aguardando aceitação',
       classe: 'metrica-amarela',
     },
-    { rotulo: 'Em produção', valor: '5', nota: 'Nas bancadas e fornos', classe: 'metrica-azul' },
-    { rotulo: 'Enviados este mês', valor: '14', nota: 'Coletados com sucesso', classe: 'metrica-verde' },
+    { rotulo: 'Em produção', valor: String(emProducao), nota: 'Nas bancadas e fornos', classe: 'metrica-azul' },
+    { rotulo: 'Enviados este mês', valor: String(enviadosMes), nota: 'Coletados com sucesso', classe: 'metrica-verde' },
     {
       rotulo: 'Faturamento do mês',
       valor: emReais(faturamentoMes),
-      nota: '+12% em relação a fevereiro',
+      nota: 'Pedidos registrados neste mês',
       classe: 'metrica-branca',
     },
   ]
 
-  function aceitar(pedido: PedidoPendente) {
+  async function aceitar(pedido: PedidoPendente) {
+    const resposta = await atualizarEstadoPedido(pedido.id, 'producao')
+    if (!resposta.dados) return avisar.erro('Não foi possível aceitar', resposta.erro?.mensagem)
     definirPendentes(pendentes.filter((p) => p.id !== pedido.id))
     avisar.sucesso('Pedido aceito', 'Combine o prazo com o comprador pela conversa.')
   }

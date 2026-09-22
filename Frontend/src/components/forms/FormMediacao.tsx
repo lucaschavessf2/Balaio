@@ -5,7 +5,6 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Campo, Foto } from '@/components/ui/Basicos'
 import { avisar } from '@/components/feedback/Avisos'
 import { criarMediacao, listarMediacoes } from '@/services/api/pedidos.servico'
-import { useSessao } from '@/store/sessao'
 import { type Mediacao } from '@/types/dominio'
 
 const motivos = [
@@ -27,10 +26,10 @@ type Props = {
   pecaNome?: string
   pecaImagem?: string
   atelie?: string
+  usuarioNome: string
 }
 
-export default function FormMediacao({ pedidoId, pecaNome, pecaImagem, atelie }: Props) {
-  const { sessao } = useSessao()
+export default function FormMediacao({ pedidoId, pecaNome, pecaImagem, atelie, usuarioNome }: Props) {
   const [salvando, definirSalvando] = useState(false)
   const [motivo, definirMotivo] = useState('')
   const [relato, definirRelato] = useState('')
@@ -73,7 +72,7 @@ export default function FormMediacao({ pedidoId, pecaNome, pecaImagem, atelie }:
       id: 'MED-' + crypto.randomUUID().slice(0, 8),
       pedido: pedidoId,
       assunto: motivoEscolhido!.assunto,
-      partes: `${sessao?.nome ?? 'Comprador'} × ${atelie ?? 'Ateliê do pedido'}`,
+      partes: `${usuarioNome} × ${atelie ?? 'Ateliê do pedido'}`,
       aberta: 'agora mesmo',
     }
     definirSalvando(true)

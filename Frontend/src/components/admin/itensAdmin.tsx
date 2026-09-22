@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 import { IconeAviso, IconeSelo, IconeGrade } from '@/components/ui/Icones'
-import { filaCuradoria, mediacoes } from '@/mocks/pedidos'
 
 export type ChaveAdmin = 'curadoria' | 'mediacoes' | 'criterios'
 
@@ -22,9 +21,6 @@ export const rotulosGrupoAdmin: Record<GrupoAdmin, string> = {
 }
 
 export function itensAdmin(): ItemAdmin[] {
-  const naFila = filaCuradoria.length
-  const abertas = mediacoes.length
-
   return [
     {
       chave: 'curadoria',
@@ -33,7 +29,6 @@ export function itensAdmin(): ItemAdmin[] {
       href: '/admin',
       icone: <IconeSelo />,
       grupo: 'moderacao',
-      marcador: naFila > 0 ? { texto: `${naFila} na fila` } : undefined,
     },
     {
       chave: 'mediacoes',
@@ -42,7 +37,6 @@ export function itensAdmin(): ItemAdmin[] {
       href: '/admin/mediations',
       icone: <IconeAviso />,
       grupo: 'moderacao',
-      marcador: abertas > 0 ? { texto: `${abertas} aberta${abertas === 1 ? '' : 's'}`, alerta: true } : undefined,
     },
     {
       chave: 'criterios',

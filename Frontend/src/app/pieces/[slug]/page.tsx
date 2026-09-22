@@ -14,6 +14,7 @@ import FaixaBeneficios from '@/components/vitrine/FaixaBeneficios'
 import { IconeEtiqueta, IconeMapa, IconeSelo, IconeSetaDireita } from '@/components/ui/Icones'
 import { obterArtesao } from '@/services/api/artesaos.servico'
 import { obterPeca, pecasPorArtesao, pecasPorTipo, pecasRelacionadas } from '@/services/api/pecas.servico'
+import { listarPerguntas } from '@/services/api/perguntas.servico'
 import type { Peca } from '@/types/dominio'
 import { emReais, precoComDesconto } from '@/utils/formato'
 import { hrefListagem } from '@/utils/filtrosUrl'
@@ -21,19 +22,6 @@ import { hrefListagem } from '@/utils/filtrosUrl'
 export const dynamic = 'force-dynamic'
 
 const LIMITE_CARROSSEL = 10
-
-const perguntas = [
-  {
-    pergunta: 'A peça acompanha algum certificado?',
-    autor: 'Clarissa M. Reis',
-    resposta: 'Sim, acompanha o Selo de Origem e a biografia impressa do atelier.',
-  },
-  {
-    pergunta: 'É possível encomendar em tamanho maior?',
-    autor: 'Renato Albuquerque',
-    resposta: 'No momento, o atelier produz apenas neste formato tradicional de 40 cm.',
-  },
-]
 
 function semRepetir(listas: Peca[][], atual: string): Peca[][] {
   const vistas = new Set([atual])
@@ -59,6 +47,7 @@ export default async function DetalhePeca({ params }: { params: Promise<{ slug: 
     pecasRelacionadas(peca.slug, LIMITE_CARROSSEL),
   ])
   const artesao = artesaoResposta.dados
+  const perguntas = (await listarPerguntas(peca.slug)).dados ?? []
   const [doArtesao, mesmoTipo, mesmaTecnica] = semRepetir(
     [
       (doArtesaoResposta.dados ?? []).filter((p) => !p.situacao || p.situacao === 'publicada'),

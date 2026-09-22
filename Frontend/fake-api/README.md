@@ -47,7 +47,9 @@ Os mocks originais permanecem como fonte do seed, tipos, funções de apresenta�
 | `GET /videos`, `/videos/:id`, `/videos/:id/comentarios` | Feed e comentários; `?painel=true` inclui rascunhos |
 | `POST /videos`, `/videos/:id/comentarios` | Metadados de vídeos e comentários |
 | `GET /pedidos`, `/pedidos/:id`, `/pedidos/:id/conversa` | Pedidos e conversa isolada por pedido |
-| `POST /checkout` | Recebe `itens: [{slug, quantidade}]`, `freteId`, `meio` e `endereco`; calcula total na API e gera ID |
+| `POST /auth/cadastro`, `/auth/login` (ou `/auth/entrar`), `/auth/logout` | Cadastro, entrada e encerramento de sessão local por cookie |
+| `GET/PATCH /usuario` | Consulta e atualização do usuário autenticado |
+| `POST /checkout` | Exige sessão; recebe `itens: [{slug, quantidade}]`, `freteId`, `meio` e `endereco`; calcula total na API e gera ID |
 | `POST /pedidos/:id/conversa` | Mensagem com autor, texto e hora |
 | `POST /pedidos/:id/avaliacao` | Nota 1–5, comentário e aspectos; somente pedido entregue e não avaliado |
 | `GET /artesao/conversas`, `/artesao/pedidos-pendentes` | Dados do painel; `?artesao=slug` filtra pelo dono da peça |
@@ -58,10 +60,9 @@ Os mocks originais permanecem como fonte do seed, tipos, funções de apresenta�
 | `GET/POST /admin/mediacoes` | Consulta e abertura com pedido, assunto, partes, relato e solução |
 | `PATCH /admin/mediacoes/:id` | Atualização da análise |
 | `GET /referencias`, `/usuario`, `/fretes` | Referências, conta de demonstração e opções de entrega |
-| `POST /auth/cadastro` | Cria conta com `nome`, `email`, `senha` (mín. 8) e `papel` (`comprador` ou `artesao`); artesão ganha perfil em `/artesaos`; e-mail repetido retorna 409 `EMAIL_EM_USO` |
-| `POST /auth/entrar` | Recebe `email` e `senha`; devolve o usuário sem a senha ou 401 `CREDENCIAIS_INVALIDAS` |
-| `PATCH /conta/:id`, `POST /conta/:id/senha` | Atualiza nome, e-mail e telefone; troca a senha conferindo a atual (401 `SENHA_ATUAL_INVALIDA`) |
-| `GET /pedidos?compradorId=` | Pedidos de um comprador; o checkout exige `compradorId` válido (401 `NAO_AUTENTICADO`) |
+| `GET/PATCH /artesaos/:slug/configuracoes` | Consulta e salva preferências de envio e recebimento do ateliê |
+| `PATCH /conta/:id`, `POST /conta/:id/senha` | Exigem sessão do titular; atualizam dados e senha conferindo a atual |
+| `GET /pedidos` | Com sessão de comprador, retorna apenas os pedidos dessa conta; `compradorId` pode restringir a consulta |
 
 Os recursos do json-server também oferecem CRUD padrão. Nas coleções com slug, o ID é igual ao slug; pedidos e vídeos usam seus próprios IDs.
 
@@ -69,9 +70,7 @@ Os recursos do json-server também oferecem CRUD padrão. Nas coleções com slu
 
 Catálogo, busca, perfis, carrinho/favoritos (consulta de peças), agenda, checkout, pedidos, conversa do comprador, avaliações, mediações, curadoria, cadastro de peças e metadados/comentários de vídeos usam HTTP. Formulários preservam os dados quando a API falha; checkout só esvazia a sacola após a confirmação.
 
-O json-server é um simulador local, sem autenticação, autorização, cobrança, notificações reais ou upload de arquivos. O acesso é por sessão (cookie `balaio-sessao`, gravado no login/cadastro) e o `src/proxy.ts` protege as áreas: `/account`, `/orders`, `/checkout` e `/confirmation` pedem login, `/dashboard` só abre para artesão e `/admin` só para admin. Cada artesão vê as próprias peças, pendências e conversas; cada comprador vê só os próprios pedidos.
-
-Contas de demonstração, todas com a senha `balaio123`: `carlos@exemplo.com` (comprador), `admin@exemplo.com` (curadoria) e uma conta de vendedor por artesão — `nuca@exemplo.com` e `<slug>@exemplo.com` para os demais (ex.: `maria-de-caruaru@exemplo.com`). As senhas ficam em texto puro no `db.json` e a coleção `usuarios` não é exposta pela API. Vídeos salvam metadados e capa de exemplo. Fotos de novas peças usam imagem de exemplo. Recuperação de senha, configurações de conta/ateliê, endereços, perguntas públicas e alguns indicadores/ações ilustrativos do painel continuam simulados. Sacola, favoritos, tema e histórico de busca continuam no navegador conforme os stores existentes.
+O json-server é uma API local de desenvolvimento, sem segurança de produção, cobrança, notificações reais ou armazenamento de arquivos binários. Os dados de negócio — contas de comprador e vendedor, sessões, ateliês, peças, vídeos e seus metadados, endereços, sacola, favoritos, histórico de busca, pedidos, conversas, perguntas, avaliações, mediações e recuperação de senha — são persistidos no `db.json`. O cookie de sessão é HTTP-only, mas esta implementação não substitui um provedor de identidade real. O usuário de demonstração é `carlos@exemplo.com`, com senha `balaio123`. Fotos de novas peças e capas de vídeos ainda usam uma imagem de exemplo porque upload de arquivos exige um serviço de armazenamento próprio. O tema claro/escuro permanece no navegador por ser uma preferência local da interface.
 
 O Dockerfile existente empacota somente o Next.js. Para usar esse frontend em contêiner, forneça uma API acessível e configure `API_URL` no build (rewrite) e na execução (SSR); a API de desenvolvimento não é incluída na imagem de produção.
 

@@ -3,16 +3,17 @@ import LayoutPainel from '@/components/painel/LayoutPainel'
 import { Migalhas } from '@/components/ui/Basicos'
 import PedidosPendentes from '@/components/pedido/PedidosPendentes'
 import { IconeSetaDireita } from '@/components/ui/Icones'
-import { listarPedidosPendentes, listarConversasArtesao } from '@/services/api/pedidos.servico'
+import { listarPedidos, listarPedidosPendentes, listarConversasArtesao } from '@/services/api/pedidos.servico'
 import { listarPecas } from '@/services/api/pecas.servico'
-import { exigirArtesao } from '@/services/sessao/servidor'
+import { exigirArtesao } from '@/services/autenticacao'
 
 export default async function Painel() {
   const { artesao } = await exigirArtesao()
-  const [{ dados: pend }, { dados: conversas }, { dados: pecas }] = await Promise.all([
-    listarPedidosPendentes(artesao),
-    listarConversasArtesao(artesao),
+  const [{ dados: pend }, { dados: conversas }, { dados: pecas }, { dados: pedidos }] = await Promise.all([
+    listarPedidosPendentes(artesao.slug),
+    listarConversasArtesao(artesao.slug),
     listarPecas(),
+    listarPedidos(),
   ])
   const mapaPecas = new Map((pecas ?? []).map((p) => [p.slug, p]))
   const conversasArtesao = conversas ?? []
@@ -31,6 +32,16 @@ export default async function Painel() {
   })
 
   const naoLidas = conversasArtesao.filter((c) => c.naoLida).length
+  const slugsDoArtesao = new Set((pecas ?? []).filter((peca) => peca.artesao === artesao.slug).map((peca) => peca.slug))
+  const pedidosDoArtesao = (pedidos ?? []).filter((pedido) =>
+    (pedido.itens ?? [{ slug: pedido.pecaSlug }]).some((item) => slugsDoArtesao.has(item.slug)),
+  )
+  const agora = new Date()
+  const noMesAtual = (data: string) => {
+    const [dia, mes, ano] = data.split('/').map(Number)
+    const dataPedido = new Date(ano, mes - 1, dia)
+    return dataPedido.getMonth() === agora.getMonth() && dataPedido.getFullYear() === agora.getFullYear()
+  }
 
   return (
     <LayoutPainel ativo="pedidos">
@@ -40,7 +51,12 @@ export default async function Painel() {
         Aceite os pedidos novos para começar a produzir. Quem comprou é avisado a cada etapa que você marcar.
       </p>
 
-      <PedidosPendentes iniciais={pendentes} faturamentoMes={8940} />
+      <PedidosPendentes
+        iniciais={pendentes}
+        emProducao={pedidosDoArtesao.filter((pedido) => pedido.estado === 'producao').length}
+        enviadosMes={pedidosDoArtesao.filter((pedido) => pedido.estado === 'enviado' && noMesAtual(pedido.data)).length}
+        faturamentoMes={pedidosDoArtesao.filter((pedido) => noMesAtual(pedido.data)).reduce((total, pedido) => total + pedido.total, 0)}
+      />
 
       <section className="secao">
         <h2 className="secao-titulo">Conversas</h2>

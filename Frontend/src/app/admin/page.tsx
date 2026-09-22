@@ -2,11 +2,13 @@ import LayoutAdmin from '@/components/admin/LayoutAdmin'
 import { Migalhas } from '@/components/ui/Basicos'
 import FilaCuradoria from '@/components/admin/FilaCuradoria'
 import { listarFilaCuradoria, listarMediacoes } from '@/services/api/pedidos.servico'
+import { listarPecas } from '@/services/api/pecas.servico'
 
 export default async function Admin() {
-  const [{ dados: fila }, { dados: mediacoes }] = await Promise.all([
+  const [{ dados: fila }, { dados: mediacoes }, { dados: pecas }] = await Promise.all([
     listarFilaCuradoria(),
     listarMediacoes(),
+    listarPecas(),
   ])
 
   return (
@@ -19,7 +21,11 @@ export default async function Admin() {
         passar por aqui.
       </p>
 
-      <FilaCuradoria filaInicial={fila ?? []} mediacoesAbertas={(mediacoes ?? []).length} />
+      <FilaCuradoria
+        filaInicial={fila ?? []}
+        mediacoesAbertas={(mediacoes ?? []).length}
+        artesaosAtivos={new Set((pecas ?? []).filter((peca) => (peca.situacao ?? 'publicada') === 'publicada').map((peca) => peca.artesao)).size}
+      />
     </LayoutAdmin>
   )
 }

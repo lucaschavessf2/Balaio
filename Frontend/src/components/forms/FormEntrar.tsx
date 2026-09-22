@@ -6,19 +6,19 @@ import { useState, type FormEvent } from 'react'
 import { Campo } from '@/components/ui/Basicos'
 import { avisar } from '@/components/feedback/Avisos'
 import { IconeAviso } from '@/components/ui/Icones'
-import { entrar } from '@/services/api/auth.servico'
-import { destinoInicial } from '@/services/sessao/cookie'
+import { destinoInicial, sessaoDoUsuario } from '@/services/sessao/cookie'
 import { useSessao } from '@/store/sessao'
 import { validarEmail, validarObrigatorio } from '@/utils/validacao'
+import { entrar as entrarNaConta } from '@/services/api/conta.servico'
 
 export default function FormEntrar({ proximo }: { proximo?: string }) {
   const roteador = useRouter()
   const { iniciarSessao } = useSessao()
   const [erros, definirErros] = useState<Record<string, string>>({})
-  const [erroAcesso, definirErroAcesso] = useState<string | null>(null)
   const [enviando, definirEnviando] = useState(false)
+  const [erroAcesso, definirErroAcesso] = useState<string | null>(null)
 
-  async function aoEnviar(evento: FormEvent<HTMLFormElement>) {
+  async function entrar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
     if (enviando) return
     const dados = new FormData(evento.currentTarget)
@@ -42,23 +42,26 @@ export default function FormEntrar({ proximo }: { proximo?: string }) {
     }
 
     definirEnviando(true)
-    const { dados: usuario, erro } = await entrar(email.trim(), senha)
+    const { dados: usuario, erro } = await entrarNaConta({
+      email: String(dados.get('email')),
+      senha: String(dados.get('senha')),
+    })
     definirEnviando(false)
-
     if (!usuario) {
-      definirErroAcesso(erro?.mensagem ?? 'Não foi possível entrar agora.')
-      document.getElementById('senha')?.focus()
+      definirErroAcesso(erro?.mensagem ?? 'Não foi possível entrar.')
+      avisar.erro('Não foi possível entrar', erro?.mensagem)
       return
     }
-
-    iniciarSessao(usuario)
-    avisar.sucesso(`Bem-vindo, ${usuario.nome.split(' ')[0]}!`)
-    roteador.push(proximo ?? destinoInicial(usuario))
+    const sessao = sessaoDoUsuario(usuario)
+    if (!sessao) { definirErroAcesso('A API não retornou uma conta válida.'); return }
+    iniciarSessao(sessao)
+    avisar.sucesso('Bem-vindo de volta!', `Olá, ${usuario.nome}.`)
+    roteador.push(proximo ?? destinoInicial(sessao))
     roteador.refresh()
   }
 
   return (
-    <form className="cartao" onSubmit={aoEnviar} noValidate>
+    <form className="cartao" onSubmit={entrar} noValidate>
       {erroAcesso && (
         <p className="auth-erro" role="alert">
           <IconeAviso tamanho={18} />

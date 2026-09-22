@@ -5,7 +5,7 @@ import { IconeSetaDireita } from '@/components/ui/Icones'
 import InativarPeca from '@/components/painel/InativarPeca'
 import { pecasPorArtesao } from '@/services/api/pecas.servico'
 import { emReais } from '@/utils/formato'
-import { exigirArtesao } from '@/services/sessao/servidor'
+import { exigirArtesao } from '@/services/autenticacao'
 
 const situacoes: Record<string, { texto: string; classe: string }> = {
   publicada: { texto: 'Publicada', classe: 'selo-disponivel' },
@@ -16,7 +16,7 @@ const situacoes: Record<string, { texto: string; classe: string }> = {
 
 export default async function MinhasPecas() {
   const { artesao } = await exigirArtesao()
-  const { dados: pecas } = await pecasPorArtesao(artesao)
+  const { dados: pecas } = await pecasPorArtesao(artesao.slug)
 
   return (
     <LayoutPainel ativo="pecas">

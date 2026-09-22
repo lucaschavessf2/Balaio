@@ -12,11 +12,11 @@ import {
   IconeUsuario,
 } from '@/components/ui/Icones'
 import { listarPedidos } from '@/services/api/pedidos.servico'
-import { exigirSessao } from '@/services/sessao/servidor'
+import { exigirSessao } from '@/services/autenticacao'
 
 export default async function Conta() {
-  const usuarioAtual = await exigirSessao('/account')
-  const { dados: pedidos } = await listarPedidos(usuarioAtual.id)
+  const { usuario: usuarioAtual, token } = await exigirSessao()
+  const { dados: pedidos } = await listarPedidos(token)
   const totalPedidos = (pedidos ?? []).length
   return (
     <Pagina>

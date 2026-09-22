@@ -2,11 +2,11 @@ import LayoutPainel from '@/components/painel/LayoutPainel'
 import { Migalhas } from '@/components/ui/Basicos'
 import CaixaConversas from '@/components/pedido/CaixaConversas'
 import { listarConversasArtesao, conversaDoPedido } from '@/services/api/pedidos.servico'
-import { exigirArtesao } from '@/services/sessao/servidor'
+import { exigirArtesao } from '@/services/autenticacao'
 
 export default async function Conversas() {
   const { artesao } = await exigirArtesao()
-  const { dados: fios } = await listarConversasArtesao(artesao)
+  const { dados: fios } = await listarConversasArtesao(artesao.slug)
   const { dados: conversa } = await conversaDoPedido((fios ?? [])[0]?.id ?? '')
 
   return (

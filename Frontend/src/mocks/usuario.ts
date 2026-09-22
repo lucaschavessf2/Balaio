@@ -1,9 +1,27 @@
 import { artesaos } from './artesaos'
 
 export type Usuario = {
+  id?: string
   nome: string
   email: string
   imagem: string
+  perfil?: 'comprador' | 'artesao'
+  papel?: 'comprador' | 'artesao' | 'admin'
+  telefone?: string
+  tipoComprador?: string
+  territorio?: string
+  tecnica?: string
+  artesaoId?: string
+  enderecos?: EnderecoUsuario[]
+}
+
+export type EnderecoUsuario = {
+  id: string
+  apelido: string
+  rua: string
+  bairro: string
+  cep: string
+  principal: boolean
 }
 
 export const usuarioAtual: Usuario = {
