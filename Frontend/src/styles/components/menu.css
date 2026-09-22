@@ -131,3 +131,7 @@
     display: none;
   }
 }
+
+.menu-sair {
+  @apply mt-3 pt-3 border-t border-linha;
+}

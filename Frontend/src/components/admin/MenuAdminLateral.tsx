@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import BotaoSair from '@/components/conta/BotaoSair'
 import { IconeSelo, IconeSetaDireita } from '@/components/ui/Icones'
 import { itensAdminPorGrupo, type ChaveAdmin } from '@/components/admin/itensAdmin'
 
@@ -42,6 +43,10 @@ export default function MenuAdminLateral({ ativo }: { ativo: ChaveAdmin }) {
         Ver o catálogo
         <IconeSetaDireita tamanho={14} />
       </Link>
+
+      <div className="menu-sair">
+        <BotaoSair />
+      </div>
     </nav>
   )
 }

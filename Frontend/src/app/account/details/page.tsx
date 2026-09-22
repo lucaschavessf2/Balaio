@@ -22,7 +22,7 @@ export default async function DadosDaConta() {
       </MenuDrawer>
 
       <h1 className="titulo-pagina">Meus dados</h1>
-      <p className="subtitulo-pagina">Seu nome, contatos e preferências de compra.</p>
+      <p className="subtitulo-pagina">Seu nome, contatos e a senha de acesso.</p>
 
       <div className="conta-hub">
         <FormDadosConta usuario={usuario} />

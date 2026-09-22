@@ -4,21 +4,19 @@ import CabecalhoMobile from '@/components/navegacao/CabecalhoMobile'
 import NavegacaoInferior from '@/components/navegacao/NavegacaoInferior'
 import Rodape from '@/components/layout/Rodape'
 
-type Props = { children: ReactNode; comoArtesao?: boolean }
-
-export default function Pagina({ children, comoArtesao = false }: Props) {
+export default function Pagina({ children }: { children: ReactNode }) {
   return (
     <div className="pagina">
       <a className="pular-para-conteudo" href="#conteudo">
         Pular para o conteúdo
       </a>
-      <Cabecalho comoArtesao={comoArtesao} />
+      <Cabecalho />
       <CabecalhoMobile />
       <main id="conteudo" className="conteudo">
         <div className="container">{children}</div>
       </main>
       <Rodape />
-      <NavegacaoInferior comoArtesao={comoArtesao} />
+      <NavegacaoInferior />
     </div>
   )
 }

@@ -4,20 +4,20 @@ import Pagina from '@/components/layout/Pagina'
 import { Migalhas } from '@/components/ui/Basicos'
 import FormMediacao from '@/components/forms/FormMediacao'
 import { obterPedido } from '@/services/api/pedidos.servico'
-import { obterPeca } from '@/services/api/pecas.servico'
+import { obterPecaHistorico } from '@/services/api/pecas.servico'
 import { obterArtesao } from '@/services/api/artesaos.servico'
-import { exigirUsuario } from '@/services/autenticacao'
+import { exigirSessao } from '@/services/autenticacao'
 
 export const dynamic = 'force-dynamic'
 
 export default async function Mediacao({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const usuario = await exigirUsuario()
-  const { dados: pedido, erro } = await obterPedido(id)
+  const { usuario, token } = await exigirSessao()
+  const { dados: pedido, erro } = await obterPedido(id, token)
   if (erro && erro.codigo !== 'RECURSO_NAO_ENCONTRADO') throw new Error(erro.mensagem)
-  if (!pedido) notFound()
+  if (!pedido || (pedido.compradorId ?? pedido.usuarioId) !== usuario.id) notFound()
 
-  const { dados: peca } = await obterPeca(pedido.pecaSlug)
+  const { dados: peca } = await obterPecaHistorico(pedido.pecaSlug)
   const artesao = peca ? (await obterArtesao(peca.artesao)).dados : null
 
   return (

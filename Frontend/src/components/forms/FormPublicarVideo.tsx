@@ -7,11 +7,13 @@ import { Campo } from '@/components/ui/Basicos'
 import { avisar } from '@/components/feedback/Avisos'
 import { validarObrigatorio } from '@/utils/validacao'
 import { IconePincel } from '@/components/ui/Icones'
+import { useSessao } from '@/store/sessao'
 
 type PecaVinculavel = { slug: string; nome: string }
 
 export default function FormPublicarVideo({ pecas }: { pecas: PecaVinculavel[] }) {
   const roteador = useRouter()
+  const { sessao } = useSessao()
   const [salvando, definirSalvando] = useState(false)
   const formulario = useRef<HTMLFormElement>(null)
   const [erroLegenda, definirErroLegenda] = useState<string | null>(null)
@@ -38,7 +40,7 @@ export default function FormPublicarVideo({ pecas }: { pecas: PecaVinculavel[] }
   }
 
   async function salvar(rascunho: boolean) {
-    if (salvando || !validar()) return
+    if (salvando || !validar() || !sessao?.artesao) return
     const dados = new FormData(formulario.current!)
     definirSalvando(true)
     const resposta = await criarVideo({

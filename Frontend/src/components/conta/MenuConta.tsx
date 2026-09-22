@@ -1,3 +1,5 @@
+'use client'
+
 import Link from 'next/link'
 import { Retrato } from '@/components/ui/Basicos'
 import BotaoSair from '@/components/conta/BotaoSair'
@@ -51,14 +53,16 @@ export default function MenuConta({ ativo, usuario, totalPedidos = 0 }: { ativo?
           <IconeUsuario />
           Meus dados
         </Link>
-        <Link href="/login/recover" className="menu-item">
+        <Link href="/account/details#seguranca" className="menu-item">
           <IconeCadeado />
           Alterar senha
         </Link>
-        <Link href="/dashboard" className="menu-item">
-          <IconePincel />
-          Painel do artesão
-        </Link>
+        {usuario.perfil === 'artesao' && (
+          <Link href="/dashboard" className="menu-item">
+            <IconePincel />
+            Painel do artesão
+          </Link>
+        )}
         <BotaoSair />
       </div>
     </nav>

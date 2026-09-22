@@ -12,6 +12,7 @@ export type Checkout = {
   freteId: string
   endereco: { cep: string; endereco: string; cidade: string; estado: string }
   meio: 'pix' | 'cartao' | 'boleto'
+  compradorId: string
 }
 
 export function finalizarCompra(compra: Checkout): Promise<RespostaApi<Pedido>> {

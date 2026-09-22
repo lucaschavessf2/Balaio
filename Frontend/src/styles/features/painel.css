@@ -55,3 +55,17 @@
 .rotulo-acao {
   @apply inline;
 }
+
+.confirmacao-salvo {
+  @apply flex gap-2 items-start mb-4 py-2.5 px-3.5 rounded-caixa border text-pequeno text-verde-tinta;
+  border-color: color-mix(in srgb, var(--verde) 40%, var(--linha));
+  background: color-mix(in srgb, var(--verde) 9%, var(--superficie));
+}
+
+.confirmacao-salvo svg {
+  @apply flex-none mt-0.5;
+}
+
+.confirmacao-salvo-neutra {
+  @apply text-tinta-suave border-linha bg-fundo;
+}

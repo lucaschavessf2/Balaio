@@ -14,6 +14,7 @@ import { useSacola } from '@/store/sacola'
 import { usePecas } from '@/hooks/usePecas'
 import { validarCEP, validarObrigatorio } from '@/utils/validacao'
 import { useDados } from '@/store/dados'
+import { useSessao } from '@/store/sessao'
 import { emReais, precoComDesconto } from '@/utils/formato'
 import { obterUsuario } from '@/services/api/conta.servico'
 
@@ -26,6 +27,7 @@ const meios: { id: Meio; nome: string; nota: string }[] = [
 ]
 
 export default function Checkout() {
+  const { sessao } = useSessao()
   const roteador = useRouter()
   const { itens, pronto, limpar } = useSacola()
   const { mapaPecas, carregando, erro } = usePecas()
@@ -85,7 +87,7 @@ export default function Checkout() {
 
     definirSalvando(true)
     const resposta = await finalizarCompra({
-      itens, freteId: frete.id, meio,
+      itens, freteId: frete.id, meio, compradorId: sessao?.id ?? '',
       endereco: { cep: String(dados.get('cep')), endereco: String(dados.get('endereco')), cidade: String(dados.get('cidade')), estado: String(dados.get('estado')) },
     })
     definirSalvando(false)

@@ -5,7 +5,7 @@ import { EstadoVazio, Foto, Migalhas } from '@/components/ui/Basicos'
 import BotaoAdicionarSacola from '@/components/carrinho/BotaoAdicionarSacola'
 import { IconePacote } from '@/components/ui/Icones'
 import { listarPedidos } from '@/services/api/pedidos.servico'
-import { listarPecas } from '@/services/api/pecas.servico'
+import { obterPecaHistorico } from '@/services/api/pecas.servico'
 import { listarArtesaos } from '@/services/api/artesaos.servico'
 import { emReais } from '@/utils/formato'
 import { rotuloEstadoPedido } from '@/constants/rotulos'
@@ -13,17 +13,19 @@ import { exigirSessao } from '@/services/autenticacao'
 
 export default async function MeusPedidos() {
   const { token } = await exigirSessao()
-  const [{ dados: pedidos, erro }, { dados: pecas }, { dados: artesaos }] = await Promise.all([
+  const [{ dados: pedidos, erro }, { dados: artesaos }] = await Promise.all([
     listarPedidos(token),
-    listarPecas(),
     listarArtesaos(),
   ])
   if (erro) return <Pagina><EstadoErro mensagem={erro.mensagem} /></Pagina>
-  const mapaPecas = new Map((pecas ?? []).map((p) => [p.slug, p]))
+  const pedidosLista = pedidos ?? []
+  const slugs = [...new Set(pedidosLista.flatMap((pedido) => [pedido.pecaSlug, ...(pedido.itens ?? []).map((item) => item.slug)]))]
+  const pecas = await Promise.all(slugs.map((slug) => obterPecaHistorico(slug)))
+  const mapaPecas = new Map(pecas.flatMap((resposta) => resposta.dados ? [[resposta.dados.slug, resposta.dados] as const] : []))
   const mapaArtesaos = new Map((artesaos ?? []).map((a) => [a.slug, a]))
   const acharPeca = (slug: string) => mapaPecas.get(slug)
   const acharArtesao = (slug: string) => mapaArtesaos.get(slug)
-  const listaPedidos = pedidos ?? []
+  const listaPedidos = pedidosLista
   return (
     <Pagina>
       <Migalhas trilha={[{ texto: 'Início', href: '/' }, { texto: 'Meus pedidos' }]} />
@@ -88,7 +90,7 @@ export default async function MeusPedidos() {
                     Avaliar
                   </Link>
                 )}
-                {entregue && peca && (
+                {entregue && peca && !peca.inativadoEm && (
                   <BotaoAdicionarSacola
                     slug={peca.slug}
                     disponibilidade={peca.disponibilidade}

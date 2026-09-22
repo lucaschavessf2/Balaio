@@ -12,3 +12,25 @@ export async function obterArtesao(slug: string): Promise<RespostaApi<Artesao>> 
 
 export const obterMeuAtelie = (token?: string) => buscar<Artesao>('/artesao/me', token ? { headers: { Authorization: `Bearer ${token}` } } : undefined)
 export const atualizarMeuAtelie = (alteracoes: Partial<Artesao>) => enviar<Artesao>('/artesao/me', alteracoes, 'PATCH')
+
+export type PerfilArtesao = Pick<Artesao, 'nome' | 'atelie' | 'historia' | 'territorio' | 'tecnica' | 'imagem'>
+
+export function atualizarArtesao(slug: string, perfil: Partial<PerfilArtesao>): Promise<RespostaApi<Artesao>> {
+  return enviar<Artesao>(`/artesaos/${encodeURIComponent(slug)}`, perfil, 'PATCH')
+}
+
+export type ConfiguracoesAtelie = {
+  cepOrigem: string
+  prazoPadraoDias: number
+  aceitaEncomendas: boolean
+  encomendasPausadas: boolean
+  chavePix: string
+}
+
+export function obterConfiguracoes(slug: string): Promise<RespostaApi<ConfiguracoesAtelie>> {
+  return buscar<ConfiguracoesAtelie>(`/artesaos/${encodeURIComponent(slug)}/configuracoes`)
+}
+
+export function atualizarConfiguracoes(slug: string, alteracoes: Partial<ConfiguracoesAtelie>): Promise<RespostaApi<ConfiguracoesAtelie>> {
+  return enviar<ConfiguracoesAtelie>(`/artesaos/${encodeURIComponent(slug)}/configuracoes`, alteracoes, 'PATCH')
+}

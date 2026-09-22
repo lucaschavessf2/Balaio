@@ -176,3 +176,108 @@
 .drawer .menu-lateral {
   @apply block border-0 shadow-none p-0 bg-transparent;
 }
+
+.barra-departamentos {
+  @apply border-t border-[rgba(255,255,255,0.14)] bg-[rgba(0,0,0,0.14)];
+}
+
+.barra-departamentos-linha {
+  @apply flex items-center gap-4 min-h-11 px-6 xl:px-16;
+}
+
+.departamentos {
+  @apply relative flex-none;
+}
+
+.departamentos-gatilho {
+  @apply flex items-center gap-2 min-h-11 px-3 -ml-3 rounded-caixa text-pequeno font-bold text-branco cursor-pointer list-none select-none;
+}
+
+.departamentos-gatilho::-webkit-details-marker {
+  display: none;
+}
+
+.departamentos-gatilho:hover,
+.departamentos[open] .departamentos-gatilho {
+  @apply bg-[rgba(255,255,255,0.14)];
+}
+
+.departamentos-gatilho svg:last-child {
+  transition: transform 150ms ease;
+}
+
+.departamentos[open] .departamentos-gatilho svg:last-child {
+  transform: rotate(180deg);
+}
+
+.departamentos-painel {
+  @apply absolute left-0 top-[calc(100%+8px)] z-50 grid grid-cols-3 gap-8 w-[min(760px,calc(100vw-48px))] p-6 rounded-grande border border-linha bg-superficie text-tinta shadow-(--sombra-alta);
+  animation: departamentos-abre 140ms ease;
+}
+
+.departamentos-grupo-titulo {
+  @apply mb-3 text-mini font-bold uppercase tracking-wider text-barro-tinta;
+}
+
+.departamentos-grupo ul {
+  @apply grid gap-1 list-none m-0 p-0;
+}
+
+.departamentos-grupo a {
+  @apply block py-1.5 text-pequeno text-tinta;
+}
+
+.departamentos-grupo a:hover {
+  @apply text-destaque;
+}
+
+.departamentos-rapidos {
+  @apply flex items-center gap-1 list-none m-0 p-0 overflow-x-auto;
+  scrollbar-width: none;
+}
+
+.departamentos-rapidos a {
+  @apply inline-flex items-center min-h-11 px-3 rounded-caixa text-pequeno font-semibold text-branco whitespace-nowrap;
+}
+
+.departamentos-rapidos a:hover {
+  @apply bg-[rgba(255,255,255,0.14)] no-underline;
+}
+
+.departamentos-mobile {
+  @apply overflow-x-auto pb-2.5;
+  scrollbar-width: none;
+}
+
+.departamentos-mobile-lista {
+  @apply flex gap-2 list-none m-0 px-5 py-0;
+}
+
+.departamentos-mobile-chip {
+  @apply inline-flex items-center min-h-9 px-3.5 rounded-pilula border border-[rgba(255,255,255,0.35)] text-mini font-semibold text-branco whitespace-nowrap;
+}
+
+.departamentos-mobile-chip:hover {
+  @apply no-underline bg-[rgba(255,255,255,0.14)];
+}
+
+.departamentos-mobile-chip-todos {
+  @apply bg-amarelo text-tinta-fixa border-amarelo;
+}
+
+@keyframes departamentos-abre {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .departamentos-painel {
+    animation: none;
+  }
+}

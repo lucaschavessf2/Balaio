@@ -2,10 +2,10 @@ import Link from 'next/link'
 import LayoutPainel from '@/components/painel/LayoutPainel'
 import { Foto, Migalhas, SeloDisponibilidade } from '@/components/ui/Basicos'
 import { IconeSetaDireita } from '@/components/ui/Icones'
+import InativarPeca from '@/components/painel/InativarPeca'
 import { pecasPorArtesao } from '@/services/api/pecas.servico'
 import { emReais } from '@/utils/formato'
 import { exigirArtesao } from '@/services/autenticacao'
-import AcoesPecaPainel from '@/components/painel/AcoesPecaPainel'
 
 const situacoes: Record<string, { texto: string; classe: string }> = {
   publicada: { texto: 'Publicada', classe: 'selo-disponivel' },
@@ -67,16 +67,16 @@ export default async function MinhasPecas() {
                 <span className="selo-ponto" />
                 {situacao.texto}
               </span>
+              {peca.inativadoEm && <span className="selo selo-neutro">Inativada</span>}
             </div>
 
             <div className="acoes-linha">
-              <Link href={`/pieces/${peca.slug}`} className="botao botao-fantasma">
-                Ver na loja
-              </Link>
+              {!peca.inativadoEm && <Link href={`/pieces/${peca.slug}`} className="botao botao-fantasma">Ver na loja</Link>}
+              <Link href={`/dashboard/pieces/${peca.slug}`} className="botao botao-secundario">Editar</Link>
+              <InativarPeca slug={peca.slug} nome={peca.nome} inativada={Boolean(peca.inativadoEm)} />
               <Link href="/dashboard/pieces/new" className="botao botao-secundario">
                 Cadastrar semelhante
               </Link>
-              <AcoesPecaPainel slug={peca.slug} situacao={peca.situacao} />
             </div>
           </article>
         )

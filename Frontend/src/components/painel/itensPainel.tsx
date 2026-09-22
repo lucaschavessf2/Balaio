@@ -21,7 +21,9 @@ export const rotulosGrupo: Record<GrupoPainel, string> = {
   oficina: 'Oficina',
 }
 
-export function itensPainel(): ItemPainel[] {
+export type ContagensPainel = { pendentes: number; naoLidas: number }
+
+export function itensPainel({ pendentes, naoLidas }: ContagensPainel = { pendentes: 0, naoLidas: 0 }): ItemPainel[] {
   return [
     {
       chave: 'pedidos',
@@ -30,6 +32,7 @@ export function itensPainel(): ItemPainel[] {
       href: '/dashboard',
       icone: <IconePacote />,
       grupo: 'vender',
+      marcador: pendentes > 0 ? { texto: `${pendentes} ${pendentes === 1 ? 'pendente' : 'pendentes'}` } : undefined,
     },
     {
       chave: 'pecas',
@@ -54,6 +57,8 @@ export function itensPainel(): ItemPainel[] {
       href: '/dashboard/messages',
       icone: <IconeConversa />,
       grupo: 'divulgar',
+      marcador:
+        naoLidas > 0 ? { texto: `${naoLidas} não ${naoLidas === 1 ? 'lida' : 'lidas'}`, alerta: true } : undefined,
     },
     {
       chave: 'videos',
@@ -74,8 +79,8 @@ export function itensPainel(): ItemPainel[] {
   ]
 }
 
-export function itensPorGrupo() {
-  const itens = itensPainel()
+export function itensPorGrupo(contagens?: ContagensPainel) {
+  const itens = itensPainel(contagens)
   return (Object.keys(rotulosGrupo) as GrupoPainel[])
     .map((grupo) => ({ grupo, rotulo: rotulosGrupo[grupo], itens: itens.filter((i) => i.grupo === grupo) }))
     .filter((g) => g.itens.length > 0)

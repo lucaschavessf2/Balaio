@@ -1,5 +1,6 @@
 const jsonServer = require('json-server')
-const { existsSync, copyFileSync } = require('node:fs')
+const bodyParser = require('body-parser')
+const { existsSync, copyFileSync, readFileSync } = require('node:fs')
 const path = require('node:path')
 const { randomBytes, randomUUID, scryptSync, timingSafeEqual } = require('node:crypto')
 
@@ -8,6 +9,10 @@ const erro = (res, status, mensagem, codigo) => res.status(status).json({ dados:
 const normalizar = (texto) => String(texto).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 const slugificar = (texto) => normalizar(texto).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 const preco = (peca) => peca.preco * (1 - (peca.desconto || 0) / 100)
+const FOTO_VALIDA = /^(\/fotos\/[\w./-]+|data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+)$/
+const CAMPOS_PERFIL = ['nome', 'atelie', 'historia', 'territorio', 'tecnica', 'imagem']
+const CONFIGURACOES_PADRAO = { cepOrigem: '', prazoPadraoDias: 15, aceitaEncomendas: true, encomendasPausadas: false, chavePix: '' }
+const LIMITE_CHAVE_PIX = 140
 const COOKIE_SESSAO = 'balaio_sessao'
 const emailValido = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 const senhaProtegida = (senha, sal = randomBytes(16).toString('hex')) => ({ sal, hash: scryptSync(senha, sal, 64).toString('hex') })
@@ -21,6 +26,7 @@ const usuarioPublico = (usuario) => {
   const publico = { ...usuario }
   delete publico.senhaHash
   delete publico.senhaSal
+  delete publico.senha
   return publico
 }
 const cookies = (req) => Object.fromEntries(String(req.headers.cookie || '').split(';').map((item) => item.trim().split('=').map(decodeURIComponent)).filter(([chave]) => chave))
@@ -30,11 +36,73 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
   const server = jsonServer.create()
   const router = jsonServer.router(arquivo)
   const db = router.db
+  const seed = JSON.parse(readFileSync(path.join(__dirname, 'seed.json'), 'utf8'))
+  const artesaoDaPecaNoBanco = (slug) => db.get('pecas').find({ id: slug }).value()?.artesao
+  for (const colecao of Object.keys(seed)) {
+    if (!db.has(colecao).value()) db.set(colecao, seed[colecao]).write()
+  }
+  const usuarios = db.get('usuarios')
+  for (const conta of seed.usuarios) {
+    if (!usuarios.find({ id: conta.id }).value() && !usuarios.find({ email: conta.email }).value()) usuarios.push(conta).value()
+  }
+  for (const conta of usuarios.value()) {
+    if (!conta.senhaHash) {
+      const senha = senhaProtegida(String(conta.senha ?? 'balaio123'))
+      conta.senhaSal = senha.sal
+      conta.senhaHash = senha.hash
+      delete conta.senha
+    }
+    conta.papel = conta.papel ?? conta.perfil ?? 'comprador'
+    conta.perfil = conta.perfil ?? (conta.papel === 'artesao' ? 'artesao' : 'comprador')
+    conta.artesaoId = conta.artesaoId ?? conta.artesao
+    conta.artesao = conta.artesao ?? conta.artesaoId
+    if (!Array.isArray(conta.enderecos)) conta.enderecos = []
+  }
+  const vendedores = new Set(usuarios.value().filter((u) => u.papel === 'artesao').map((u) => u.artesao))
+  db.get('pecas').remove((p) => !vendedores.has(p.artesao)).value()
+  const artesaoPeloNome = (nome) => db.get('artesaos').value().find((a) => a.atelie === nome || a.nome === nome)?.slug
+  for (const item of db.get('curadoria').value()) {
+    item.artesaoSlug = item.artesaoSlug ?? artesaoDaPecaNoBanco(item.pecaSlug) ?? artesaoPeloNome(item.artesao)
+  }
+  db.get('curadoria').remove((c) => !vendedores.has(c.artesaoSlug)).value()
+  for (const peca of db.get('pecas').value().filter((p) => !p.tipo)) {
+    const original = seed.pecas.find((s) => s.id === peca.id)
+    if (original) peca.tipo = original.tipo
+  }
+  if (!db.get('referencias.tipos').value()) db.set('referencias.tipos', seed.referencias.tipos).value()
+  for (const pedido of db.get('pedidos').value().filter((p) => !p.compradorId)) {
+    const dono = db.get('usuarios').value().find((u) => u.nome === pedido.compradorNome)
+    if (dono) pedido.compradorId = dono.id
+  }
+  db.write()
   server.use(jsonServer.defaults({ static: path.join(__dirname, '../public'), logger: process.env.NODE_ENV !== 'test' }))
+  server.post('/api/v1/pecas', bodyParser.json({ limit: '45mb' }))
   server.use(jsonServer.bodyParser)
   const ler = (nome) => db.get(nome).value()
   const encontrar = (nome, id) => ler(nome).find((item) => item.id === id)
   const inserir = (nome, item) => { db.get(nome).push(item).write(); return item }
+
+  server.all(['/api/v1/usuarios*', '/api/v1/configuracoesAtelie*'], (req, res) => erro(res, 404, 'Recurso não encontrado.'))
+  const configuracoesDe = (slug) => ({ ...CONFIGURACOES_PADRAO, ...(ler('configuracoesAtelie').find((c) => c.id === slug) ?? {}), id: slug })
+  server.get('/api/v1/artesaos/:id/configuracoes', (req, res) => {
+    if (!encontrar('artesaos', req.params.id)) return erro(res, 404, 'Artesão não encontrado.')
+    res.json(ok(configuracoesDe(req.params.id)))
+  })
+  server.patch('/api/v1/artesaos/:id/configuracoes', (req, res) => {
+    if (!encontrar('artesaos', req.params.id)) return erro(res, 404, 'Artesão não encontrado.')
+    const alteracoes = Object.fromEntries(Object.keys(CONFIGURACOES_PADRAO).filter((campo) => req.body[campo] !== undefined).map((campo) => [campo, req.body[campo]]))
+    if (!Object.keys(alteracoes).length) return erro(res, 400, 'Nenhum campo de configuração informado.')
+    if ('cepOrigem' in alteracoes && (typeof alteracoes.cepOrigem !== 'string' || !/^\d{5}-?\d{3}$/.test(alteracoes.cepOrigem))) return erro(res, 400, 'CEP de origem inválido.')
+    if ('prazoPadraoDias' in alteracoes && (!Number.isInteger(alteracoes.prazoPadraoDias) || alteracoes.prazoPadraoDias < 1 || alteracoes.prazoPadraoDias > 120)) return erro(res, 400, 'O prazo padrão precisa estar entre 1 e 120 dias.')
+    for (const campo of ['aceitaEncomendas', 'encomendasPausadas']) {
+      if (campo in alteracoes && typeof alteracoes[campo] !== 'boolean') return erro(res, 400, 'Preferência de encomendas inválida.')
+    }
+    if ('chavePix' in alteracoes && (typeof alteracoes.chavePix !== 'string' || !alteracoes.chavePix.trim() || alteracoes.chavePix.length > LIMITE_CHAVE_PIX)) return erro(res, 400, 'Informe uma chave Pix válida.')
+    const atualizado = { ...configuracoesDe(req.params.id), ...alteracoes }
+    db.get('configuracoesAtelie').remove({ id: req.params.id }).value()
+    inserir('configuracoesAtelie', atualizado)
+    res.json(ok(atualizado))
+  })
 
   for (const [colecao, inicial] of [['usuarios', []], ['sessoes', []], ['estadosCliente', []], ['perguntas', []], ['recuperacoes', []]]) {
     if (!db.has(colecao).value()) db.set(colecao, inicial).write()
@@ -89,12 +157,13 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
     const nome = String(req.body.nome || '').trim()
     const email = String(req.body.email || '').trim().toLowerCase()
     const senhaInformada = String(req.body.senha || '')
-    const perfil = req.body.perfil === 'artesao' ? 'artesao' : 'comprador'
+    const perfil = (req.body.perfil ?? req.body.papel) === 'artesao' ? 'artesao' : 'comprador'
+    if (req.body.papel === 'admin') return erro(res, 400, 'Perfil inválido.')
     if (!nome || !emailValido(email) || senhaInformada.length < 8) return erro(res, 400, 'Informe nome, e-mail válido e senha com pelo menos 8 caracteres.')
     if (ler('usuarios').some((usuario) => usuario.email === email)) return erro(res, 409, 'Já existe uma conta com este e-mail.', 'EMAIL_EM_USO')
     const senha = senhaProtegida(senhaInformada)
     const usuario = {
-      id: randomUUID(), nome, email, perfil, imagem: '/fotos/jarra-cabocla.svg',
+      id: randomUUID(), nome, email, perfil, papel: perfil, imagem: '/fotos/jarra-cabocla.svg',
       enderecos: [],
       ...(perfil === 'artesao' ? { territorio: String(req.body.territorio || ''), tecnica: String(req.body.tecnica || '') } : {}),
       senhaSal: senha.sal, senhaHash: senha.hash,
@@ -111,6 +180,7 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
       }
       inserir('artesaos', artesao)
       usuario.artesaoId = slug
+      usuario.artesao = slug
     }
     inserir('usuarios', usuario)
     db.set('usuario', usuarioPublico(usuario)).write()
@@ -118,7 +188,7 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
     res.status(201).json(ok(usuarioPublico(usuario)))
   })
 
-  server.post('/api/v1/auth/login', (req, res) => {
+  server.post(['/api/v1/auth/login', '/api/v1/auth/entrar'], (req, res) => {
     const email = String(req.body.email || '').trim().toLowerCase()
     const usuario = ler('usuarios').find((item) => item.email === email)
     if (!usuario || !senhaConfere(String(req.body.senha || ''), usuario)) return erro(res, 401, 'E-mail ou senha inválidos.', 'CREDENCIAIS_INVALIDAS')
@@ -150,6 +220,28 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
     const atualizado = encontrar('usuarios', usuario.id)
     db.set('usuario', usuarioPublico(atualizado)).write()
     res.json(ok(usuarioPublico(atualizado)))
+  })
+
+  server.patch('/api/v1/conta/:id', (req, res) => {
+    const usuario = exigirUsuario(req, res)
+    if (!usuario) return
+    if (usuario.id !== req.params.id) return erro(res, 403, 'Conta de outro usuário.', 'SEM_PERMISSAO')
+    const nome = String(req.body.nome ?? usuario.nome).trim()
+    const email = String(req.body.email ?? usuario.email).trim().toLowerCase()
+    if (!nome || !emailValido(email)) return erro(res, 400, 'Informe nome e e-mail válidos.')
+    if (ler('usuarios').some((u) => u.email === email && u.id !== usuario.id)) return erro(res, 409, 'Já existe uma conta com este e-mail.', 'EMAIL_EM_USO')
+    const telefone = String(req.body.telefone ?? usuario.telefone ?? '').trim()
+    res.json(ok(usuarioPublico(db.get('usuarios').find({ id: usuario.id }).assign({ nome, email, telefone }).write())))
+  })
+  server.post('/api/v1/conta/:id/senha', (req, res) => {
+    const usuario = exigirUsuario(req, res)
+    if (!usuario) return
+    if (usuario.id !== req.params.id) return erro(res, 403, 'Conta de outro usuário.', 'SEM_PERMISSAO')
+    if (!senhaConfere(String(req.body.senhaAtual ?? ''), usuario)) return erro(res, 401, 'A senha atual não confere.', 'SENHA_ATUAL_INVALIDA')
+    if (typeof req.body.novaSenha !== 'string' || req.body.novaSenha.length < 8) return erro(res, 400, 'A nova senha precisa de no mínimo 8 caracteres.')
+    const senha = senhaProtegida(req.body.novaSenha)
+    db.get('usuarios').find({ id: usuario.id }).assign({ senhaSal: senha.sal, senhaHash: senha.hash }).write()
+    res.json(ok({ id: usuario.id }))
   })
 
   server.get('/api/v1/usuario/enderecos', (req, res) => {
@@ -261,23 +353,36 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
     }
     res.json(ok(lista))
   })
+  server.get('/api/v1/eventos/:id', (req, res) => {
+    const evento = encontrar('eventos', req.params.id)
+    if (!evento) return erro(res, 404, 'Evento não encontrado.')
+    res.json(ok(evento))
+  })
+  server.delete('/api/v1/eventos/:id', (req, res) => {
+    const evento = encontrar('eventos', req.params.id)
+    if (!evento) return erro(res, 404, 'Evento não encontrado.')
+    db.get('eventos').remove({ id: req.params.id }).write()
+    res.json(ok(evento))
+  })
   server.get('/api/v1/pedidos', (req, res) => {
     const usuario = usuarioDaRequisicao(req)
-    res.json(ok(usuario ? ler('pedidos').filter((pedido) => pedido.usuarioId === usuario.id) : ler('pedidos')))
+    const pedidos = usuario ? ler('pedidos').filter((pedido) => (pedido.compradorId ?? pedido.usuarioId) === usuario.id) : ler('pedidos')
+    res.json(ok(req.query.compradorId ? pedidos.filter((pedido) => (pedido.compradorId ?? pedido.usuarioId) === req.query.compradorId) : pedidos))
   })
   server.get('/api/v1/pedidos/:id', (req, res) => {
     const pedido = encontrar('pedidos', req.params.id)
     if (!pedido) return erro(res, 404, 'Pedido não encontrado.')
     const usuario = usuarioDaRequisicao(req)
-    if (usuario && pedido.usuarioId && pedido.usuarioId !== usuario.id) return erro(res, 404, 'Pedido não encontrado.')
+    if (usuario && (pedido.compradorId ?? pedido.usuarioId) && (pedido.compradorId ?? pedido.usuarioId) !== usuario.id) return erro(res, 404, 'Pedido não encontrado.')
     res.json(ok(pedido))
   })
 
   server.get('/api/v1/pecas', (req, res) => {
-    let lista = ler('pecas').filter((p) => !p.situacao || p.situacao === 'publicada')
+    let lista = ler('pecas').filter((p) => !p.inativadoEm && (!p.situacao || p.situacao === 'publicada'))
     const q = normalizar(req.query.q || '').trim()
-    if (q) lista = lista.filter((p) => normalizar([p.nome, p.artesao, encontrar('artesaos', p.artesao)?.nome, p.territorio, p.tecnica, p.categoria].join(' ')).includes(q))
-    for (const campo of ['tecnica', 'territorio', 'categoria', 'disponibilidade']) {
+    if (q) lista = lista.filter((p) => normalizar([p.nome, p.artesao, encontrar('artesaos', p.artesao)?.nome, p.territorio, p.tecnica, p.categoria, p.tipo].join(' ')).includes(q))
+    if (req.query.desconto === 'true') lista = lista.filter((p) => (p.desconto || 0) > 0)
+    for (const campo of ['tecnica', 'territorio', 'categoria', 'disponibilidade', 'tipo']) {
       if (req.query[campo]) lista = lista.filter((p) => p[campo] === req.query[campo])
     }
     if (req.query.ordenar === 'preco-asc') lista.sort((a, b) => preco(a) - preco(b))
@@ -290,11 +395,21 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
     const pagina = Math.min(totalPaginas, Math.max(1, Math.floor(Number(req.query.pagina) || 1)))
     res.json(ok(lista.slice((pagina - 1) * tamanho, pagina * tamanho), { pagina, tamanho, total, totalPaginas }))
   })
+  server.get('/api/v1/pecas/:id/historico', (req, res) => {
+    const peca = encontrar('pecas', req.params.id)
+    if (!peca) return erro(res, 404, 'Peça não encontrada.')
+    res.json(ok(peca))
+  })
   server.get('/api/v1/pecas/:id/relacionadas', (req, res) => {
     const peca = encontrar('pecas', req.params.id)
     if (!peca) return erro(res, 404, 'Peça não encontrada.')
     const limite = Math.max(1, Math.min(100, Number(req.query.limite) || 3))
-    res.json(ok(ler('pecas').filter((p) => (!p.situacao || p.situacao === 'publicada') && p.id !== peca.id && p.tecnica === peca.tecnica).slice(0, limite)))
+    res.json(ok(ler('pecas').filter((p) => !p.inativadoEm && (!p.situacao || p.situacao === 'publicada') && p.id !== peca.id && p.tecnica === peca.tecnica).slice(0, limite)))
+  })
+  server.get('/api/v1/pecas/:id', (req, res) => {
+    const peca = encontrar('pecas', req.params.id)
+    if (!peca || peca.inativadoEm) return erro(res, 404, 'Peça não encontrada.')
+    res.json(ok(peca))
   })
   server.get('/api/v1/videos', (req, res) => res.json(ok(ler('videos').filter((v) => req.query.painel === 'true' || !v.situacao || v.situacao === 'publicada'))))
   server.post('/api/v1/videos', (req, res) => {
@@ -308,12 +423,28 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
     const usuario = usuarioDaRequisicao(req)
     const peca = { ...req.body, id: req.body.slug, ...(usuario?.artesaoId ? { artesao: usuario.artesaoId } : {}) }
     if (!peca.slug || !peca.nome || !encontrar('artesaos', peca.artesao)) return erro(res, 400, 'Informe nome, slug e artesão válido.')
+    if (!ler('referencias').tipos.includes(peca.tipo)) return erro(res, 400, 'Escolha um tipo de peça válido.')
     if (encontrar('pecas', peca.id)) return erro(res, 409, 'Esta peça já existe.')
     if (peca.situacao !== 'rascunho' && (!Number.isFinite(peca.preco) || peca.preco <= 0)) return erro(res, 400, 'Preço inválido.')
     if (peca.situacao === 'curadoria') {
-      db.get('curadoria').push({ id: randomUUID(), pecaSlug: peca.slug, peca: peca.nome, artesao: encontrar('artesaos', peca.artesao).nome, enviadoEm: 'agora', motivo: 'Nova publicação' }).value()
+      db.get('curadoria').push({ id: randomUUID(), pecaSlug: peca.slug, peca: peca.nome, artesao: encontrar('artesaos', peca.artesao).nome, artesaoSlug: peca.artesao, enviadoEm: 'agora', motivo: 'Nova publicação' }).value()
     }
     res.status(201).json(ok(inserir('pecas', peca)))
+  })
+  server.patch('/api/v1/pecas/:id', (req, res) => {
+    const peca = encontrar('pecas', req.params.id)
+    if (!peca) return erro(res, 404, 'Peça não encontrada.')
+    const campos = ['nome', 'territorio', 'tecnica', 'categoria', 'tipo', 'historia', 'preco', 'disponibilidade', 'prazoProducaoDias', 'imagem', 'fotos', 'ordemFotos', 'situacao', 'inativadoEm']
+    const alteracoes = Object.fromEntries(campos.filter((campo) => req.body[campo] !== undefined).map((campo) => [campo, req.body[campo]]))
+    if (alteracoes.nome !== undefined && (!String(alteracoes.nome).trim() || String(alteracoes.nome).length > 180)) return erro(res, 400, 'Informe um nome válido para a peça.')
+    if (alteracoes.preco !== undefined && (!Number.isFinite(alteracoes.preco) || alteracoes.preco < 0)) return erro(res, 400, 'Preço inválido.')
+    res.json(ok(db.get('pecas').find({ id: req.params.id }).assign(alteracoes).write()))
+  })
+  server.delete('/api/v1/pecas/:id', (req, res) => {
+    const peca = encontrar('pecas', req.params.id)
+    if (!peca) return erro(res, 404, 'Peça não encontrada.')
+    db.get('pecas').remove({ id: req.params.id }).write()
+    res.json(ok(peca))
   })
   server.post('/api/v1/admin/curadoria/:id/decisao', (req, res) => {
     const item = encontrar('curadoria', req.params.id)
@@ -323,27 +454,39 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
     db.get('curadoria').remove({ id: item.id }).write()
     res.json(ok({ ...item, decisao: req.body.decisao }))
   })
+  server.patch('/api/v1/artesaos/:id', (req, res) => {
+    if (!encontrar('artesaos', req.params.id)) return erro(res, 404, 'Artesão não encontrado.')
+    const perfil = {}
+    for (const campo of CAMPOS_PERFIL) {
+      if (req.body[campo] !== undefined) perfil[campo] = typeof req.body[campo] === 'string' ? req.body[campo].trim() : req.body[campo]
+    }
+    if (Object.values(perfil).some((valor) => typeof valor !== 'string')) return erro(res, 400, 'Os campos do perfil precisam ser texto.')
+    if (perfil.nome === '' || perfil.atelie === '') return erro(res, 400, 'Informe o nome do ateliê e o seu nome de artesão.')
+    if (perfil.historia && perfil.historia.length > 2000) return erro(res, 400, 'A história pode ter no máximo 2000 caracteres.')
+    if (perfil.imagem !== undefined && !FOTO_VALIDA.test(perfil.imagem)) return erro(res, 400, 'Foto em formato inválido. Use JPG, PNG ou WebP.', 'FOTO_INVALIDA')
+    res.json(ok(db.get('artesaos').find({ id: req.params.id }).assign(perfil).write()))
+  })
   server.get('/api/v1/artesaos/:id/pecas', (req, res) => {
     if (!encontrar('artesaos', req.params.id)) return erro(res, 404, 'Artesão não encontrado.')
     res.json(ok(ler('pecas').filter((p) => p.artesao === req.params.id)))
   })
   server.get('/api/v1/artesao/pedidos-pendentes', (req, res) => {
     const artesao = String(req.query.artesao || '')
-    if (!artesao || artesao === 'mestre-nuca') return res.json(ok(ler('pedidosPendentes')))
     const slugs = new Set(ler('pecas').filter((peca) => peca.artesao === artesao).map((peca) => peca.slug))
-    const itens = ler('pedidos').filter((pedido) => pedido.estado === 'confirmado' && (pedido.itens ?? [{ slug: pedido.pecaSlug }]).some((item) => slugs.has(item.slug))).map((pedido) => ({ id: pedido.id, pecaSlug: pedido.pecaSlug, comprador: pedido.compradorNome, quando: pedido.data, valor: pedido.total }))
-    res.json(ok(itens))
+    const iniciais = ler('pedidosPendentes').filter((pedido) => !artesao || slugs.has(pedido.pecaSlug))
+    const novos = ler('pedidos').filter((pedido) => pedido.estado === 'confirmado' && (!artesao || (pedido.itens ?? [{ slug: pedido.pecaSlug }]).some((item) => slugs.has(item.slug))) && !iniciais.some((item) => item.id === pedido.id)).map((pedido) => ({ id: pedido.id, pecaSlug: pedido.pecaSlug, comprador: pedido.compradorNome, quando: pedido.data, valor: pedido.total }))
+    res.json(ok([...iniciais, ...novos]))
   })
   server.get('/api/v1/artesao/conversas', (req, res) => {
     const artesao = String(req.query.artesao || '')
-    if (!artesao || artesao === 'mestre-nuca') return res.json(ok(ler('conversasArtesao')))
     const slugs = new Set(ler('pecas').filter((peca) => peca.artesao === artesao).map((peca) => peca.slug))
-    const itens = ler('pedidos').filter((pedido) => (pedido.itens ?? [{ slug: pedido.pecaSlug }]).some((item) => slugs.has(item.slug))).map((pedido) => {
+    const iniciais = ler('conversasArtesao').filter((conversa) => !artesao || slugs.has((encontrar('pedidos', conversa.id) ?? ler('pedidosPendentes').find((pedido) => pedido.id === conversa.id))?.pecaSlug))
+    const novos = ler('pedidos').filter((pedido) => (!artesao || (pedido.itens ?? [{ slug: pedido.pecaSlug }]).some((item) => slugs.has(item.slug))) && !iniciais.some((item) => item.id === pedido.id)).map((pedido) => {
       const mensagens = ler('mensagens').filter((mensagem) => mensagem.pedidoId === pedido.id)
       const ultima = mensagens.at(-1)
       return { id: pedido.id, pessoa: pedido.compradorNome, assunto: `Pedido ${pedido.id}`, previa: ultima?.texto ?? 'Nova compra recebida', quando: ultima?.hora ?? pedido.data, naoLida: false, retrato: '/fotos/jarra-cabocla.svg' }
     })
-    res.json(ok(itens))
+    res.json(ok([...iniciais, ...novos]))
   })
   for (const [recurso, filho, colecao, chave] of [['pedidos', 'conversa', 'mensagens', 'pedidoId'], ['videos', 'comentarios', 'comentarios', 'videoId']]) {
     server.get(`/api/v1/${recurso}/:id/${filho}`, (req, res) => {
@@ -360,6 +503,7 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
   server.post('/api/v1/checkout', (req, res) => {
     const { itens, freteId, endereco, meio } = req.body
     const comprador = usuarioDaRequisicao(req)
+    if (!comprador || (req.body.compradorId && req.body.compradorId !== comprador.id)) return erro(res, 401, 'Entre na sua conta para finalizar a compra.', 'NAO_AUTENTICADO')
     const frete = ler('fretes').find((f) => f.id === freteId)
     if (!Array.isArray(itens) || !itens.length || !frete || !endereco || !['pix', 'cartao', 'boleto'].includes(meio)) return erro(res, 400, 'Confira os itens, endereço, frete e pagamento.')
     if (['cep', 'endereco', 'cidade', 'estado'].some((campo) => typeof endereco[campo] !== 'string' || !endereco[campo].trim())) return erro(res, 400, 'Endereço incompleto.')
@@ -373,7 +517,7 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
     }
     const pedido = {
       id: `PE-${Date.now()}-${randomUUID().slice(0, 8)}`, pecaSlug: itens[0].slug, itens,
-      compradorNome: (comprador ?? ler('usuario')).nome, ...(comprador ? { usuarioId: comprador.id } : {}), data: new Date().toLocaleDateString('pt-BR'),
+      compradorId: comprador.id, usuarioId: comprador.id, compradorNome: comprador.nome, data: new Date().toLocaleDateString('pt-BR'),
       total: Math.round((subtotal + frete.valor) * 100) / 100, estado: 'confirmado', avaliado: false,
       endereco, meio, freteId, simulado: true,
       etapas: [{ estado: 'confirmado', titulo: 'Pedido confirmado', detalhe: 'Compra de demonstração registrada.', concluida: true, atual: true }],

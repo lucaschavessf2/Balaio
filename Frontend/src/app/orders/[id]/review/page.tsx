@@ -4,18 +4,20 @@ import Pagina from '@/components/layout/Pagina'
 import { Migalhas } from '@/components/ui/Basicos'
 import FormAvaliacao from '@/components/forms/FormAvaliacao'
 import { obterPedido } from '@/services/api/pedidos.servico'
-import { obterPeca } from '@/services/api/pecas.servico'
+import { obterPecaHistorico } from '@/services/api/pecas.servico'
 import { obterArtesao } from '@/services/api/artesaos.servico'
+import { exigirSessao } from '@/services/autenticacao'
 
 export const dynamic = 'force-dynamic'
 
 export default async function Avaliar({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const { dados: pedido, erro } = await obterPedido(id)
+  const { usuario, token } = await exigirSessao()
+  const { dados: pedido, erro } = await obterPedido(id, token)
   if (erro && erro.codigo !== 'RECURSO_NAO_ENCONTRADO') throw new Error(erro.mensagem)
-  if (!pedido) notFound()
+  if (!pedido || (pedido.compradorId ?? pedido.usuarioId) !== usuario.id) notFound()
 
-  const { dados: peca } = await obterPeca(pedido.pecaSlug)
+  const { dados: peca } = await obterPecaHistorico(pedido.pecaSlug)
   const artesao = peca ? (await obterArtesao(peca.artesao)).dados : null
 
   return (

@@ -1,0 +1,122 @@
+.atalho {
+  @apply flex flex-col items-center gap-2 py-2 text-center text-tinta;
+}
+
+.atalho:hover {
+  @apply no-underline;
+}
+
+.atalho-icone {
+  @apply w-[72px] h-[72px] flex items-center justify-center rounded-full border border-linha bg-superficie text-destaque shadow-(--sombra);
+  transition: transform 160ms ease, border-color 160ms ease;
+}
+
+.atalho:hover .atalho-icone {
+  border-color: var(--barro-claro);
+  transform: translateY(-2px);
+}
+
+.atalho-texto {
+  @apply text-mini font-bold leading-tight;
+}
+
+.faixa-secao {
+  @apply my-8 px-4 py-1 rounded-grande border border-linha;
+  background: var(--textura-trama), linear-gradient(160deg, var(--barro-fundo), var(--superficie) 80%);
+}
+
+.faixa-secao .prateleira {
+  @apply my-5;
+}
+
+.contagem-ofertas {
+  @apply inline-flex items-center gap-2 rounded-pilula bg-amarelo text-tinta-fixa py-1.5 px-3 text-mini font-bold;
+}
+
+.contagem-ofertas-tempo {
+  @apply font-mono text-pequeno tabular-nums;
+}
+
+.cartao-comunidade {
+  @apply flex flex-col h-full rounded-media border border-linha bg-superficie text-tinta overflow-hidden shadow-(--sombra);
+  transition: box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.cartao-comunidade:hover {
+  @apply no-underline shadow-(--sombra-alta);
+  border-color: var(--barro-claro);
+}
+
+.cartao-comunidade-figura {
+  @apply relative block aspect-[4/3] overflow-hidden;
+}
+
+.cartao-comunidade-corpo {
+  @apply flex flex-col gap-1 flex-1 p-4;
+}
+
+.cartao-comunidade-nome {
+  @apply font-titulo font-semibold text-corpo leading-snug;
+}
+
+.cartao-comunidade-rodape {
+  @apply flex items-center gap-2 flex-wrap mt-auto pt-2;
+}
+
+.cartao-artesao-selo {
+  @apply absolute left-3 top-3 inline-flex items-center gap-1 rounded-pilula bg-superficie text-verde-tinta py-1 px-2.5 text-mini font-bold shadow-(--sombra);
+}
+
+.cartao-evento-mini {
+  @apply flex-col items-stretch gap-1.5;
+}
+
+.cartao-evento-mini .linha-flex {
+  @apply gap-1.5;
+}
+
+.faixa-beneficios {
+  @apply grid gap-4 list-none my-10 p-5 rounded-grande border border-linha bg-superficie md:grid-cols-3;
+}
+
+.beneficio {
+  @apply flex gap-3 items-start;
+}
+
+.beneficio-icone {
+  @apply flex-none w-11 h-11 flex items-center justify-center rounded-full bg-destaque-suave text-destaque;
+}
+
+.beneficio-titulo {
+  @apply block text-corpo;
+}
+
+.beneficio-texto {
+  @apply block text-pequeno text-tinta-suave;
+}
+
+.faixa-beneficios-compacta {
+  @apply my-4 p-0 gap-3 border-0 bg-transparent md:grid-cols-1;
+}
+
+.faixa-beneficios-compacta .beneficio-icone {
+  @apply w-9 h-9;
+}
+
+.faixa-beneficios-compacta .beneficio-titulo {
+  @apply text-pequeno;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atalho-icone {
+    transition: none;
+  }
+}
+
+.eventos-vitrine {
+  @apply py-5;
+}
+
+.eventos-vitrine .prateleira {
+  @apply mt-5 mb-0;
+}

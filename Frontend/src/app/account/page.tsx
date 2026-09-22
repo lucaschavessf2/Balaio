@@ -64,20 +64,31 @@ export default async function Conta() {
               <IconeSetaDireita />
             </span>
           </Link>
-          <Link href="/login/recover" className="menu-item">
+          <Link href="/account/details#seguranca" className="menu-item">
             <IconeCadeado />
             Alterar senha
             <span className="menu-item-seta">
               <IconeSetaDireita />
             </span>
           </Link>
-          <Link href="/dashboard" className="menu-item">
-            <IconePincel />
-            Painel do artesão
-            <span className="menu-item-seta">
-              <IconeSetaDireita />
-            </span>
-          </Link>
+          {usuarioAtual.papel === 'admin' && (
+            <Link href="/admin" className="menu-item">
+              <IconePincel />
+              Curadoria e mediações
+              <span className="menu-item-seta">
+                <IconeSetaDireita />
+              </span>
+            </Link>
+          )}
+          {usuarioAtual.papel === 'artesao' && (
+            <Link href="/dashboard" className="menu-item">
+              <IconePincel />
+              Painel do artesão
+              <span className="menu-item-seta">
+                <IconeSetaDireita />
+              </span>
+            </Link>
+          )}
           <BotaoSair />
         </nav>
       </div>

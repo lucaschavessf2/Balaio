@@ -20,7 +20,7 @@ Não é necessário configurar variáveis no ambiente padrão. Para outro endere
 ## Dados e persistência
 
 - `seed.json`: base inicial versionada, com peças, artesãos, coletivos, eventos, vídeos, comentários, pedidos, mensagens, curadoria, mediações, usuário de demonstração, fretes e referências.
-- `db.json`: banco de trabalho criado automaticamente no primeiro início e ignorado pelo Git. POST/PATCH/PUT/DELETE persistem nesse arquivo; reiniciar não apaga alterações.
+- `db.json`: banco de trabalho criado automaticamente no primeiro início e ignorado pelo Git. Ao iniciar, a API completa um `db.json` antigo: adiciona coleções e contas novas do seed, vincula pedidos ao comprador pelo nome e remove peças e itens de curadoria cujo artesão não tem conta de vendedor. POST/PATCH/PUT/DELETE persistem nesse arquivo; reiniciar não apaga alterações.
 - `npm run api:seed`: regenera somente `seed.json` a partir de `src/mocks` e referências existentes.
 - `npm run api:reset`: **substitui o banco de trabalho pelo seed**, descartando os dados criados. Execute com a API parada.
 
@@ -36,8 +36,9 @@ Os mocks originais permanecem como fonte do seed, tipos, funções de apresenta�
 
 | Endpoint (prefixo `/api/v1`) | Uso |
 | --- | --- |
-| `GET /pecas` | Busca `q`, filtros `tecnica`, `territorio`, `categoria`, `disponibilidade`, ordenação `recentes`, `preco-asc`, `preco-desc`, `avaliacao`, `pagina` e `tamanho` |
+| `GET /pecas` | Busca `q`, filtros `tecnica`, `territorio`, `categoria`, `tipo`, `disponibilidade`, `desconto=true` (só com desconto), ordenação `recentes`, `preco-asc`, `preco-desc`, `avaliacao`, `pagina` e `tamanho` |
 | `GET /pecas/:slug` | Detalhe da peça |
+| `GET /pecas/:slug/historico` | Dados da peça para preservar pedidos antigos, inclusive quando inativada |
 | `GET /pecas/:slug/relacionadas?limite=3` | Mesma técnica, excluindo a peça atual |
 | `GET /artesaos`, `/artesaos/:slug`, `/artesaos/:slug/pecas` | Perfis e coleções |
 | `GET /coletivos`, `/coletivos/:slug` | Coletivos |
@@ -46,18 +47,22 @@ Os mocks originais permanecem como fonte do seed, tipos, funções de apresenta�
 | `GET /videos`, `/videos/:id`, `/videos/:id/comentarios` | Feed e comentários; `?painel=true` inclui rascunhos |
 | `POST /videos`, `/videos/:id/comentarios` | Metadados de vídeos e comentários |
 | `GET /pedidos`, `/pedidos/:id`, `/pedidos/:id/conversa` | Pedidos e conversa isolada por pedido |
-| `POST /auth/cadastro`, `/auth/login`, `/auth/logout` | Cadastro, entrada e encerramento de sessão local por cookie |
+| `POST /auth/cadastro`, `/auth/login` (ou `/auth/entrar`), `/auth/logout` | Cadastro, entrada e encerramento de sessão local por cookie |
 | `GET/PATCH /usuario` | Consulta e atualização do usuário autenticado |
-| `POST /checkout` | Recebe `itens: [{slug, quantidade}]`, `freteId`, `meio` e `endereco`; calcula total na API e gera ID |
+| `POST /checkout` | Exige sessão; recebe `itens: [{slug, quantidade}]`, `freteId`, `meio` e `endereco`; calcula total na API e gera ID |
 | `POST /pedidos/:id/conversa` | Mensagem com autor, texto e hora |
 | `POST /pedidos/:id/avaliacao` | Nota 1–5, comentário e aspectos; somente pedido entregue e não avaliado |
-| `GET /artesao/conversas`, `/artesao/pedidos-pendentes` | Dados do painel |
+| `GET /artesao/conversas`, `/artesao/pedidos-pendentes` | Dados do painel; `?artesao=slug` filtra pelo dono da peça |
 | `POST /pecas` | Cadastro com situação `rascunho` ou `curadoria` |
+| `PATCH /pecas/:slug` | Edita os dados da peça ou define `inativadoEm` para removê-la do catálogo público |
 | `GET /admin/curadoria` | Fila de revisão |
 | `POST /admin/curadoria/:id/decisao` | `decisao: aprovada` publica a peça; `ajuste` volta para rascunho |
 | `GET/POST /admin/mediacoes` | Consulta e abertura com pedido, assunto, partes, relato e solução |
 | `PATCH /admin/mediacoes/:id` | Atualização da análise |
 | `GET /referencias`, `/usuario`, `/fretes` | Referências, conta de demonstração e opções de entrega |
+| `GET/PATCH /artesaos/:slug/configuracoes` | Consulta e salva preferências de envio e recebimento do ateliê |
+| `PATCH /conta/:id`, `POST /conta/:id/senha` | Exigem sessão do titular; atualizam dados e senha conferindo a atual |
+| `GET /pedidos` | Com sessão de comprador, retorna apenas os pedidos dessa conta; `compradorId` pode restringir a consulta |
 
 Os recursos do json-server também oferecem CRUD padrão. Nas coleções com slug, o ID é igual ao slug; pedidos e vídeos usam seus próprios IDs.
 

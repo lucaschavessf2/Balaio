@@ -1,19 +1,27 @@
 'use client'
 
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Retrato } from '@/components/ui/Basicos'
 import { IconeEnviar } from '@/components/ui/Icones'
 import { avisar } from '@/components/feedback/Avisos'
 import { criarPergunta, responderPergunta, type PerguntaPublica } from '@/services/api/perguntas.servico'
+import { rotaDeLogin } from '@/services/sessao/cookie'
+import { useSessao } from '@/store/sessao'
 
 type Props = {
   iniciais: PerguntaPublica[]
   slug: string
+  artesaoSlug?: string
   artesaoNome?: string
   artesaoImagem?: string
 }
 
-export default function PerguntasPublicas({ iniciais, slug, artesaoNome, artesaoImagem }: Props) {
+export default function PerguntasPublicas({ iniciais, slug, artesaoSlug, artesaoNome, artesaoImagem }: Props) {
+  const caminho = usePathname()
+  const { sessao } = useSessao()
+  const ehDonoDaPeca = sessao?.papel === 'artesao' && sessao.artesao === artesaoSlug
   const [perguntas, definirPerguntas] = useState(iniciais)
   const [texto, definirTexto] = useState('')
   const [erro, definirErro] = useState<string | null>(null)
@@ -31,6 +39,7 @@ export default function PerguntasPublicas({ iniciais, slug, artesaoNome, artesao
 
   async function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
+    if (!sessao) return
     const limpo = texto.trim()
     if (!limpo) {
       definirErro('Escreva sua pergunta antes de enviar')
@@ -119,49 +128,59 @@ export default function PerguntasPublicas({ iniciais, slug, artesaoNome, artesao
             ) : (
               <p className="pergunta-aguardando">
                 <span className="selo selo-neutro">Aguardando resposta do artesão</span>
-                <button
-                  type="button"
-                  className="botao-texto"
-                  onClick={() => {
-                    definirRespondendo(p.pergunta)
-                    definirRascunhoResposta('')
-                  }}
-                >
-                  Responder
-                </button>
+                {ehDonoDaPeca && (
+                  <button
+                    type="button"
+                    className="botao-texto"
+                    onClick={() => {
+                      definirRespondendo(p.pergunta)
+                      definirRascunhoResposta('')
+                    }}
+                  >
+                    Responder
+                  </button>
+                )}
               </p>
             )}
           </li>
         ))}
       </ul>
 
-      <form className="conversa-envio acima-4" onSubmit={enviar} noValidate>
-        <label className="so-leitor" htmlFor="nova-pergunta">
-          Escreva sua pergunta
-        </label>
-        <input
-          id="nova-pergunta"
-          className="campo-select"
-          placeholder="Pergunte sobre a peça, o prazo ou o envio"
-          value={texto}
-          enterKeyHint="send"
-          onChange={(evento) => {
-            definirTexto(evento.target.value)
-            if (erro) definirErro(null)
-          }}
-        />
-        <button type="submit" className="botao botao-primario" aria-label="Enviar pergunta">
-          <IconeEnviar />
-        </button>
-      </form>
+      {sessao ? (
+        <>
+        <form className="conversa-envio acima-4" onSubmit={enviar} noValidate>
+          <label className="so-leitor" htmlFor="nova-pergunta">
+            Escreva sua pergunta
+          </label>
+          <input
+            id="nova-pergunta"
+            className="campo-select"
+            placeholder="Pergunte sobre a peça, o prazo ou o envio"
+            value={texto}
+            enterKeyHint="send"
+            onChange={(evento) => {
+              definirTexto(evento.target.value)
+              if (erro) definirErro(null)
+            }}
+          />
+          <button type="submit" className="botao botao-primario" aria-label="Enviar pergunta">
+            <IconeEnviar />
+          </button>
+        </form>
 
-      {erro && (
-        <p className="campo-erro acima-2" role="status">
-          {erro}
+        {erro && (
+          <p className="campo-erro acima-2" role="status">
+            {erro}
+          </p>
+        )}
+
+          <p className="campo-ajuda acima-2">Sua pergunta e a resposta ficam visíveis para todos.</p>
+        </>
+      ) : (
+        <p className="campo-ajuda acima-4">
+          <Link href={rotaDeLogin(caminho)}>Entre na sua conta</Link> para perguntar ao artesão.
         </p>
       )}
-
-      <p className="campo-ajuda acima-2">Sua pergunta e a resposta ficam visíveis para todos.</p>
     </>
   )
 }
