@@ -7,7 +7,7 @@ import ConversaPedido from '@/components/pedido/ConversaPedido'
 import BotaoSimulado from '@/components/ui/BotaoSimulado'
 import { IconeCaminhao, IconeCheck, IconeSetaDireita } from '@/components/ui/Icones'
 import { obterPedido, conversaDoPedido } from '@/services/api/pedidos.servico'
-import { obterPeca } from '@/services/api/pecas.servico'
+import { obterPecaHistorico } from '@/services/api/pecas.servico'
 import { obterArtesao } from '@/services/api/artesaos.servico'
 import { rotuloEstadoPedido } from '@/constants/rotulos'
 import { exigirDonoDoPedido } from '@/services/sessao/servidor'
@@ -21,7 +21,7 @@ export default async function Acompanhamento({ params }: { params: Promise<{ id:
   await exigirDonoDoPedido(pedido, `/orders/${id}`)
   if (!pedido) notFound()
 
-  const { dados: peca } = await obterPeca(pedido.pecaSlug)
+  const { dados: peca } = await obterPecaHistorico(pedido.pecaSlug)
   const artesao = peca ? (await obterArtesao(peca.artesao)).dados : null
   const { dados: conversa } = await conversaDoPedido(id)
 

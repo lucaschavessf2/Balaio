@@ -16,6 +16,9 @@ export function listarPecas(filtros: FiltrosPeca = {}): Promise<RespostaApi<Peca
 export function obterPeca(slug: string): Promise<RespostaApi<Peca>> {
   return buscar('/pecas/' + encodeURIComponent(slug))
 }
+export function obterPecaHistorico(slug: string): Promise<RespostaApi<Peca>> {
+  return buscar('/pecas/' + encodeURIComponent(slug) + '/historico')
+}
 export function pecasRelacionadas(slug: string, limite = 3): Promise<RespostaApi<Peca[]>> {
   return buscar('/pecas/' + encodeURIComponent(slug) + '/relacionadas' + montarQuery({ limite }))
 }
@@ -32,4 +35,7 @@ export function pecasPorArtesao(slug: string): Promise<RespostaApi<Peca[]>> {
 }
 export function criarPeca(peca: Peca): Promise<RespostaApi<Peca>> {
   return enviar('/pecas', peca)
+}
+export function atualizarPeca(slug: string, peca: Partial<Peca>): Promise<RespostaApi<Peca>> {
+  return enviar('/pecas/' + encodeURIComponent(slug), peca, 'PATCH')
 }

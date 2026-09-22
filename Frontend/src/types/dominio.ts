@@ -9,8 +9,16 @@ export type Tecnica =
   | 'Couro Autoral'
   | 'Xilogravura'
 
+export type FotoPeca = {
+  id: string
+  nome: string
+  url: string
+  ordem: number
+}
+
 export type Peca = {
   situacao?: 'publicada' | 'curadoria' | 'rascunho'
+  inativadoEm?: string | null
   slug: string
   nome: string
   artesao: string
@@ -24,6 +32,8 @@ export type Peca = {
   prazoProducaoDias?: number
   historia: string[]
   imagem: string
+  fotos?: FotoPeca[]
+  ordemFotos?: string[]
   avaliacao?: number
   totalAvaliacoes?: number
 }
