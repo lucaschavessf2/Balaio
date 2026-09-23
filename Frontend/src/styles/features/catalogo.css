@@ -6,26 +6,6 @@
   @apply gap-4 grid-cols-2 md:grid-cols-3 xl:grid-cols-4;
 }
 
-.busca-destaque {
-  @apply mb-5;
-}
-
-.busca-destaque-linha {
-  @apply flex gap-3 mt-2 flex-wrap;
-}
-
-.busca-destaque-linha .campo-select {
-  @apply flex-[1_1_240px] min-h-12;
-}
-
-.buscas-recentes {
-  @apply flex flex-wrap gap-2 items-center mb-6;
-}
-
-.busca-recente {
-  @apply gap-1.5;
-}
-
 .filtros {
   @apply bg-superficie border border-linha rounded-grande p-5 shadow-(--sombra);
   background-image: var(--textura-trama);

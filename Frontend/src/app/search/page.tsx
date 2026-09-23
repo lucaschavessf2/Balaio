@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import Pagina from '@/components/layout/Pagina'
-import BuscaComSugestoes from '@/components/produto/BuscaComSugestoes'
 import CartaoPeca from '@/components/produto/CartaoPeca'
 import ChipsFiltrosAtivos from '@/components/produto/ChipsFiltrosAtivos'
 import FiltrosListagem from '@/components/produto/FiltrosListagem'
@@ -11,24 +10,12 @@ import EstadoErro from '@/components/feedback/EstadoErro'
 import { IconeBusca } from '@/components/ui/Icones'
 import { tecnicas } from '@/constants/referencias'
 import { rotuloDisponibilidade } from '@/constants/rotulos'
-import { listarArtesaos } from '@/services/api/artesaos.servico'
 import { listarPecas } from '@/services/api/pecas.servico'
-import { obterReferencias } from '@/services/api/referencias.servico'
 import { filtrosAtivos, hrefListagem, lerFiltros, type FiltrosListagem as Filtros } from '@/utils/filtrosUrl'
 
 const POR_PAGINA = 12
 
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> }
-
-async function montarSugestoes() {
-  const [pecasResp, refs, autores] = await Promise.all([listarPecas(), obterReferencias(), listarArtesaos()])
-  const nomesPecas = (pecasResp.dados ?? []).map((p) => p.nome)
-  const referencias = refs.dados
-  const base = referencias
-    ? [...referencias.tipos, ...referencias.tecnicas, ...referencias.territorios, ...referencias.categorias]
-    : []
-  return Array.from(new Set([...nomesPecas, ...base, ...(autores.dados ?? []).map((a) => a.nome)]))
-}
 
 function tituloDaListagem(filtros: Filtros): string {
   if (filtros.q) return `Resultados para "${filtros.q}"`
@@ -40,10 +27,7 @@ function tituloDaListagem(filtros: Filtros): string {
 
 export default async function Busca({ searchParams }: Props) {
   const filtros = lerFiltros(await searchParams)
-  const [{ dados, erro, paginacao }, sugestoes] = await Promise.all([
-    listarPecas({ ...filtros, tamanho: POR_PAGINA }),
-    montarSugestoes(),
-  ])
+  const { dados, erro, paginacao } = await listarPecas({ ...filtros, tamanho: POR_PAGINA })
   const resultados = dados ?? []
   const total = paginacao?.total ?? resultados.length
   const titulo = tituloDaListagem(filtros)
@@ -64,8 +48,6 @@ export default async function Busca({ searchParams }: Props) {
       <p className="subtitulo-pagina">
         Busque por tipo, técnica, território ou pelo nome da peça e do artesão.
       </p>
-
-      <BuscaComSugestoes consultaAtual={filtros.q ?? ''} sugestoes={sugestoes} />
 
       {erro ? (
         <EstadoErro mensagem={erro.mensagem} />

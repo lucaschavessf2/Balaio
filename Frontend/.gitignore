@@ -6,3 +6,5 @@ next-env.d.ts
 .DS_Store
 fake-api/db.json
 .env.local
+.env.example
+.env
