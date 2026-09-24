@@ -39,11 +39,69 @@
 }
 
 .cabecalho-busca input {
-  @apply w-full h-[46px] rounded-pilula border-0 py-0 pr-[18px] pl-11 bg-superficie text-tinta;
+  @apply w-full h-[46px] rounded-pilula border-0 py-0 pr-[54px] pl-[18px] bg-superficie text-tinta;
 }
 
-.cabecalho-busca svg {
-  @apply absolute left-4 top-1/2 -translate-y-1/2 text-tinta-suave;
+.cabecalho-busca input[type='search']::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.cabecalho-busca-botao {
+  @apply absolute right-0 top-0 z-10 inline-flex h-[46px] w-12 items-center justify-center rounded-r-pilula border-0 border-l border-linha bg-transparent p-0 text-tinta-suave cursor-pointer;
+}
+
+.cabecalho-busca-botao:hover {
+  @apply bg-barro-fundo text-tinta;
+}
+
+.cabecalho-busca-botao:focus-visible {
+  outline: 2px solid var(--acao);
+  outline-offset: -2px;
+}
+
+.cabecalho-busca-botao svg {
+  @apply static translate-y-0;
+}
+
+.cabecalho-busca-painel {
+  @apply absolute left-0 right-0 top-[calc(100%+8px)] z-50 overflow-y-auto max-h-[min(360px,60vh)] rounded-caixa border border-linha bg-superficie text-tinta shadow-(--sombra-alta);
+}
+
+.cabecalho-busca-cabecalho {
+  @apply flex items-center justify-between gap-3 border-b border-linha px-4 py-3 text-mini font-bold;
+}
+
+.cabecalho-busca-cabecalho button {
+  @apply border-0 bg-transparent p-0 text-mini font-semibold text-destaque cursor-pointer;
+}
+
+.cabecalho-busca-painel ul {
+  @apply list-none m-0 p-1.5;
+}
+
+.cabecalho-busca-painel li a {
+  @apply flex items-center gap-2 min-h-10 w-full rounded-caixa px-3 py-2 text-pequeno font-semibold text-tinta;
+}
+
+.cabecalho-busca-painel li a:hover {
+  @apply bg-barro-fundo no-underline;
+}
+
+.cabecalho-busca-painel li a:focus-visible {
+  outline: 2px solid var(--acao);
+  outline-offset: -2px;
+}
+
+.cabecalho-busca-painel li a svg {
+  @apply static shrink-0 translate-y-0 text-tinta-suave;
+}
+
+.cabecalho-busca-painel li a span {
+  @apply min-w-0 overflow-hidden text-ellipsis whitespace-nowrap;
+}
+
+.cabecalho-busca-painel > p {
+  @apply m-0 px-4 py-3 text-pequeno text-tinta-suave;
 }
 
 .cabecalho-acoes {
