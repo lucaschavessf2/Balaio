@@ -1,7 +1,8 @@
 import Link from 'next/link'
-import { IconeBusca, IconeGrade, IconePlay, IconeSacola, IconeUsuario } from '@/components/ui/Icones'
+import { IconeBusca, IconeCoracao, IconeGrade, IconePlay, IconeSacola, IconeUsuario } from '@/components/ui/Icones'
 import AlternadorTema from '@/components/layout/AlternadorTema'
 import ContadorSacola from '@/components/carrinho/ContadorSacola'
+import ContadorFavoritos from '@/components/favoritos/ContadorFavoritos'
 
 type Props = { comoArtesao?: boolean }
 
@@ -40,6 +41,12 @@ export default function Cabecalho({ comoArtesao = false }: Props) {
 
           <Link href="/how-it-works" className="cabecalho-link esconde-mobile">
             Como funciona
+          </Link>
+
+          <Link href="/favorites" className="cabecalho-link" title="Peças salvas">
+            <IconeCoracao />
+            <span className="rotulo-acao">Salvas</span>
+            <ContadorFavoritos esconderZero />
           </Link>
 
           {comoArtesao ? (

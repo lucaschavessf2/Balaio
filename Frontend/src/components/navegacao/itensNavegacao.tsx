@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
-import { IconeBusca, IconeCasa, IconePlay, IconeSacola, IconeUsuario } from '@/components/ui/Icones'
+import { IconeBusca, IconeCasa, IconeCoracao, IconePlay, IconeSacola, IconeUsuario } from '@/components/ui/Icones'
+import ContadorFavoritos from '@/components/favoritos/ContadorFavoritos'
 
 export type ItemNavegacao = {
   chave: string
@@ -7,6 +8,7 @@ export type ItemNavegacao = {
   href: string
   icone: ReactNode
   mostraContadorSacola?: boolean
+  mostraContadorFavoritos?: boolean
 }
 
 export function itensNavegacao(comoArtesao: boolean): ItemNavegacao[] {
@@ -14,6 +16,13 @@ export function itensNavegacao(comoArtesao: boolean): ItemNavegacao[] {
     { chave: 'inicio', texto: 'Início', href: '/', icone: <IconeCasa tamanho={22} /> },
     { chave: 'busca', texto: 'Buscar', href: '/search', icone: <IconeBusca tamanho={22} /> },
     { chave: 'atelie', texto: 'Ateliê', href: '/videos', icone: <IconePlay tamanho={22} /> },
+    {
+      chave: 'salvas',
+      texto: 'Salvas',
+      href: '/favorites',
+      icone: <IconeCoracao tamanho={22} />,
+      mostraContadorFavoritos: true,
+    },
     {
       chave: 'sacola',
       texto: 'Sacola',
