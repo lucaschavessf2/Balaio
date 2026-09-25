@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 import { IconeAviso, IconeSelo, IconeGrade } from '@/components/ui/Icones'
-import { filaCuradoria, mediacoes } from '@/mocks/pedidos'
 
 export type ChaveAdmin = 'curadoria' | 'mediacoes' | 'criterios'
 
@@ -16,15 +15,14 @@ export type ItemAdmin = {
   marcador?: { texto: string; alerta?: boolean }
 }
 
+export type ContagensAdmin = { curadoria: number; mediacoes: number }
+
 export const rotulosGrupoAdmin: Record<GrupoAdmin, string> = {
   moderacao: 'Moderação',
   referencia: 'Referência',
 }
 
-export function itensAdmin(): ItemAdmin[] {
-  const naFila = filaCuradoria.length
-  const abertas = mediacoes.length
-
+export function itensAdmin({ curadoria, mediacoes }: ContagensAdmin = { curadoria: 0, mediacoes: 0 }): ItemAdmin[] {
   return [
     {
       chave: 'curadoria',
@@ -33,7 +31,7 @@ export function itensAdmin(): ItemAdmin[] {
       href: '/admin',
       icone: <IconeSelo />,
       grupo: 'moderacao',
-      marcador: naFila > 0 ? { texto: `${naFila} na fila` } : undefined,
+      marcador: curadoria > 0 ? { texto: `${curadoria} na fila` } : undefined,
     },
     {
       chave: 'mediacoes',
@@ -42,7 +40,7 @@ export function itensAdmin(): ItemAdmin[] {
       href: '/admin/mediations',
       icone: <IconeAviso />,
       grupo: 'moderacao',
-      marcador: abertas > 0 ? { texto: `${abertas} aberta${abertas === 1 ? '' : 's'}`, alerta: true } : undefined,
+      marcador: mediacoes > 0 ? { texto: `${mediacoes} abertas`, alerta: true } : undefined,
     },
     {
       chave: 'criterios',
@@ -55,8 +53,8 @@ export function itensAdmin(): ItemAdmin[] {
   ]
 }
 
-export function itensAdminPorGrupo() {
-  const itens = itensAdmin()
+export function itensAdminPorGrupo(contagens?: ContagensAdmin) {
+  const itens = itensAdmin(contagens)
   return (Object.keys(rotulosGrupoAdmin) as GrupoAdmin[])
     .map((grupo) => ({ grupo, rotulo: rotulosGrupoAdmin[grupo], itens: itens.filter((i) => i.grupo === grupo) }))
     .filter((g) => g.itens.length > 0)

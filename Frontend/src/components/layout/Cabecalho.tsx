@@ -1,11 +1,24 @@
 import Link from 'next/link'
-import { IconeBusca, IconeGrade, IconePlay, IconeSacola, IconeUsuario } from '@/components/ui/Icones'
+import { Suspense } from 'react'
+import BarraDepartamentos from '@/components/layout/BarraDepartamentos'
+import BuscaCabecalho from '@/components/layout/BuscaCabecalho'
+import { IconeSacola } from '@/components/ui/Icones'
 import AlternadorTema from '@/components/layout/AlternadorTema'
 import ContadorSacola from '@/components/carrinho/ContadorSacola'
+import MenuPerfil from '@/components/perfil/MenuPerfil'
+import { listarArtesaos } from '@/services/api/artesaos.servico'
+import { listarPecas } from '@/services/api/pecas.servico'
+import { obterReferencias } from '@/services/api/referencias.servico'
 
-type Props = { comoArtesao?: boolean }
+export default async function Cabecalho() {
+  const [pecasResp, refs, autores] = await Promise.all([listarPecas(), obterReferencias(), listarArtesaos()])
+  const base = refs.dados ? [...refs.dados.tipos, ...refs.dados.tecnicas, ...refs.dados.territorios, ...refs.dados.categorias] : []
+  const sugestoes = Array.from(new Set([
+    ...(pecasResp.dados ?? []).map((peca) => peca.nome),
+    ...base,
+    ...(autores.dados ?? []).map((artesao) => artesao.nome),
+  ]))
 
-export default function Cabecalho({ comoArtesao = false }: Props) {
   return (
     <header className="cabecalho">
       <div className="container cabecalho-linha">
@@ -17,42 +30,12 @@ export default function Cabecalho({ comoArtesao = false }: Props) {
           </span>
         </Link>
 
-        <form className="cabecalho-busca" action="/search" role="search">
-          <IconeBusca />
-          <label className="so-leitor" htmlFor="busca-topo">
-            Buscar peças
-          </label>
-          <input id="busca-topo" name="q" type="search" placeholder="Buscar técnica, artesão, território..." />
-        </form>
+        <BuscaCabecalho sugestoes={sugestoes} />
 
         <div className="cabecalho-acoes">
           <AlternadorTema />
 
-          <Link href="/screens" className="cabecalho-link mapa esconde-mobile" title="Mapa de todas as telas do protótipo">
-            <IconeGrade />
-            <span className="rotulo-acao">Telas</span>
-          </Link>
-
-          <Link href="/videos" className="cabecalho-link" title="Ateliê ao vivo">
-            <IconePlay />
-            <span className="rotulo-acao">Vídeos</span>
-          </Link>
-
-          <Link href="/how-it-works" className="cabecalho-link esconde-mobile">
-            Como funciona
-          </Link>
-
-          {comoArtesao ? (
-            <Link href="/dashboard" className="cabecalho-link">
-              <IconeUsuario />
-              Meu painel
-            </Link>
-          ) : (
-            <Link href="/login" className="cabecalho-link">
-              <IconeUsuario />
-              <span className="rotulo-acao">Entrar</span>
-            </Link>
-          )}
+          <MenuPerfil />
 
           <Link href="/cart" className="cabecalho-link sacola">
             <IconeSacola />
@@ -61,6 +44,9 @@ export default function Cabecalho({ comoArtesao = false }: Props) {
           </Link>
         </div>
       </div>
+      <Suspense>
+        <BarraDepartamentos />
+      </Suspense>
     </header>
   )
 }

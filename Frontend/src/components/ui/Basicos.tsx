@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { cloneElement, isValidElement, type ReactElement, type ReactNode } from 'react'
 import { IconeEstrela } from '@/components/ui/Icones'
 import ImagemComFallback from '@/components/ui/ImagemComFallback'
-import { fallbackDe } from '@/mocks/imagens'
+import { fallbackDe } from '@/utils/imagem'
 import { type Disponibilidade } from '@/types/dominio'
 import { rotuloDisponibilidade } from '@/constants/rotulos'
 
@@ -88,27 +88,6 @@ export function Estrelas({ nota, mostrarNota = true }: { nota: number; mostrarNo
       </span>
       {mostrarNota && <strong className="estrelas-nota">{nota.toFixed(1)}</strong>}
     </span>
-  )
-}
-
-export function EstadoVazio({
-  icone,
-  titulo,
-  descricao,
-  acao,
-}: {
-  icone: ReactNode
-  titulo: string
-  descricao: string
-  acao?: ReactNode
-}) {
-  return (
-    <div className="cartao estado-vazio">
-      <div className="estado-vazio-icone">{icone}</div>
-      <h3>{titulo}</h3>
-      <p>{descricao}</p>
-      {acao}
-    </div>
   )
 }
 

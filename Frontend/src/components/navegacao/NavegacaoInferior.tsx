@@ -3,25 +3,28 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import ContadorSacola from '@/components/carrinho/ContadorSacola'
+import MenuPerfilMobile from '@/components/perfil/MenuPerfilMobile'
 import { useTotalSacola } from '@/store/sacola'
 import { itensNavegacao } from '@/components/navegacao/itensNavegacao'
+
+const AREAS_DO_PERFIL = ['/account', '/orders', '/favorites', '/dashboard', '/admin', '/login']
 
 function estaAtivo(caminho: string, href: string) {
   return href === '/' ? caminho === '/' : caminho === href || caminho.startsWith(`${href}/`)
 }
 
-export default function NavegacaoInferior({ comoArtesao = false }: { comoArtesao?: boolean }) {
+export default function NavegacaoInferior() {
   const caminho = usePathname()
-  const { total, pronto } = useTotalSacola()
+  const { total, pronto: sacolaPronta } = useTotalSacola()
 
   function rotuloSacola(texto: string) {
-    if (!pronto || total === 0) return undefined
+    if (!sacolaPronta || total === 0) return undefined
     return `${texto}, ${total} ${total === 1 ? 'peça' : 'peças'}`
   }
 
   return (
     <nav className="nav-inferior" aria-label="Navegação principal">
-      {itensNavegacao(comoArtesao).map((item) => {
+      {itensNavegacao.map((item) => {
         const ativo = estaAtivo(caminho, item.href)
         return (
           <Link
@@ -39,6 +42,7 @@ export default function NavegacaoInferior({ comoArtesao = false }: { comoArtesao
           </Link>
         )
       })}
+      <MenuPerfilMobile ativo={AREAS_DO_PERFIL.some((area) => estaAtivo(caminho, area))} />
     </nav>
   )
 }

@@ -11,6 +11,82 @@
   min-width: 0;
 }
 
+.painel-alertas {
+  @apply flex items-start gap-3 mb-5 p-4 rounded-media border border-amarelo text-tinta;
+  background: color-mix(in srgb, var(--amarelo) 12%, var(--superficie));
+}
+
+.painel-alertas-icone {
+  @apply flex items-center justify-center w-10 h-10 rounded-full bg-amarelo text-tinta-fixa flex-none;
+}
+
+.painel-alertas h2 {
+  @apply font-titulo font-bold text-medio mb-1;
+}
+
+.painel-alertas ul {
+  @apply m-0 mb-2 pl-5 text-pequeno;
+}
+
+.disponibilidade-rapida {
+  @apply grid gap-2 min-w-[180px];
+}
+
+.disponibilidade-rapida select {
+  @apply min-h-10 py-2 px-3 text-pequeno;
+}
+
+.disponibilidade-prazo {
+  @apply flex items-center gap-2 text-mini text-tinta-suave;
+}
+
+.disponibilidade-prazo input {
+  @apply w-[70px] min-h-9 py-1 px-2;
+}
+
+.disponibilidade-prazo .botao {
+  @apply min-h-9 py-1 px-3 text-mini;
+}
+
+.disponibilidade-aviso {
+  @apply text-mini leading-snug text-vermelho font-semibold;
+}
+
+.pedido-encerrado {
+  @apply rounded-media border border-vermelho p-5;
+  background: color-mix(in srgb, var(--vermelho) 9%, var(--superficie));
+}
+
+.pedido-encerrado h2 {
+  @apply font-titulo text-maior font-bold text-vermelho-tinta mb-1;
+}
+
+.cancelamento-confirmacao {
+  @apply grid grid-cols-[40px_1fr] gap-3.5 p-4 rounded-media border border-vermelho;
+  background: color-mix(in srgb, var(--vermelho) 7%, var(--superficie));
+}
+
+.cancelamento-confirmacao-icone {
+  @apply flex items-center justify-center w-10 h-10 rounded-full text-vermelho-tinta;
+  background: color-mix(in srgb, var(--vermelho) 14%, var(--superficie));
+}
+
+.cancelamento-confirmacao h3 {
+  @apply font-titulo text-medio font-bold text-vermelho-tinta mb-1;
+}
+
+.cancelamento-confirmacao p {
+  @apply text-pequeno text-tinta-suave m-0;
+}
+
+.cancelamento-acoes {
+  @apply flex flex-wrap gap-2 mt-4;
+}
+
+.cancelamento-erro {
+  @apply mt-3! font-semibold text-vermelho-tinta!;
+}
+
 .dado {
   @apply flex flex-col min-w-0;
 }
@@ -61,12 +137,20 @@
   @apply bg-acao border-destaque text-branco;
 }
 
+.etapa-encerrada .etapa-marca {
+  @apply bg-vermelho border-vermelho text-branco;
+}
+
 .etapa-titulo {
   @apply font-bold flex items-center gap-2.5 flex-wrap;
 }
 
 .etapa-atual .etapa-titulo {
   @apply text-destaque;
+}
+
+.etapa-encerrada .etapa-titulo {
+  @apply text-vermelho-tinta;
 }
 
 .etapa-detalhe {

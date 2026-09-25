@@ -15,12 +15,16 @@
 @import "./components/cartao.css";
 @import "./components/selo-chip.css";
 @import "./components/campo.css";
+@import "./components/seletor.css";
 @import "./components/foto-retrato.css";
 @import "./components/metrica.css";
 @import "./components/estado.css";
 @import "./components/menu.css";
+@import "./components/menu-perfil.css";
+@import "./components/prateleira.css";
 @import "./components/toast.css";
 @import "./features/hero.css";
+@import "./features/vitrine.css";
 @import "./features/catalogo.css";
 @import "./features/peca.css";
 @import "./features/compra.css";

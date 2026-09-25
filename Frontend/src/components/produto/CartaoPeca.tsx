@@ -1,8 +1,10 @@
+'use client'
+
 import Link from 'next/link'
 import { Foto, Retrato } from '@/components/ui/Basicos'
 import BotaoFavoritar from '@/components/produto/BotaoFavoritar'
 import { IconeEstrela } from '@/components/ui/Icones'
-import { acharArtesao } from '@/mocks/artesaos'
+import { useDados } from '@/store/dados'
 import { type Peca } from '@/types/dominio'
 import { emReais, precoComDesconto } from '@/utils/formato'
 
@@ -21,7 +23,8 @@ function PrecoGrande({ valor }: { valor: number }) {
 }
 
 export default function CartaoPeca({ peca }: { peca: Peca }) {
-  const artesao = acharArtesao(peca.artesao)
+  const { artesaos } = useDados()
+  const artesao = artesaos.find((a) => a.slug === peca.artesao)
 
   return (
     <article className="cartao-peca">

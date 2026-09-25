@@ -1,15 +1,4 @@
-
-export type Coletivo = {
-  slug: string
-  nome: string
-  territorio: string
-  fundado: string
-  historia: string
-  membros: string[]
-  tecnicas: string[]
-  apoio: string[]
-  imagem: string
-}
+import type { Coletivo } from '@/types/dominio'
 
 export const coletivos: Coletivo[] = [
   {

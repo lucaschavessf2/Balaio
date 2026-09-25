@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Pagina from '@/components/layout/Pagina'
 import { IconeSetaDireita } from '@/components/ui/Icones'
-import { fluxos, telas, telasDoFluxo } from '@/mocks/telas'
+import { fluxos, telas, telasDoFluxo } from '@/constants/telas'
 
 export const metadata = {
   title: 'Mapa de telas do Balaio',
@@ -18,7 +18,7 @@ export default function MapaDeTelas() {
         </h1>
         <p className="subtitulo-pagina" style={{ marginBottom: 0 }}>
           As <strong>{telas.length} telas</strong> do Balaio, agrupadas por quem usa cada uma. Clique para
-          abrir. Os dados são de demonstração e os formulários não enviam nada.
+          abrir. As ações usam uma API local de demonstração; nenhum pagamento real é processado.
         </p>
       </header>
 

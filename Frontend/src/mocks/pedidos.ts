@@ -1,4 +1,4 @@
-import type { Mediacao, Mensagem, Pedido } from '@/types/dominio'
+import type { ConversaArtesao, Mediacao, Mensagem, Pedido, SolicitacaoSelo } from '@/types/dominio'
 
 export const pedidos: Pedido[] = [
   {
@@ -118,16 +118,6 @@ export const pedidosPendentesArtesao = [
   },
 ]
 
-export type ConversaArtesao = {
-  id: string
-  pessoa: string
-  assunto: string
-  previa: string
-  quando: string
-  naoLida: boolean
-  retrato: string
-}
-
 export const conversasArtesao: ConversaArtesao[] = [
   {
     id: 'PE-2026-8941',
@@ -158,27 +148,15 @@ export const conversasArtesao: ConversaArtesao[] = [
   },
 ]
 
-export const filaCuradoria = [
+export const filaCuradoria: SolicitacaoSelo[] = [
   {
-    id: 'CUR-114',
-    peca: 'Bonecos de Barro do Mestre Zé',
-    artesao: 'Oficina do Alto do Moura',
-    enviadoEm: 'Hoje, 08:22',
-    motivo: 'Primeira publicação do artesão',
-  },
-  {
-    id: 'CUR-113',
-    peca: 'Rede de Tear Manual',
-    artesao: 'Tecelagem de Pesqueira',
-    enviadoEm: 'Ontem, 19:03',
-    motivo: 'Faltam fotos de detalhe da técnica',
-  },
-  {
-    id: 'CUR-112',
-    peca: 'Chapéu de Couro Cangaceiro',
-    artesao: 'Couraria do Pajeú',
-    enviadoEm: '19/03, 11:47',
-    motivo: 'Revisão de preço fora da faixa da categoria',
+    id: 'SEL-112',
+    artesaoSlug: 'ze-do-cariri',
+    artesao: 'Artesão Zé do Cariri',
+    atelie: 'Couraria do Pajeú',
+    mensagem: 'Sou associado à Associação dos Artesãos do Pajeú desde 2011. Posso receber a visita na oficina em Serra Talhada.',
+    situacao: 'pendente',
+    solicitadoEm: '2026-03-19T11:47:00-03:00',
   },
 ]
 

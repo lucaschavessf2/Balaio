@@ -1,17 +1,4 @@
-
-export type Video = {
-  id: string
-  artesao: string
-  peca?: string
-  legenda: string
-  etiquetas: string[]
-  duracao: string
-  visualizacoes: number
-  curtidas: number
-  comentarios: number
-  publicadoEm: string
-  capa: string
-}
+import type { Comentario, Video } from '@/types/dominio'
 
 export const videos: Video[] = [
   {
@@ -94,16 +81,6 @@ export const videos: Video[] = [
   },
 ]
 
-
-export type Comentario = {
-  autor: string
-  texto: string
-  quando: string
-  curtidas: number
-  artesao?: boolean
-  resposta?: { texto: string; quando: string }
-}
-
 export const comentarios: Record<string, Comentario[]> = {
   'v-001': [
     {
@@ -150,9 +127,3 @@ export function comentariosDoVideo(id: string): Comentario[] {
 }
 
 export const etiquetasEmAlta = ['ceramica', 'renascenca', 'xilogravura', 'couro', 'madeira', 'passoapasso']
-
-export function emMilhares(n: number): string {
-  if (n < 1000) return String(n)
-  const valor = n / 1000
-  return `${valor.toFixed(valor >= 10 ? 0 : 1).replace('.', ',')} mil`
-}

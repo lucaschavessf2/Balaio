@@ -1,0 +1,1430 @@
+{
+  "pecas": [
+    {
+      "slug": "leao-imperial-de-tracunhaem",
+      "nome": "Leão Imperial de Tracunhaém",
+      "artesao": "mestre-nuca",
+      "territorio": "Mata Norte",
+      "tecnica": "Cerâmica & Barro",
+      "categoria": "Decoração & Arte",
+      "tipo": "Esculturas & Bonecos",
+      "preco": 1250,
+      "disponibilidade": "unica",
+      "historia": [
+        "O Leão de Tracunhaém é mais que uma peça decorativa; é o guardião simbólico das casas pernambucanas. Criado originalmente pelo mestre de memórias rurais, esta peça continua o legado das jubas encaracoladas moldadas com facas simples na argila viva.",
+        "Cada linha de sua cabeleira é esculpida uma a uma, num ritual de paciência que dura dias antes de ir ao forno a lenha tradicional. Uma peça autêntica que carrega o carimbo de autenticidade do território de Tracunhaém."
+      ],
+      "imagem": "/fotos/leao-imperial.svg",
+      "avaliacao": 4.9,
+      "totalAvaliacoes": 27,
+      "id": "leao-imperial-de-tracunhaem"
+    },
+    {
+      "slug": "toalha-renascenca-florescer",
+      "nome": "Toalha Renascença Florescer",
+      "artesao": "maria-de-caruaru",
+      "territorio": "Cariri",
+      "tecnica": "Bordado & Renda (Renascença)",
+      "categoria": "Casa & Mesa",
+      "tipo": "Toalhas & Rendas",
+      "preco": 850,
+      "disponibilidade": "encomenda",
+      "prazoProducaoDias": 21,
+      "historia": [
+        "A renda renascença chegou ao Cariri pernambucano no início do século passado e virou ofício de família. O ponto é feito com lacê e agulha, unindo desenhos que nascem no papel e viram flor no tecido.",
+        "Cada toalha leva cerca de três semanas de trabalho. O prazo não é atraso: é o tempo que a técnica exige."
+      ],
+      "imagem": "/fotos/toalha-renascenca.svg",
+      "avaliacao": 5,
+      "totalAvaliacoes": 12,
+      "id": "toalha-renascenca-florescer"
+    },
+    {
+      "slug": "gibao-de-couro-de-sertao",
+      "nome": "Gibão de Couro de Sertão",
+      "artesao": "ze-do-cariri",
+      "territorio": "Pajeú",
+      "tecnica": "Couro Autoral",
+      "categoria": "Vestuário & Acessórios",
+      "tipo": "Couro: Bolsas, Cintos & Gibões",
+      "preco": 490,
+      "disponibilidade": "disponivel",
+      "historia": [
+        "O gibão nasceu como armadura do vaqueiro contra a caatinga. Hoje o couro curtido à moda antiga vira peça de vestir que guarda a memória do sertão."
+      ],
+      "imagem": "/fotos/gibao-couro.svg",
+      "avaliacao": 4.7,
+      "totalAvaliacoes": 9,
+      "id": "gibao-de-couro-de-sertao"
+    },
+    {
+      "slug": "sanfoneiro-em-imburana",
+      "nome": "Sanfoneiro em Imburana",
+      "artesao": "mestre-amaro",
+      "territorio": "Petrolina",
+      "tecnica": "Escultura em Madeira",
+      "categoria": "Decoração & Arte",
+      "tipo": "Esculturas & Bonecos",
+      "preco": 780,
+      "disponibilidade": "disponivel",
+      "historia": [
+        "Entalhado em imburana, madeira leve e perfumada do sertão, o sanfoneiro é figura obrigatória do São João. A peça sai de um único bloco, sem emendas."
+      ],
+      "imagem": "/fotos/sanfoneiro-imburana.svg",
+      "avaliacao": 4.8,
+      "totalAvaliacoes": 15,
+      "id": "sanfoneiro-em-imburana"
+    },
+    {
+      "slug": "jarra-de-ceramica-cabocla",
+      "nome": "Jarra de Cerâmica Cabocla",
+      "artesao": "dona-bia-do-ipojuca",
+      "territorio": "Vale do Ipojuca",
+      "tecnica": "Cerâmica & Barro",
+      "categoria": "Casa & Mesa",
+      "tipo": "Jarras & Vasos",
+      "preco": 350,
+      "disponibilidade": "disponivel",
+      "historia": [
+        "Pintada à mão com pigmentos naturais, a jarra cabocla reúne cenas de feira, procissão e forró em faixas que dão a volta na peça."
+      ],
+      "imagem": "/fotos/jarra-cabocla.svg",
+      "avaliacao": 4.6,
+      "totalAvaliacoes": 21,
+      "id": "jarra-de-ceramica-cabocla"
+    },
+    {
+      "slug": "painel-xilogravura-sertaneja",
+      "nome": "Painel Xilogravura Sertaneja",
+      "artesao": "mestre-dila",
+      "territorio": "Caruaru",
+      "tecnica": "Xilogravura",
+      "categoria": "Decoração & Arte",
+      "tipo": "Gravuras & Cordéis",
+      "preco": 950,
+      "disponibilidade": "unica",
+      "historia": [
+        "A matriz é entalhada na madeira e impressa à mão, uma folha por vez. Cada tiragem carrega marcas próprias: não existem dois painéis iguais."
+      ],
+      "imagem": "/fotos/painel-xilogravura.svg",
+      "avaliacao": 5,
+      "totalAvaliacoes": 8,
+      "id": "painel-xilogravura-sertaneja"
+    },
+    {
+      "slug": "banda-de-pifanos-completa",
+      "nome": "Banda de Pífanos Completa",
+      "artesao": "dona-bia-do-ipojuca",
+      "territorio": "Caruaru",
+      "tecnica": "Cerâmica & Barro",
+      "categoria": "Decoração & Arte",
+      "tipo": "Esculturas & Bonecos",
+      "preco": 420,
+      "desconto": 10,
+      "disponibilidade": "encomenda",
+      "prazoProducaoDias": 15,
+      "historia": [
+        "Conjunto de sete figuras que reproduz uma banda de pífanos de rua, tradição das festas de padroeiro no agreste."
+      ],
+      "imagem": "/fotos/banda-pifanos.svg",
+      "avaliacao": 4.9,
+      "totalAvaliacoes": 11,
+      "id": "banda-de-pifanos-completa"
+    },
+    {
+      "slug": "jarra-de-ceramica-imperial",
+      "nome": "Jarra de Cerâmica Imperial",
+      "artesao": "mestre-nuca",
+      "territorio": "Mata Norte",
+      "tecnica": "Cerâmica & Barro",
+      "categoria": "Casa & Mesa",
+      "tipo": "Jarras & Vasos",
+      "preco": 380,
+      "disponibilidade": "disponivel",
+      "historia": [
+        "Torneada à mão e queimada em forno a lenha, mantém a cor de terracota viva do barro de Tracunhaém."
+      ],
+      "imagem": "/fotos/jarra-imperial.svg",
+      "avaliacao": 4.8,
+      "totalAvaliacoes": 14,
+      "id": "jarra-de-ceramica-imperial"
+    },
+    {
+      "slug": "passadeira-renascenca-renda",
+      "nome": "Passadeira Renascença Renda",
+      "artesao": "maria-de-caruaru",
+      "territorio": "Cariri",
+      "tecnica": "Bordado & Renda (Renascença)",
+      "categoria": "Casa & Mesa",
+      "tipo": "Toalhas & Rendas",
+      "preco": 690,
+      "desconto": 20,
+      "disponibilidade": "encomenda",
+      "prazoProducaoDias": 18,
+      "historia": [
+        "Passadeira de mesa em renascença, com desenho de flores abertas nas pontas e miolo em ponto aranha."
+      ],
+      "imagem": "/fotos/passadeira-renascenca.svg",
+      "avaliacao": 5,
+      "totalAvaliacoes": 6,
+      "id": "passadeira-renascenca-renda"
+    },
+    {
+      "slug": "leaozinho-de-bolso",
+      "nome": "Leãozinho de Bolso",
+      "artesao": "mestre-nuca",
+      "territorio": "Mata Norte",
+      "tecnica": "Cerâmica & Barro",
+      "categoria": "Decoração & Arte",
+      "tipo": "Esculturas & Bonecos",
+      "preco": 180,
+      "desconto": 10,
+      "disponibilidade": "disponivel",
+      "historia": [
+        "A versão miniatura do leão guardião, do tamanho da palma da mão. Porta de entrada para quem começa a colecionar."
+      ],
+      "imagem": "/fotos/leaozinho-bolso.svg",
+      "avaliacao": 4.9,
+      "totalAvaliacoes": 33,
+      "id": "leaozinho-de-bolso"
+    },
+    {
+      "slug": "jarra-boiadeira",
+      "nome": "Jarra Boiadeira",
+      "artesao": "mestre-nuca",
+      "territorio": "Mata Norte",
+      "tecnica": "Cerâmica & Barro",
+      "categoria": "Casa & Mesa",
+      "tipo": "Jarras & Vasos",
+      "preco": 550,
+      "desconto": 15,
+      "disponibilidade": "disponivel",
+      "historia": [
+        "Jarra de boca larga com alça trançada em barro, inspirada nas vasilhas de água das casas de fazenda."
+      ],
+      "imagem": "/fotos/jarra-boiadeira.svg",
+      "avaliacao": 4.7,
+      "totalAvaliacoes": 10,
+      "id": "jarra-boiadeira"
+    },
+    {
+      "slug": "o-casamento-de-barro",
+      "nome": "O Casamento de Barro",
+      "artesao": "mestre-vitalino-sucessores",
+      "territorio": "Alto do Moura, Caruaru",
+      "tecnica": "Cerâmica & Barro",
+      "categoria": "Decoração & Arte",
+      "tipo": "Esculturas & Bonecos",
+      "preco": 1890,
+      "disponibilidade": "unica",
+      "historia": [
+        "O barro é nossa história moldada. Cada personagem que tira da terra carrega a poeira, o suor e o sorriso do sertanejo. A peça monumental celebra a tradição de moldar memórias em Tracunhaém."
+      ],
+      "imagem": "/fotos/casamento-de-barro.svg",
+      "avaliacao": 5,
+      "totalAvaliacoes": 4,
+      "id": "o-casamento-de-barro"
+    },
+    {
+      "slug": "prato-de-parede-cabocla",
+      "nome": "Prato de Parede Cabocla",
+      "artesao": "dona-bia-do-ipojuca",
+      "territorio": "Vale do Ipojuca",
+      "tecnica": "Cerâmica & Barro",
+      "categoria": "Casa & Mesa",
+      "tipo": "Mesa & Cozinha",
+      "preco": 240,
+      "disponibilidade": "disponivel",
+      "historia": [
+        "Prato decorativo pintado com os pigmentos de terra do vale, para pendurar na parede da cozinha ou da sala."
+      ],
+      "imagem": "/fotos/jarra-cabocla.svg",
+      "avaliacao": 4.6,
+      "totalAvaliacoes": 9,
+      "id": "prato-de-parede-cabocla"
+    },
+    {
+      "slug": "conjunto-de-xicaras-do-vale",
+      "nome": "Conjunto de Xícaras do Vale",
+      "artesao": "dona-bia-do-ipojuca",
+      "territorio": "Vale do Ipojuca",
+      "tecnica": "Cerâmica & Barro",
+      "categoria": "Casa & Mesa",
+      "tipo": "Mesa & Cozinha",
+      "preco": 320,
+      "desconto": 10,
+      "disponibilidade": "encomenda",
+      "prazoProducaoDias": 12,
+      "historia": [
+        "Seis xícaras torneadas e queimadas em forno a lenha, cada uma com um tom de barro levemente diferente."
+      ],
+      "imagem": "/fotos/barro-ipojuca.svg",
+      "avaliacao": 4.8,
+      "totalAvaliacoes": 15,
+      "id": "conjunto-de-xicaras-do-vale"
+    },
+    {
+      "slug": "presepio-de-barro-completo",
+      "nome": "Presépio de Barro Completo",
+      "artesao": "mestre-vitalino-sucessores",
+      "territorio": "Alto do Moura, Caruaru",
+      "tecnica": "Cerâmica & Barro",
+      "categoria": "Decoração & Arte",
+      "tipo": "Esculturas & Bonecos",
+      "preco": 1480,
+      "disponibilidade": "unica",
+      "historia": [
+        "Quinze figuras modeladas à mão no traço da casa de Vitalino, do boi ao anjo, pintadas com engobe natural."
+      ],
+      "imagem": "/fotos/alto-do-moura.svg",
+      "avaliacao": 5,
+      "totalAvaliacoes": 3,
+      "id": "presepio-de-barro-completo"
+    },
+    {
+      "slug": "retirantes-em-barro",
+      "nome": "Retirantes em Barro",
+      "artesao": "mestre-vitalino-sucessores",
+      "territorio": "Alto do Moura, Caruaru",
+      "tecnica": "Cerâmica & Barro",
+      "categoria": "Decoração & Arte",
+      "tipo": "Esculturas & Bonecos",
+      "preco": 890,
+      "disponibilidade": "encomenda",
+      "prazoProducaoDias": 20,
+      "historia": [
+        "A cena clássica da família de retirantes, tema que Vitalino consagrou, modelada peça a peça sob encomenda."
+      ],
+      "imagem": "/fotos/casamento-de-barro.svg",
+      "avaliacao": 4.9,
+      "totalAvaliacoes": 7,
+      "id": "retirantes-em-barro"
+    },
+    {
+      "slug": "caminho-de-mesa-renascenca",
+      "nome": "Caminho de Mesa Renascença",
+      "artesao": "maria-de-caruaru",
+      "territorio": "Cariri",
+      "tecnica": "Bordado & Renda (Renascença)",
+      "categoria": "Casa & Mesa",
+      "tipo": "Toalhas & Rendas",
+      "preco": 430,
+      "desconto": 15,
+      "disponibilidade": "encomenda",
+      "prazoProducaoDias": 14,
+      "historia": [
+        "Caminho de mesa em renda renascença com o ponto trança no arremate, feito num bastidor de mais de um metro."
+      ],
+      "imagem": "/fotos/casa-renascenca.svg",
+      "avaliacao": 4.9,
+      "totalAvaliacoes": 8,
+      "id": "caminho-de-mesa-renascenca"
+    },
+    {
+      "slug": "golas-renascenca-par",
+      "nome": "Par de Golas Renascença",
+      "artesao": "maria-de-caruaru",
+      "territorio": "Cariri",
+      "tecnica": "Bordado & Renda (Renascença)",
+      "categoria": "Vestuário & Acessórios",
+      "tipo": "Toalhas & Rendas",
+      "preco": 260,
+      "disponibilidade": "disponivel",
+      "historia": [
+        "Duas golas de renda para transformar qualquer vestido liso, no ponto aranha que é a assinatura da casa."
+      ],
+      "imagem": "/fotos/toalha-renascenca.svg",
+      "avaliacao": 4.7,
+      "totalAvaliacoes": 11,
+      "id": "golas-renascenca-par"
+    },
+    {
+      "slug": "cinto-trancado-do-pajeu",
+      "nome": "Cinto Trançado do Pajeú",
+      "artesao": "ze-do-cariri",
+      "territorio": "Pajeú",
+      "tecnica": "Couro Autoral",
+      "categoria": "Vestuário & Acessórios",
+      "tipo": "Couro: Bolsas, Cintos & Gibões",
+      "preco": 190,
+      "disponibilidade": "disponivel",
+      "historia": [
+        "Cinto de couro curtido com casca de angico, trançado à mão em oito tiras, com fivela de latão fundido."
+      ],
+      "imagem": "/fotos/couraria-pajeu.svg",
+      "avaliacao": 4.5,
+      "totalAvaliacoes": 13,
+      "id": "cinto-trancado-do-pajeu"
+    },
+    {
+      "slug": "bolsa-de-couro-vaqueira",
+      "nome": "Bolsa de Couro Vaqueira",
+      "artesao": "ze-do-cariri",
+      "territorio": "Pajeú",
+      "tecnica": "Couro Autoral",
+      "categoria": "Vestuário & Acessórios",
+      "tipo": "Couro: Bolsas, Cintos & Gibões",
+      "preco": 380,
+      "desconto": 10,
+      "disponibilidade": "disponivel",
+      "historia": [
+        "Bolsa a tiracolo inspirada nos alforjes de vaqueiro, com costura de sela feita ponto a ponto com duas agulhas."
+      ],
+      "imagem": "/fotos/gibao-couro.svg",
+      "avaliacao": 4.8,
+      "totalAvaliacoes": 7,
+      "id": "bolsa-de-couro-vaqueira"
+    },
+    {
+      "slug": "cordel-emoldurado-a-seca",
+      "nome": "Cordel Emoldurado: A Seca",
+      "artesao": "mestre-dila",
+      "territorio": "Caruaru",
+      "tecnica": "Xilogravura",
+      "categoria": "Decoração & Arte",
+      "tipo": "Gravuras & Cordéis",
+      "preco": 210,
+      "disponibilidade": "disponivel",
+      "historia": [
+        "Capa de cordel impressa da matriz original de cedro, emoldurada em madeira de demolição."
+      ],
+      "imagem": "/fotos/atelie-dila.svg",
+      "avaliacao": 4.9,
+      "totalAvaliacoes": 21,
+      "id": "cordel-emoldurado-a-seca"
+    },
+    {
+      "slug": "serie-cangaco-tres-gravuras",
+      "nome": "Série Cangaço: Três Gravuras",
+      "artesao": "mestre-dila",
+      "territorio": "Caruaru",
+      "tecnica": "Xilogravura",
+      "categoria": "Decoração & Arte",
+      "tipo": "Gravuras & Cordéis",
+      "preco": 540,
+      "disponibilidade": "encomenda",
+      "prazoProducaoDias": 10,
+      "historia": [
+        "Três gravuras impressas à mão sobre papel de algodão, numeradas e assinadas, contando a saga do cangaço."
+      ],
+      "imagem": "/fotos/painel-xilogravura.svg",
+      "avaliacao": 5,
+      "totalAvaliacoes": 6,
+      "id": "serie-cangaco-tres-gravuras"
+    },
+    {
+      "slug": "anjo-barroco-em-imburana",
+      "nome": "Anjo Barroco em Imburana",
+      "artesao": "mestre-amaro",
+      "territorio": "Petrolina",
+      "tecnica": "Escultura em Madeira",
+      "categoria": "Decoração & Arte",
+      "tipo": "Esculturas & Bonecos",
+      "preco": 620,
+      "disponibilidade": "encomenda",
+      "prazoProducaoDias": 25,
+      "historia": [
+        "Anjo de asas abertas entalhado num bloco único de imburana, no traço barroco das igrejas do sertão."
+      ],
+      "imagem": "/fotos/oficina-imburana.svg",
+      "avaliacao": 4.7,
+      "totalAvaliacoes": 5,
+      "id": "anjo-barroco-em-imburana"
+    },
+    {
+      "slug": "cavalo-marinho-entalhado",
+      "nome": "Cavalo-Marinho Entalhado",
+      "artesao": "mestre-amaro",
+      "territorio": "Petrolina",
+      "tecnica": "Escultura em Madeira",
+      "categoria": "Decoração & Arte",
+      "tipo": "Esculturas & Bonecos",
+      "preco": 350,
+      "disponibilidade": "disponivel",
+      "historia": [
+        "Figura do brinquedo popular pernambucano entalhada em imburana, com a sela pintada a pincel fino."
+      ],
+      "imagem": "/fotos/sanfoneiro-imburana.svg",
+      "avaliacao": 4.6,
+      "totalAvaliacoes": 10,
+      "id": "cavalo-marinho-entalhado"
+    }
+  ],
+  "artesaos": [
+    {
+      "slug": "mestre-nuca",
+      "nome": "Mestre Nuca (Sucessor)",
+      "atelie": "Atelier Sucessores de Nuca",
+      "territorio": "Tracunhaém, Mata Norte de Pernambuco",
+      "tecnica": "Cerâmica & Barro",
+      "historia": "Iniciado pelo lendário Mestre Nuca de Tracunhaém, o atelier mantém viva a tradição de moldar leões de juba cacheada em cerâmica crua. Hoje conduzido por sua família, cada geração protege as ferramentas secretas de entalhe e a queima de forno lento que confere a cor de terracota brilhante única.",
+      "obrasComercializadas": 320,
+      "avaliacaoMedia": 4.9,
+      "selo": true,
+      "imagem": "/fotos/atelier-nuca.svg",
+      "id": "mestre-nuca"
+    },
+    {
+      "slug": "maria-de-caruaru",
+      "nome": "Maria de Caruaru",
+      "atelie": "Casa da Renascença",
+      "territorio": "Cariri pernambucano",
+      "tecnica": "Bordado & Renda (Renascença)",
+      "historia": "Aprendeu o ponto com a avó aos nove anos e hoje coordena um grupo de doze bordadeiras. A casa produz sob encomenda porque cada peça leva semanas, e porque nenhuma renda nasce igual à anterior.",
+      "obrasComercializadas": 145,
+      "avaliacaoMedia": 5,
+      "selo": true,
+      "imagem": "/fotos/casa-renascenca.svg",
+      "id": "maria-de-caruaru"
+    },
+    {
+      "slug": "mestre-dila",
+      "nome": "Mestre Dila",
+      "atelie": "Ateliê de Xilogravura do Agreste",
+      "territorio": "Caruaru, Agreste",
+      "tecnica": "Xilogravura",
+      "historia": "Gravador e cordelista, entalha matrizes em madeira desde os anos setenta. Imprime à mão, folha por folha, mantendo a irregularidade que distingue a gravura da reprodução industrial.",
+      "obrasComercializadas": 88,
+      "avaliacaoMedia": 5,
+      "selo": true,
+      "imagem": "/fotos/atelie-dila.svg",
+      "id": "mestre-dila"
+    },
+    {
+      "slug": "mestre-amaro",
+      "nome": "Mestre Amaro",
+      "atelie": "Oficina de Imburana",
+      "territorio": "Petrolina, Sertão do São Francisco",
+      "tecnica": "Escultura em Madeira",
+      "historia": "Entalha figuras do cotidiano sertanejo em imburana e umburana-de-cheiro, madeiras recolhidas de podas e árvores já caídas.",
+      "obrasComercializadas": 210,
+      "avaliacaoMedia": 4.8,
+      "selo": true,
+      "imagem": "/fotos/oficina-imburana.svg",
+      "id": "mestre-amaro"
+    },
+    {
+      "slug": "ze-do-cariri",
+      "nome": "Artesão Zé do Cariri",
+      "atelie": "Couraria do Pajeú",
+      "territorio": "Pajeú, Sertão",
+      "tecnica": "Couro Autoral",
+      "historia": "Trabalha o couro curtido com casca de angico, técnica que herdou do pai. Produz gibões, chapéus e bolsas com costura à mão.",
+      "obrasComercializadas": 132,
+      "avaliacaoMedia": 4.7,
+      "selo": false,
+      "imagem": "/fotos/couraria-pajeu.svg",
+      "id": "ze-do-cariri"
+    },
+    {
+      "slug": "dona-bia-do-ipojuca",
+      "nome": "Dona Bia do Ipojuca",
+      "atelie": "Barro do Ipojuca",
+      "territorio": "Vale do Ipojuca",
+      "tecnica": "Cerâmica & Barro",
+      "historia": "Pinta cenas de feira e festa em cerâmica utilitária, com pigmentos que ela mesma prepara a partir de terras da região.",
+      "obrasComercializadas": 176,
+      "avaliacaoMedia": 4.6,
+      "selo": true,
+      "imagem": "/fotos/barro-ipojuca.svg",
+      "id": "dona-bia-do-ipojuca"
+    },
+    {
+      "slug": "mestre-vitalino-sucessores",
+      "nome": "Sucessores de Vitalino",
+      "atelie": "Casa do Alto do Moura",
+      "territorio": "Alto do Moura, Caruaru",
+      "tecnica": "Cerâmica & Barro",
+      "historia": "A casa que continua o traço de Mestre Vitalino no Alto do Moura, maior centro de arte figurativa em barro das Américas.",
+      "obrasComercializadas": 402,
+      "avaliacaoMedia": 5,
+      "selo": true,
+      "imagem": "/fotos/alto-do-moura.svg",
+      "id": "mestre-vitalino-sucessores"
+    }
+  ],
+  "coletivos": [
+    {
+      "slug": "associacao-de-tracunhaem",
+      "nome": "Associação dos Ceramistas de Tracunhaém",
+      "territorio": "Tracunhaém, Mata Norte",
+      "fundado": "1998",
+      "historia": "Reúne oficinas familiares que dividem forno, transporte e a rede de compradores. A associação é quem emite o Selo de Origem das peças do território e negocia a compra coletiva de barro e lenha, o que segura o preço final para quem produz.",
+      "membros": [
+        "mestre-nuca",
+        "mestre-vitalino-sucessores"
+      ],
+      "tecnicas": [
+        "Cerâmica & Barro"
+      ],
+      "apoio": [
+        "Cooperativa de compra de matéria-prima",
+        "Programa municipal de feiras"
+      ],
+      "imagem": "/fotos/atelier-nuca.svg",
+      "id": "associacao-de-tracunhaem"
+    },
+    {
+      "slug": "rede-renascenca-do-cariri",
+      "nome": "Rede Renascença do Cariri",
+      "territorio": "Cariri pernambucano",
+      "fundado": "2006",
+      "historia": "Nasceu de um grupo de doze bordadeiras que passaram a vender juntas para não competir por preço entre si. Hoje organiza a produção sob encomenda, distribui os pedidos conforme a agenda de cada casa e mantém um fundo comum para material.",
+      "membros": [
+        "maria-de-caruaru"
+      ],
+      "tecnicas": [
+        "Bordado & Renda (Renascença)"
+      ],
+      "apoio": [
+        "Fundo comum de material",
+        "Rede de oficinas do território"
+      ],
+      "imagem": "/fotos/casa-renascenca.svg",
+      "id": "rede-renascenca-do-cariri"
+    }
+  ],
+  "eventos": [
+    {
+      "slug": "fenearte-2026",
+      "nome": "Fenearte: Feira Nacional de Negócios do Artesanato",
+      "tipo": "feira",
+      "organizador": "Governo de Pernambuco",
+      "descricao": "A maior feira de artesanato da América Latina reúne mestres e mestras de todo o Brasil em duas semanas de exposição, venda direta e oficinas abertas. O pavilhão de Pernambuco concentra o barro de Tracunhaém e do Alto do Moura, a renda renascença do Cariri e a xilogravura do Agreste.",
+      "periodo": "4 a 13 de setembro, 2026",
+      "horario": "14h às 22h (sábados e domingos a partir das 10h)",
+      "entrada": "R$ 14 · meia para estudantes",
+      "cidade": "Olinda",
+      "local": "Centro de Convenções de Pernambuco",
+      "endereco": "Av. Professor Andrade Bezerra, s/n, Salgadinho",
+      "lat": -8.033,
+      "lng": -34.866,
+      "artesaos": [
+        "mestre-nuca",
+        "maria-de-caruaru",
+        "mestre-dila",
+        "mestre-amaro",
+        "ze-do-cariri",
+        "dona-bia-do-ipojuca",
+        "mestre-vitalino-sucessores"
+      ],
+      "coletivos": [
+        "associacao-de-tracunhaem",
+        "rede-renascenca-do-cariri"
+      ],
+      "id": "fenearte-2026"
+    },
+    {
+      "slug": "salao-do-artesanato-marco-zero",
+      "nome": "Salão do Artesanato de Pernambuco",
+      "tipo": "exposicao",
+      "organizador": "Prefeitura do Recife",
+      "descricao": "Mostra a céu aberto no Marco Zero com estandes de venda direta e demonstrações de técnica ao vivo. A curadoria prioriza peças com Selo de Origem dos territórios pernambucanos.",
+      "periodo": "29 de agosto a 6 de setembro, 2026",
+      "horario": "10h às 21h",
+      "entrada": "Gratuita",
+      "cidade": "Recife",
+      "local": "Praça do Marco Zero, Recife Antigo",
+      "endereco": "Av. Alfredo Lisboa, s/n, Bairro do Recife",
+      "lat": -8.0631,
+      "lng": -34.8711,
+      "artesaos": [
+        "mestre-nuca",
+        "dona-bia-do-ipojuca",
+        "maria-de-caruaru"
+      ],
+      "coletivos": [
+        "rede-renascenca-do-cariri"
+      ],
+      "id": "salao-do-artesanato-marco-zero"
+    },
+    {
+      "slug": "feira-de-ceramica-de-tracunhaem",
+      "nome": "Feira de Cerâmica de Tracunhaém",
+      "tipo": "feira",
+      "organizador": "Associação dos Ceramistas de Tracunhaém",
+      "descricao": "A praça da Matriz vira galeria a céu aberto: os ateliês da cidade abrem as portas, os fornos ficam acesos e os leões de juba cacheada saem direto da queima para a feira.",
+      "periodo": "12 e 13 de setembro, 2026",
+      "horario": "9h às 18h",
+      "entrada": "Gratuita",
+      "cidade": "Tracunhaém",
+      "local": "Praça da Matriz",
+      "endereco": "Centro de Tracunhaém, Mata Norte",
+      "lat": -7.8047,
+      "lng": -35.24,
+      "artesaos": [
+        "mestre-nuca",
+        "mestre-vitalino-sucessores"
+      ],
+      "coletivos": [
+        "associacao-de-tracunhaem"
+      ],
+      "id": "feira-de-ceramica-de-tracunhaem"
+    },
+    {
+      "slug": "festival-do-barro-alto-do-moura",
+      "nome": "Festival do Barro do Alto do Moura",
+      "tipo": "festival",
+      "organizador": "Prefeitura de Caruaru",
+      "descricao": "No maior centro de arte figurativa em barro das Américas, o festival celebra a herança de Mestre Vitalino com oficinas de modelagem, visita às casas-ateliê e forró no fim da tarde.",
+      "periodo": "19 e 20 de setembro, 2026",
+      "horario": "9h às 20h",
+      "entrada": "Gratuita",
+      "cidade": "Caruaru",
+      "local": "Alto do Moura, rua principal",
+      "endereco": "Rua Mestre Vitalino, Alto do Moura",
+      "lat": -8.32,
+      "lng": -35.995,
+      "artesaos": [
+        "mestre-vitalino-sucessores",
+        "dona-bia-do-ipojuca"
+      ],
+      "coletivos": [
+        "associacao-de-tracunhaem"
+      ],
+      "id": "festival-do-barro-alto-do-moura"
+    },
+    {
+      "slug": "encontro-da-renascenca",
+      "nome": "Encontro da Renda Renascença",
+      "tipo": "oficina",
+      "organizador": "Rede Renascença do Cariri",
+      "descricao": "Dois dias de rodas de bordado abertas ao público, com as bordadeiras do Cariri ensinando o ponto aranha e contando a história da renda que atravessa gerações.",
+      "periodo": "26 e 27 de setembro, 2026",
+      "horario": "8h às 17h",
+      "entrada": "Gratuita",
+      "cidade": "Pesqueira",
+      "local": "Mercado Cultural de Pesqueira",
+      "endereco": "Praça Comendador José Didier, Centro",
+      "lat": -8.3576,
+      "lng": -36.6966,
+      "artesaos": [
+        "maria-de-caruaru"
+      ],
+      "coletivos": [
+        "rede-renascenca-do-cariri"
+      ],
+      "id": "encontro-da-renascenca"
+    },
+    {
+      "slug": "mostra-de-couro-do-pajeu",
+      "nome": "Mostra de Couro do Pajeú",
+      "tipo": "exposicao",
+      "organizador": "Couraria do Pajeú",
+      "descricao": "O couro curtido com casca de angico em exposição e venda: gibões, chapéus e bolsas costurados à mão, com demonstração do curtimento tradicional do Sertão.",
+      "periodo": "10 e 11 de outubro, 2026",
+      "horario": "9h às 18h",
+      "entrada": "Gratuita",
+      "cidade": "Serra Talhada",
+      "local": "Museu do Cangaço",
+      "endereco": "Praça Barão do Pajeú, Centro",
+      "lat": -7.9856,
+      "lng": -38.2963,
+      "artesaos": [
+        "ze-do-cariri"
+      ],
+      "coletivos": [],
+      "id": "mostra-de-couro-do-pajeu"
+    },
+    {
+      "slug": "entalhadores-do-sao-francisco",
+      "nome": "Encontro de Entalhadores do São Francisco",
+      "tipo": "festival",
+      "organizador": "Prefeitura de Petrolina",
+      "descricao": "Na orla do Velho Chico, escultores de imburana mostram o entalhe das figuras do cotidiano sertanejo, com oficinas para iniciantes e exposição das peças premiadas do ano.",
+      "periodo": "17 e 18 de outubro, 2026",
+      "horario": "10h às 19h",
+      "entrada": "Gratuita",
+      "cidade": "Petrolina",
+      "local": "Orla de Petrolina",
+      "endereco": "Av. Cardoso de Sá, s/n, Orla",
+      "lat": -9.3891,
+      "lng": -40.503,
+      "artesaos": [
+        "mestre-amaro"
+      ],
+      "coletivos": [],
+      "id": "entalhadores-do-sao-francisco"
+    }
+  ],
+  "videos": [
+    {
+      "id": "v-001",
+      "artesao": "mestre-nuca",
+      "peca": "leao-imperial-de-tracunhaem",
+      "legenda": "A juba do leão é feita cacho por cacho, com faca de ponta fina. São quatro horas só nessa parte.",
+      "etiquetas": [
+        "ceramica",
+        "tracunhaem",
+        "passoapasso"
+      ],
+      "duracao": "0:48",
+      "visualizacoes": 12400,
+      "curtidas": 1830,
+      "comentarios": 96,
+      "publicadoEm": "há 2 dias",
+      "capa": "/fotos/leao-imperial.svg"
+    },
+    {
+      "id": "v-002",
+      "artesao": "maria-de-caruaru",
+      "peca": "toalha-renascenca-florescer",
+      "legenda": "O ponto aranha fecha o miolo da flor. Minha avó dizia que é aqui que a renda ganha respiração.",
+      "etiquetas": [
+        "renascenca",
+        "cariri",
+        "bordado"
+      ],
+      "duracao": "1:12",
+      "visualizacoes": 8730,
+      "curtidas": 2140,
+      "comentarios": 141,
+      "publicadoEm": "há 4 dias",
+      "capa": "/fotos/toalha-renascenca.svg"
+    },
+    {
+      "id": "v-003",
+      "artesao": "mestre-dila",
+      "peca": "painel-xilogravura-sertaneja",
+      "legenda": "Entalhar a matriz é o inverso de desenhar: o que eu tiro é o que fica branco no papel.",
+      "etiquetas": [
+        "xilogravura",
+        "caruaru",
+        "cordel"
+      ],
+      "duracao": "0:36",
+      "visualizacoes": 21900,
+      "curtidas": 4360,
+      "comentarios": 288,
+      "publicadoEm": "há 1 semana",
+      "capa": "/fotos/painel-xilogravura.svg"
+    },
+    {
+      "id": "v-004",
+      "artesao": "mestre-amaro",
+      "peca": "sanfoneiro-em-imburana",
+      "legenda": "A imburana perfuma a oficina inteira enquanto trabalho. O sanfoneiro sai de um bloco só, sem emenda.",
+      "etiquetas": [
+        "madeira",
+        "petrolina",
+        "saojoao"
+      ],
+      "duracao": "0:59",
+      "visualizacoes": 6420,
+      "curtidas": 1190,
+      "comentarios": 63,
+      "publicadoEm": "há 1 semana",
+      "capa": "/fotos/sanfoneiro-imburana.svg"
+    },
+    {
+      "id": "v-005",
+      "artesao": "ze-do-cariri",
+      "peca": "gibao-de-couro-de-sertao",
+      "legenda": "Couro curtido com casca de angico, do jeito que meu pai ensinou. Cada costura é feita à mão.",
+      "etiquetas": [
+        "couro",
+        "pajeu",
+        "vaqueiro"
+      ],
+      "duracao": "1:04",
+      "visualizacoes": 4980,
+      "curtidas": 870,
+      "comentarios": 44,
+      "publicadoEm": "há 2 semanas",
+      "capa": "/fotos/gibao-couro.svg"
+    },
+    {
+      "id": "v-006",
+      "artesao": "dona-bia-do-ipojuca",
+      "peca": "jarra-de-ceramica-cabocla",
+      "legenda": "Os pigmentos vêm da terra daqui do vale. Eu mesma moo e misturo antes de pintar.",
+      "etiquetas": [
+        "ceramica",
+        "ipojuca",
+        "pintura"
+      ],
+      "duracao": "0:42",
+      "visualizacoes": 9310,
+      "curtidas": 1620,
+      "comentarios": 88,
+      "publicadoEm": "há 2 semanas",
+      "capa": "/fotos/jarra-cabocla.svg"
+    }
+  ],
+  "pedidos": [
+    {
+      "id": "PE-2026-8941",
+      "pecaSlug": "leao-imperial-de-tracunhaem",
+      "compradorNome": "Carlos de Olinda",
+      "data": "12 de março, 2026",
+      "total": 1250,
+      "estado": "producao",
+      "rastreio": "BR-TRAC-8893A",
+      "transportadora": "Sertão Logística Regional",
+      "previsaoEntrega": "26 de março, 2026",
+      "avaliado": false,
+      "etapas": [
+        {
+          "estado": "confirmado",
+          "titulo": "Pedido confirmado",
+          "detalhe": "12/03/2026 às 14:32, pagamento aprovado e recebido.",
+          "concluida": true,
+          "atual": false
+        },
+        {
+          "estado": "producao",
+          "titulo": "Em produção",
+          "detalhe": "Iniciado em 14/03/2026. Previsão de queima final: 19/03.",
+          "concluida": false,
+          "atual": true,
+          "nota": "O barro de Tracunhaém está excelente nesta semana. Já moldei a estrutura do leão e agora estou esculpindo cada detalhe da juba. Vai para a queima na sexta-feira!"
+        },
+        {
+          "estado": "enviado",
+          "titulo": "Enviado (transportadora de origem)",
+          "detalhe": "Aguardando finalização da peça e coleta direta na oficina.",
+          "concluida": false,
+          "atual": false
+        },
+        {
+          "estado": "entregue",
+          "titulo": "Entregue no seu endereço",
+          "detalhe": "Previsão estimada de chegada: 26 de março, 2026.",
+          "concluida": false,
+          "atual": false
+        }
+      ],
+      "compradorId": "u-carlos"
+    },
+    {
+      "id": "PE-2026-8720",
+      "pecaSlug": "jarra-de-ceramica-cabocla",
+      "compradorNome": "Carlos de Olinda",
+      "data": "28 de fevereiro, 2026",
+      "total": 350,
+      "estado": "entregue",
+      "rastreio": "BR-IPOJ-4471C",
+      "transportadora": "Sertão Logística Regional",
+      "previsaoEntrega": "08 de março, 2026",
+      "avaliado": false,
+      "etapas": [
+        {
+          "estado": "confirmado",
+          "titulo": "Pedido confirmado",
+          "detalhe": "28/02/2026 às 09:15.",
+          "concluida": true,
+          "atual": false
+        },
+        {
+          "estado": "producao",
+          "titulo": "Em produção",
+          "detalhe": "Peça em estoque, separada no mesmo dia.",
+          "concluida": true,
+          "atual": false
+        },
+        {
+          "estado": "enviado",
+          "titulo": "Enviado",
+          "detalhe": "Coletado em 01/03/2026.",
+          "concluida": true,
+          "atual": false
+        },
+        {
+          "estado": "entregue",
+          "titulo": "Entregue no seu endereço",
+          "detalhe": "Recebido em 08/03/2026.",
+          "concluida": true,
+          "atual": true
+        }
+      ],
+      "compradorId": "u-carlos"
+    },
+    {
+      "id": "PE-2026-8655",
+      "pecaSlug": "leaozinho-de-bolso",
+      "compradorNome": "Carlos de Olinda",
+      "data": "10 de fevereiro, 2026",
+      "total": 180,
+      "estado": "entregue",
+      "rastreio": "BR-TRAC-2210B",
+      "transportadora": "Sertão Logística Regional",
+      "previsaoEntrega": "17 de fevereiro, 2026",
+      "avaliado": true,
+      "etapas": [
+        {
+          "estado": "confirmado",
+          "titulo": "Pedido confirmado",
+          "detalhe": "10/02/2026 às 18:40.",
+          "concluida": true,
+          "atual": false
+        },
+        {
+          "estado": "producao",
+          "titulo": "Em produção",
+          "detalhe": "Peça em estoque.",
+          "concluida": true,
+          "atual": false
+        },
+        {
+          "estado": "enviado",
+          "titulo": "Enviado",
+          "detalhe": "Coletado em 11/02/2026.",
+          "concluida": true,
+          "atual": false
+        },
+        {
+          "estado": "entregue",
+          "titulo": "Entregue no seu endereço",
+          "detalhe": "Recebido em 17/02/2026.",
+          "concluida": true,
+          "atual": true
+        }
+      ],
+      "compradorId": "u-carlos"
+    }
+  ],
+  "conversasArtesao": [
+    {
+      "id": "PE-2026-8941",
+      "pessoa": "Carlos de Olinda",
+      "assunto": "Leão Imperial de Tracunhaém",
+      "previa": "Com certeza! Envio sim uma foto antes dele ir para a transportadora.",
+      "quando": "14:42",
+      "naoLida": true,
+      "retrato": "/fotos/leao-imperial.svg"
+    },
+    {
+      "id": "PE-2026-9012",
+      "pessoa": "Clarissa M. Reis",
+      "assunto": "Banda de Pífanos Completa",
+      "previa": "Consegue entregar antes do São João?",
+      "quando": "Ontem",
+      "naoLida": false,
+      "retrato": "/fotos/banda-pifanos.svg"
+    },
+    {
+      "id": "PE-2026-9008",
+      "pessoa": "Renato Albuquerque",
+      "assunto": "Jarra de Cerâmica Cabocla",
+      "previa": "Obrigado! Chegou tudo certinho, peça linda.",
+      "quando": "19/03",
+      "naoLida": false,
+      "retrato": "/fotos/jarra-cabocla.svg"
+    }
+  ],
+  "pedidosPendentes": [
+    {
+      "id": "PE-2026-9012",
+      "pecaSlug": "banda-de-pifanos-completa",
+      "comprador": "Clarissa M. Reis",
+      "quando": "Hoje, 10:14",
+      "valor": 420
+    },
+    {
+      "id": "PE-2026-9008",
+      "pecaSlug": "jarra-de-ceramica-cabocla",
+      "comprador": "Renato Albuquerque",
+      "quando": "Ontem, 16:45",
+      "valor": 350
+    }
+  ],
+  "curadoria": [
+    {
+      "id": "SEL-112",
+      "artesaoSlug": "ze-do-cariri",
+      "artesao": "Artesão Zé do Cariri",
+      "atelie": "Couraria do Pajeú",
+      "mensagem": "Sou associado à Associação dos Artesãos do Pajeú desde 2011. Posso receber a visita na oficina em Serra Talhada.",
+      "situacao": "pendente",
+      "solicitadoEm": "2026-03-19T11:47:00-03:00"
+    }
+  ],
+  "mediacoes": [
+    {
+      "id": "MED-31",
+      "pedido": "PE-2026-8801",
+      "assunto": "Prazo de encomenda ultrapassado em 6 dias",
+      "partes": "Ana Luiza × Casa da Renascença",
+      "aberta": "há 2 dias"
+    }
+  ],
+  "mensagens": [
+    {
+      "autor": "artesao",
+      "texto": "Olá, Carlos! Tudo bem? Fico muito feliz que tenha gostado da nota sobre a juba do leão.",
+      "hora": "14:35",
+      "id": "msg-1",
+      "pedidoId": "PE-2026-8941"
+    },
+    {
+      "autor": "comprador",
+      "texto": "Olá, mestre! Que ótimo saber. Eu tenho muito apreço pelo trabalho de vocês. Quando estiver pronto para envio, você me avisa por aqui?",
+      "hora": "14:40",
+      "id": "msg-2",
+      "pedidoId": "PE-2026-8941"
+    },
+    {
+      "autor": "artesao",
+      "texto": "Com certeza! Envio sim uma foto antes dele ir para a transportadora. Qualquer dúvida pode me chamar.",
+      "hora": "14:42",
+      "id": "msg-3",
+      "pedidoId": "PE-2026-8941"
+    }
+  ],
+  "comentarios": [
+    {
+      "autor": "Clarissa M. Reis",
+      "texto": "Nunca tinha visto de perto como a juba é feita. Agora entendo o preço, é dia de trabalho em cada peça.",
+      "quando": "há 1 dia",
+      "curtidas": 214,
+      "resposta": {
+        "texto": "Obrigado, Clarissa! É isso mesmo, o leão grande leva quase quatro dias até a queima.",
+        "quando": "há 22 horas"
+      },
+      "id": "v-001-0",
+      "videoId": "v-001"
+    },
+    {
+      "autor": "Renato Albuquerque",
+      "texto": "Faz em tamanho menor pra apartamento?",
+      "quando": "há 1 dia",
+      "curtidas": 41,
+      "resposta": {
+        "texto": "Faço sim! O Leãozinho de Bolso está no catálogo, mesma técnica.",
+        "quando": "há 1 dia"
+      },
+      "id": "v-001-1",
+      "videoId": "v-001"
+    },
+    {
+      "autor": "Mestre Dila",
+      "texto": "Trabalho lindo, colega. O acabamento da juba está impecável.",
+      "quando": "há 20 horas",
+      "curtidas": 88,
+      "artesao": true,
+      "id": "v-001-2",
+      "videoId": "v-001"
+    },
+    {
+      "autor": "Paula Bezerra",
+      "texto": "Comprei o meu ano passado e até hoje todo mundo que entra em casa pergunta de onde é.",
+      "quando": "há 14 horas",
+      "curtidas": 132,
+      "id": "v-001-3",
+      "videoId": "v-001"
+    },
+    {
+      "autor": "Ana Luiza",
+      "texto": "Minha avó fazia renascença e eu nunca aprendi. Ver esse vídeo deu um aperto bom no peito.",
+      "quando": "há 3 dias",
+      "curtidas": 386,
+      "resposta": {
+        "texto": "Nunca é tarde, viu? A gente dá oficina em Caruaru todo mês.",
+        "quando": "há 3 dias"
+      },
+      "id": "v-002-0",
+      "videoId": "v-002"
+    },
+    {
+      "autor": "Fernanda Sá",
+      "texto": "Quanto tempo leva uma toalha desse tamanho?",
+      "quando": "há 2 dias",
+      "curtidas": 27,
+      "resposta": {
+        "texto": "Cerca de três semanas, trabalhando um pouco por dia.",
+        "quando": "há 2 dias"
+      },
+      "id": "v-002-1",
+      "videoId": "v-002"
+    },
+    {
+      "autor": "Dona Bia do Ipojuca",
+      "texto": "O ponto aranha dessa flor está perfeito. Paciência de outro mundo.",
+      "quando": "há 2 dias",
+      "curtidas": 64,
+      "artesao": true,
+      "id": "v-002-2",
+      "videoId": "v-002"
+    },
+    {
+      "autor": "Tiago Nunes",
+      "texto": "Isso é o inverso de desenhar mesmo. Nunca tinha pensado assim, mudou minha cabeça.",
+      "quando": "há 6 dias",
+      "curtidas": 512,
+      "id": "v-003-0",
+      "videoId": "v-003"
+    },
+    {
+      "autor": "Camila Verçosa",
+      "texto": "Dá pra encomendar a matriz junto com a gravura?",
+      "quando": "há 5 dias",
+      "curtidas": 73,
+      "resposta": {
+        "texto": "Dá sim, mas a matriz sai por encomenda e leva mais tempo. Me chama no chat.",
+        "quando": "há 5 dias"
+      },
+      "id": "v-003-1",
+      "videoId": "v-003"
+    },
+    {
+      "autor": "Mestre Amaro",
+      "texto": "A madeira que tu usa é umburana também?",
+      "quando": "há 4 dias",
+      "curtidas": 19,
+      "artesao": true,
+      "resposta": {
+        "texto": "Uso cedro pra matriz, segura melhor o corte fino.",
+        "quando": "há 4 dias"
+      },
+      "id": "v-003-2",
+      "videoId": "v-003"
+    },
+    {
+      "autor": "Joana Ribeiro",
+      "texto": "Levei um painel pra minha sala e virou o assunto da casa.",
+      "quando": "há 3 dias",
+      "curtidas": 145,
+      "id": "v-003-3",
+      "videoId": "v-003"
+    },
+    {
+      "autor": "Hélio Souza",
+      "texto": "O cheiro da imburana é uma memória de infância inteira.",
+      "quando": "há 6 dias",
+      "curtidas": 208,
+      "id": "v-004-0",
+      "videoId": "v-004"
+    },
+    {
+      "autor": "Marina Costa",
+      "texto": "Sai de um bloco só? Achei que fosse colado. Impressionante.",
+      "quando": "há 5 dias",
+      "curtidas": 94,
+      "resposta": {
+        "texto": "Bloco único, sem emenda nenhuma. É o que garante que não solta com o tempo.",
+        "quando": "há 5 dias"
+      },
+      "id": "v-004-1",
+      "videoId": "v-004"
+    },
+    {
+      "autor": "Carlos de Olinda",
+      "texto": "Chega pronto pro São João?",
+      "quando": "há 4 dias",
+      "curtidas": 12,
+      "resposta": {
+        "texto": "Se pedir até o fim do mês, chega tranquilo.",
+        "quando": "há 4 dias"
+      },
+      "id": "v-004-2",
+      "videoId": "v-004"
+    },
+    {
+      "autor": "Débora Lins",
+      "texto": "Curtimento com casca de angico é coisa que quase ninguém faz mais. Que bom ver isso vivo.",
+      "quando": "há 12 dias",
+      "curtidas": 176,
+      "id": "v-005-0",
+      "videoId": "v-005"
+    },
+    {
+      "autor": "Zé do Cariri",
+      "texto": "Obrigado, Débora. Foi meu pai que ensinou e eu não largo.",
+      "quando": "há 12 dias",
+      "curtidas": 58,
+      "artesao": true,
+      "id": "v-005-1",
+      "videoId": "v-005"
+    },
+    {
+      "autor": "Rafael Menezes",
+      "texto": "Tem numeração maior?",
+      "quando": "há 9 dias",
+      "curtidas": 8,
+      "resposta": {
+        "texto": "Tenho até o G, e faço sob medida se precisar.",
+        "quando": "há 9 dias"
+      },
+      "id": "v-005-2",
+      "videoId": "v-005"
+    },
+    {
+      "autor": "Luana Peixoto",
+      "texto": "Você mesma mói o pigmento? Isso é outro nível de trabalho.",
+      "quando": "há 10 dias",
+      "curtidas": 233,
+      "resposta": {
+        "texto": "Eu mesma! A terra vem daqui do vale, cada cor de um barranco diferente.",
+        "quando": "há 10 dias"
+      },
+      "id": "v-006-0",
+      "videoId": "v-006"
+    },
+    {
+      "autor": "Mestre Nuca (Sucessor)",
+      "texto": "As cenas de feira ficaram muito boas nessa jarra.",
+      "quando": "há 9 dias",
+      "curtidas": 71,
+      "artesao": true,
+      "id": "v-006-1",
+      "videoId": "v-006"
+    },
+    {
+      "autor": "Bruno Tavares",
+      "texto": "Pode ir ao forno ou é só decorativa?",
+      "quando": "há 8 dias",
+      "curtidas": 22,
+      "resposta": {
+        "texto": "Essa é decorativa. Pra uso tenho a linha sem pintura externa.",
+        "quando": "há 8 dias"
+      },
+      "id": "v-006-2",
+      "videoId": "v-006"
+    }
+  ],
+  "usuario": {
+    "nome": "Carlos de Olinda",
+    "email": "carlos@exemplo.com",
+    "imagem": "/fotos/jarra-cabocla.svg"
+  },
+  "usuarios": [
+    {
+      "id": "u-carlos",
+      "nome": "Carlos de Olinda",
+      "email": "carlos@exemplo.com",
+      "imagem": "/fotos/jarra-cabocla.svg",
+      "senha": "balaio123",
+      "papel": "comprador"
+    },
+    {
+      "id": "u-admin",
+      "nome": "Curadoria Balaio",
+      "email": "admin@exemplo.com",
+      "senha": "balaio123",
+      "papel": "admin",
+      "imagem": "/balaio-logo.svg"
+    },
+    {
+      "id": "u-mestre-nuca",
+      "nome": "Mestre Nuca (Sucessor)",
+      "email": "nuca@exemplo.com",
+      "senha": "balaio123",
+      "papel": "artesao",
+      "artesao": "mestre-nuca",
+      "imagem": "/fotos/atelier-nuca.svg"
+    },
+    {
+      "id": "u-maria-de-caruaru",
+      "nome": "Maria de Caruaru",
+      "email": "maria-de-caruaru@exemplo.com",
+      "senha": "balaio123",
+      "papel": "artesao",
+      "artesao": "maria-de-caruaru",
+      "imagem": "/fotos/casa-renascenca.svg"
+    },
+    {
+      "id": "u-mestre-dila",
+      "nome": "Mestre Dila",
+      "email": "mestre-dila@exemplo.com",
+      "senha": "balaio123",
+      "papel": "artesao",
+      "artesao": "mestre-dila",
+      "imagem": "/fotos/atelie-dila.svg"
+    },
+    {
+      "id": "u-mestre-amaro",
+      "nome": "Mestre Amaro",
+      "email": "mestre-amaro@exemplo.com",
+      "senha": "balaio123",
+      "papel": "artesao",
+      "artesao": "mestre-amaro",
+      "imagem": "/fotos/oficina-imburana.svg"
+    },
+    {
+      "id": "u-ze-do-cariri",
+      "nome": "Artesão Zé do Cariri",
+      "email": "ze-do-cariri@exemplo.com",
+      "senha": "balaio123",
+      "papel": "artesao",
+      "artesao": "ze-do-cariri",
+      "imagem": "/fotos/couraria-pajeu.svg"
+    },
+    {
+      "id": "u-dona-bia-do-ipojuca",
+      "nome": "Dona Bia do Ipojuca",
+      "email": "dona-bia-do-ipojuca@exemplo.com",
+      "senha": "balaio123",
+      "papel": "artesao",
+      "artesao": "dona-bia-do-ipojuca",
+      "imagem": "/fotos/barro-ipojuca.svg"
+    },
+    {
+      "id": "u-mestre-vitalino-sucessores",
+      "nome": "Sucessores de Vitalino",
+      "email": "mestre-vitalino-sucessores@exemplo.com",
+      "senha": "balaio123",
+      "papel": "artesao",
+      "artesao": "mestre-vitalino-sucessores",
+      "imagem": "/fotos/alto-do-moura.svg"
+    }
+  ],
+  "sessoes": [],
+  "estadosCliente": [],
+  "perguntas": [],
+  "recuperacoes": [],
+  "fretes": [
+    {
+      "id": "padrao",
+      "nome": "Sertão Logística Regional",
+      "prazo": "10 a 14 dias úteis",
+      "valor": 38.9
+    },
+    {
+      "id": "expresso",
+      "nome": "Expresso Recife",
+      "prazo": "4 a 6 dias úteis",
+      "valor": 72.5
+    }
+  ],
+  "referencias": {
+    "tecnicas": [
+      "Cerâmica & Barro",
+      "Bordado & Renda (Renascença)",
+      "Escultura em Madeira",
+      "Couro Autoral",
+      "Xilogravura"
+    ],
+    "territorios": [
+      "Mata Norte",
+      "Cariri",
+      "Pajeú",
+      "Petrolina",
+      "Vale do Ipojuca",
+      "Caruaru",
+      "Alto do Moura, Caruaru"
+    ],
+    "categorias": [
+      "Decoração & Arte",
+      "Casa & Mesa",
+      "Vestuário & Acessórios"
+    ],
+    "tipos": [
+      "Jarras & Vasos",
+      "Esculturas & Bonecos",
+      "Mesa & Cozinha",
+      "Toalhas & Rendas",
+      "Couro: Bolsas, Cintos & Gibões",
+      "Gravuras & Cordéis"
+    ],
+    "etiquetas": [
+      "ceramica",
+      "renascenca",
+      "xilogravura",
+      "couro",
+      "madeira",
+      "passoapasso"
+    ]
+  },
+  "avaliacoes": [],
+  "configuracoesAtelie": []
+}

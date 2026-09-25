@@ -1,0 +1,5 @@
+const { copyFileSync, rmSync } = require('node:fs')
+const path = require('node:path')
+copyFileSync(path.join(__dirname, 'seed.json'), path.join(__dirname, 'db.json'))
+rmSync(path.join(__dirname, 'arquivos'), { recursive: true, force: true })
+console.log('Banco de demonstração restaurado e fotos enviadas apagadas. Reinicie a fake API.')

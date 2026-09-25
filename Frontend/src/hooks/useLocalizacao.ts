@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { pontoPadrao, type Ponto } from '@/mocks/eventos'
+import { pontoPadrao } from '@/constants/eventos'
+import type { Ponto } from '@/types/dominio'
 
 export type OrigemLocalizacao = 'padrao' | 'navegador' | 'indisponivel'
 

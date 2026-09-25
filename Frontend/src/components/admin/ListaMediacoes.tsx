@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { EstadoVazio } from '@/components/ui/Basicos'
+import EstadoVazio from '@/components/feedback/EstadoVazio'
 import { avisar } from '@/components/feedback/Avisos'
 import { IconeAviso } from '@/components/ui/Icones'
-import { lerMediacoesLocais } from '@/components/admin/mediacoesLocais'
+import { enviar } from '@/services/api/cliente'
 import { type Mediacao } from '@/types/dominio'
 
 export default function ListaMediacoes({ iniciais }: { iniciais: Mediacao[] }) {
@@ -12,11 +12,12 @@ export default function ListaMediacoes({ iniciais }: { iniciais: Mediacao[] }) {
   const [abertas, definirAbertas] = useState<string[]>([])
 
   useEffect(() => {
-    const locais = lerMediacoesLocais().filter((local) => !iniciais.some((m) => m.id === local.id))
-    if (locais.length > 0) definirLista([...locais, ...iniciais])
+    definirLista(iniciais)
   }, [iniciais])
 
-  function abrirMediacao(m: Mediacao) {
+  async function abrirMediacao(m: Mediacao) {
+    const resposta = await enviar<Mediacao>(`/admin/mediacoes/${m.id}`, { emAnalise: true }, 'PATCH')
+    if (resposta.erro) { avisar.erro('Não foi possível atualizar', resposta.erro.mensagem); return }
     definirAbertas([...abertas, m.id])
     avisar.info('Mediação aberta', 'As duas partes foram notificadas e têm 48h para responder.')
   }
@@ -34,7 +35,7 @@ export default function ListaMediacoes({ iniciais }: { iniciais: Mediacao[] }) {
   return (
     <ul className="lista-curadoria">
       {lista.map((m) => {
-        const emAnalise = abertas.includes(m.id)
+        const emAnalise = m.emAnalise || abertas.includes(m.id)
         return (
           <li className="cartao-curadoria" key={m.id}>
             <header className="cartao-curadoria-topo">

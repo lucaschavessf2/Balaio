@@ -4,8 +4,7 @@ const grupos = [
   {
     titulo: 'Plataforma',
     itens: [
-      { texto: 'Como funciona', href: '/how-it-works' },
-      { texto: 'Explorar o catálogo', href: '/' },
+      { texto: 'Explorar o catálogo', href: '/search' },
       { texto: 'Ateliê ao vivo', href: '/videos' },
       { texto: 'Agenda de eventos', href: '/events' },
       { texto: 'Para cooperativas', href: '/about/cooperatives' },
@@ -18,7 +17,6 @@ const grupos = [
       { texto: 'Imprensa', href: '/about/press' },
       { texto: 'Termos de uso', href: '/about/terms' },
       { texto: 'Privacidade', href: '/about/privacy' },
-      { texto: 'Mapa de telas', href: '/screens' },
     ],
   },
 ]

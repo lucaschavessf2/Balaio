@@ -1,18 +1,17 @@
 import Pagina from '@/components/layout/Pagina'
 import { Migalhas } from '@/components/ui/Basicos'
 import DetalheEvento from '@/components/eventos/DetalheEvento'
-import EventoLocal from '@/components/eventos/EventoLocal'
-import { obterEvento, listarEventos } from '@/services/api/eventos.servico'
+import { notFound } from 'next/navigation'
+import EstadoErro from '@/components/feedback/EstadoErro'
+import { obterEvento } from '@/services/api/eventos.servico'
 
-export async function generateStaticParams() {
-  const { dados } = await listarEventos()
-  return (dados ?? []).map((e) => ({ slug: e.slug }))
-}
+export const dynamic = 'force-dynamic'
 
 export default async function PaginaEvento({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const { dados: evento } = await obterEvento(slug)
+  const { dados: evento, erro } = await obterEvento(slug)
 
+  if (erro?.codigo === 'RECURSO_NAO_ENCONTRADO') notFound()
   return (
     <Pagina>
       <Migalhas
@@ -23,7 +22,7 @@ export default async function PaginaEvento({ params }: { params: Promise<{ slug:
         ]}
       />
 
-      {evento ? <DetalheEvento evento={evento} /> : <EventoLocal slug={slug} />}
+      {erro ? <EstadoErro mensagem={erro.mensagem} /> : evento && <DetalheEvento evento={evento} />}
     </Pagina>
   )
 }

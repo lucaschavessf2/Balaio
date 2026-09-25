@@ -1,31 +1,51 @@
 'use client'
 
 import { useState } from 'react'
+import type { FotoPeca } from '@/types/dominio'
 import { IconeEtiqueta } from '@/components/ui/Icones'
 import ImagemComFallback from '@/components/ui/ImagemComFallback'
-import { fallbackDe } from '@/mocks/imagens'
+import { fallbackDe } from '@/utils/imagem'
 
-type Vista = { rotulo: string; transform: string; posicao: string }
-
-const VISTAS: Vista[] = [
-  { rotulo: 'Vista geral', transform: 'scale(1)', posicao: 'center' },
-  { rotulo: 'Detalhe da textura', transform: 'scale(1.8)', posicao: '30% 20%' },
-  { rotulo: 'Detalhe de perto', transform: 'scale(2.4)', posicao: '70% 60%' },
-  { rotulo: 'Base da peça', transform: 'scale(1.4)', posicao: '50% 85%' },
-]
+type GaleriaPecaProps = {
+  imagem: string
+  fotos?: FotoPeca[]
+  ordemFotos?: string[]
+  nome: string
+  desconto?: number
+}
 
 export default function GaleriaPeca({
   imagem,
+  fotos,
+  ordemFotos,
   nome,
   desconto,
-}: {
-  imagem: string
-  nome: string
-  desconto?: number
-}) {
-  const [ativa, definirAtiva] = useState(0)
-  const vista = VISTAS[ativa]
-  const reserva = fallbackDe(imagem)
+}: GaleriaPecaProps) {
+  const [ativa, definirAtiva] = useState<string | null>(null)
+
+  const fotosOrdenadas: FotoPeca[] = fotos?.length
+    ? [...fotos].sort((a, b) => {
+        const ordemA = ordemFotos?.indexOf(a.id) ?? -1
+        const ordemB = ordemFotos?.indexOf(b.id) ?? -1
+        if (ordemA >= 0 && ordemB >= 0) return ordemA - ordemB
+        if (ordemA >= 0) return -1
+        if (ordemB >= 0) return 1
+        return a.ordem - b.ordem
+      })
+    : [
+        {
+          id: 'capa',
+          nome,
+          url: imagem,
+          ordem: 0,
+        },
+      ]
+
+  const fotoAtual =
+    fotosOrdenadas.find((foto) => foto.id === ativa) ??
+    fotosOrdenadas[0]
+
+  const reserva = fallbackDe(fotoAtual?.url ?? imagem)
 
   return (
     <div>
@@ -33,42 +53,64 @@ export default function GaleriaPeca({
         {desconto ? (
           <span className="etiqueta-desconto etiqueta-desconto-sobre-foto">
             <IconeEtiqueta tamanho={13} />
-            {desconto}%<span className="so-leitor"> de desconto da plataforma</span>
+            {desconto}%
+            <span className="so-leitor">
+              {' '}de desconto da plataforma
+            </span>
           </span>
         ) : null}
+
         <div className="foto">
           <ImagemComFallback
-            src={imagem}
+            key={fotoAtual.id}
+            src={fotoAtual?.url ?? imagem}
             reserva={reserva}
-            alt={nome}
+            alt={`${nome} — ${fotoAtual?.nome ?? nome}`}
             className="galeria-principal-img"
-            style={{ transform: vista.transform, objectPosition: vista.posicao }}
+            style={{
+              transform: 'none',
+              objectPosition: 'center',
+            }}
           />
         </div>
       </div>
 
-      <div className="galeria-miniaturas">
-        {VISTAS.map((v, i) => (
-          <button
-            key={v.rotulo}
-            type="button"
-            className={`galeria-miniatura${i === ativa ? ' galeria-miniatura-ativa' : ''}`}
-            aria-pressed={i === ativa}
-            aria-label={`Ver ${v.rotulo}`}
-            title={v.rotulo}
-            onClick={() => definirAtiva(i)}
-          >
-            <span className="so-leitor">{v.rotulo}</span>
-            <ImagemComFallback
-              src={imagem}
-              reserva={reserva}
-              alt=""
-              loading="lazy"
-              style={{ transform: v.transform, objectPosition: v.posicao }}
-            />
-          </button>
-        ))}
-      </div>
+      {fotosOrdenadas.length > 1 && (
+        <div
+          className="galeria-miniaturas"
+          role="group"
+          aria-label={`Fotos de ${nome}`}
+        >
+          {fotosOrdenadas.map((foto, i) => {
+            const selecionada = foto.id === fotoAtual.id
+
+            return (
+              <button
+                key={foto.id}
+                type="button"
+                className={`galeria-miniatura${
+                  selecionada ? ' galeria-miniatura-ativa' : ''
+                }`}
+                aria-pressed={selecionada}
+                aria-label={`Ver foto ${i + 1} de ${nome}`}
+                title={`Foto ${i + 1}`}
+                onClick={() => definirAtiva(foto.id)}
+              >
+                <ImagemComFallback
+                  src={foto.url}
+                  reserva={fallbackDe(foto.url)}
+                  alt=""
+                  loading="lazy"
+                  style={{
+                    transform: 'none',
+                    objectPosition: 'center',
+                  }}
+                />
+              </button>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

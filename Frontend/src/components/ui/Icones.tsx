@@ -1,4 +1,16 @@
 import {
+  Amphora,
+  BadgePercent,
+  ChevronLeft,
+  ChevronRight,
+  Coffee,
+  Flame,
+  Flower2,
+  Frame,
+  Gem,
+  Shirt,
+  Sparkles,
+  Timer,
   AlertTriangle,
   ArrowLeft,
   ArrowRight,
@@ -168,4 +180,52 @@ export function IconeCasa({ tamanho = 18 }: Props) {
 
 export function IconeCalendario({ tamanho = 18 }: Props) {
   return <CalendarDays size={tamanho} {...padrao} />
+}
+
+export function IconeJarra({ tamanho = 18 }: Props) {
+  return <Amphora size={tamanho} {...padrao} />
+}
+
+export function IconeOferta({ tamanho = 18 }: Props) {
+  return <BadgePercent size={tamanho} {...padrao} />
+}
+
+export function IconeAnterior({ tamanho = 18 }: Props) {
+  return <ChevronLeft size={tamanho} {...padrao} />
+}
+
+export function IconeProximo({ tamanho = 18 }: Props) {
+  return <ChevronRight size={tamanho} {...padrao} />
+}
+
+export function IconeXicara({ tamanho = 18 }: Props) {
+  return <Coffee size={tamanho} {...padrao} />
+}
+
+export function IconeChama({ tamanho = 18 }: Props) {
+  return <Flame size={tamanho} {...padrao} />
+}
+
+export function IconeRenda({ tamanho = 18 }: Props) {
+  return <Flower2 size={tamanho} {...padrao} />
+}
+
+export function IconeQuadro({ tamanho = 18 }: Props) {
+  return <Frame size={tamanho} {...padrao} />
+}
+
+export function IconeJoia({ tamanho = 18 }: Props) {
+  return <Gem size={tamanho} {...padrao} />
+}
+
+export function IconeVestuario({ tamanho = 18 }: Props) {
+  return <Shirt size={tamanho} {...padrao} />
+}
+
+export function IconeBrilho({ tamanho = 18 }: Props) {
+  return <Sparkles size={tamanho} {...padrao} />
+}
+
+export function IconeRelogio({ tamanho = 18 }: Props) {
+  return <Timer size={tamanho} {...padrao} />
 }

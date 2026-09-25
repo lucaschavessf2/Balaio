@@ -56,3 +56,48 @@
 .campo textarea[aria-invalid="true"] {
   border-color: var(--vermelho-tinta);
 }
+
+.seletor-estado {
+  @apply relative;
+}
+
+.seletor-estado-campo {
+  @apply relative;
+}
+
+.seletor-estado-campo input {
+  @apply pr-12!;
+}
+
+.seletor-estado-botao {
+  @apply absolute right-1 top-1 bottom-1 w-10 flex items-center justify-center rounded-caixa text-tinta-suave transition-colors;
+}
+
+.seletor-estado-botao:hover,
+.seletor-estado-botao:focus-visible {
+  @apply bg-fundo text-destaque;
+}
+
+.seletor-estado-botao[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+}
+
+.seletor-estado-lista {
+  @apply absolute z-30 left-0 right-0 top-[calc(100%+6px)] max-h-64 overflow-y-auto list-none m-0 p-1.5 rounded-caixa border border-linha bg-superficie shadow-(--sombra);
+}
+
+.seletor-estado-opcao {
+  @apply grid grid-cols-[40px_1fr_20px] items-center gap-2 min-h-11 px-3 rounded-caixa cursor-pointer text-pequeno text-tinta;
+}
+
+.seletor-estado-opcao-ativa {
+  background: color-mix(in srgb, var(--destaque) 10%, var(--superficie));
+}
+
+.seletor-estado-sigla {
+  @apply font-bold text-destaque;
+}
+
+.seletor-estado-check {
+  @apply flex text-verde-tinta;
+}

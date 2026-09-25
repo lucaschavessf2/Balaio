@@ -39,11 +39,69 @@
 }
 
 .cabecalho-busca input {
-  @apply w-full h-[46px] rounded-pilula border-0 py-0 pr-[18px] pl-11 bg-superficie text-tinta;
+  @apply w-full h-[46px] rounded-pilula border-0 py-0 pr-[54px] pl-[18px] bg-superficie text-tinta;
 }
 
-.cabecalho-busca svg {
-  @apply absolute left-4 top-1/2 -translate-y-1/2 text-tinta-suave;
+.cabecalho-busca input[type='search']::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.cabecalho-busca-botao {
+  @apply absolute right-0 top-0 z-10 inline-flex h-[46px] w-12 items-center justify-center rounded-r-pilula border-0 border-l border-linha bg-transparent p-0 text-tinta-suave cursor-pointer;
+}
+
+.cabecalho-busca-botao:hover {
+  @apply bg-barro-fundo text-tinta;
+}
+
+.cabecalho-busca-botao:focus-visible {
+  outline: 2px solid var(--acao);
+  outline-offset: -2px;
+}
+
+.cabecalho-busca-botao svg {
+  @apply static translate-y-0;
+}
+
+.cabecalho-busca-painel {
+  @apply absolute left-0 right-0 top-[calc(100%+8px)] z-50 overflow-y-auto max-h-[min(360px,60vh)] rounded-caixa border border-linha bg-superficie text-tinta shadow-(--sombra-alta);
+}
+
+.cabecalho-busca-cabecalho {
+  @apply flex items-center justify-between gap-3 border-b border-linha px-4 py-3 text-mini font-bold;
+}
+
+.cabecalho-busca-cabecalho button {
+  @apply border-0 bg-transparent p-0 text-mini font-semibold text-destaque cursor-pointer;
+}
+
+.cabecalho-busca-painel ul {
+  @apply list-none m-0 p-1.5;
+}
+
+.cabecalho-busca-painel li a {
+  @apply flex items-center gap-2 min-h-10 w-full rounded-caixa px-3 py-2 text-pequeno font-semibold text-tinta;
+}
+
+.cabecalho-busca-painel li a:hover {
+  @apply bg-barro-fundo no-underline;
+}
+
+.cabecalho-busca-painel li a:focus-visible {
+  outline: 2px solid var(--acao);
+  outline-offset: -2px;
+}
+
+.cabecalho-busca-painel li a svg {
+  @apply static shrink-0 translate-y-0 text-tinta-suave;
+}
+
+.cabecalho-busca-painel li a span {
+  @apply min-w-0 overflow-hidden text-ellipsis whitespace-nowrap;
+}
+
+.cabecalho-busca-painel > p {
+  @apply m-0 px-4 py-3 text-pequeno text-tinta-suave;
 }
 
 .cabecalho-acoes {
@@ -68,14 +126,6 @@
 
 .contador {
   @apply bg-acao text-branco rounded-pilula min-w-5 h-5 inline-flex items-center justify-center text-mini font-bold px-[5px];
-}
-
-.cabecalho-link.mapa {
-  border: 1px solid rgba(255, 255, 255, 0.5);
-}
-
-.cabecalho-link.mapa:hover {
-  background: rgba(255, 255, 255, 0.2);
 }
 
 .alternador {
@@ -175,4 +225,109 @@
 
 .drawer .menu-lateral {
   @apply block border-0 shadow-none p-0 bg-transparent;
+}
+
+.barra-departamentos {
+  @apply border-t border-[rgba(255,255,255,0.14)] bg-[rgba(0,0,0,0.14)];
+}
+
+.barra-departamentos-linha {
+  @apply flex items-center gap-4 min-h-11 px-6 xl:px-16;
+}
+
+.departamentos {
+  @apply relative flex-none;
+}
+
+.departamentos-gatilho {
+  @apply flex items-center gap-2 min-h-11 px-3 -ml-3 rounded-caixa text-pequeno font-bold text-branco cursor-pointer list-none select-none;
+}
+
+.departamentos-gatilho::-webkit-details-marker {
+  display: none;
+}
+
+.departamentos-gatilho:hover,
+.departamentos[open] .departamentos-gatilho {
+  @apply bg-[rgba(255,255,255,0.14)];
+}
+
+.departamentos-gatilho svg:last-child {
+  transition: transform 150ms ease;
+}
+
+.departamentos[open] .departamentos-gatilho svg:last-child {
+  transform: rotate(180deg);
+}
+
+.departamentos-painel {
+  @apply absolute left-0 top-[calc(100%+8px)] z-50 grid grid-cols-3 gap-8 w-[min(760px,calc(100vw-48px))] p-6 rounded-grande border border-linha bg-superficie text-tinta shadow-(--sombra-alta);
+  animation: departamentos-abre 140ms ease;
+}
+
+.departamentos-grupo-titulo {
+  @apply mb-3 text-mini font-bold uppercase tracking-wider text-barro-tinta;
+}
+
+.departamentos-grupo ul {
+  @apply grid gap-1 list-none m-0 p-0;
+}
+
+.departamentos-grupo a {
+  @apply block py-1.5 text-pequeno text-tinta;
+}
+
+.departamentos-grupo a:hover {
+  @apply text-destaque;
+}
+
+.departamentos-rapidos {
+  @apply flex items-center gap-1 list-none m-0 p-0 overflow-x-auto;
+  scrollbar-width: none;
+}
+
+.departamentos-rapidos a {
+  @apply inline-flex items-center min-h-11 px-3 rounded-caixa text-pequeno font-semibold text-branco whitespace-nowrap;
+}
+
+.departamentos-rapidos a:hover {
+  @apply bg-[rgba(255,255,255,0.14)] no-underline;
+}
+
+.departamentos-mobile {
+  @apply overflow-x-auto pb-2.5;
+  scrollbar-width: none;
+}
+
+.departamentos-mobile-lista {
+  @apply flex gap-2 list-none m-0 px-5 py-0;
+}
+
+.departamentos-mobile-chip {
+  @apply inline-flex items-center min-h-9 px-3.5 rounded-pilula border border-[rgba(255,255,255,0.35)] text-mini font-semibold text-branco whitespace-nowrap;
+}
+
+.departamentos-mobile-chip:hover {
+  @apply no-underline bg-[rgba(255,255,255,0.14)];
+}
+
+.departamentos-mobile-chip-todos {
+  @apply bg-amarelo text-tinta-fixa border-amarelo;
+}
+
+@keyframes departamentos-abre {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .departamentos-painel {
+    animation: none;
+  }
 }

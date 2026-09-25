@@ -1,16 +1,18 @@
 import Link from 'next/link'
-import LayoutPainel from '@/components/painel/LayoutPainel'
 import { Migalhas } from '@/components/ui/Basicos'
 import PedidosPendentes from '@/components/pedido/PedidosPendentes'
 import { IconeSetaDireita } from '@/components/ui/Icones'
-import { listarPedidosPendentes, listarConversasArtesao } from '@/services/api/pedidos.servico'
-import { listarPecas } from '@/services/api/pecas.servico'
+import { listarPedidos, listarPedidosPendentes, listarConversasArtesao } from '@/services/api/pedidos.servico'
+import { pecasPorArtesao } from '@/services/api/pecas.servico'
+import { exigirArtesao } from '@/services/autenticacao'
 
 export default async function Painel() {
-  const [{ dados: pend }, { dados: conversas }, { dados: pecas }] = await Promise.all([
-    listarPedidosPendentes(),
-    listarConversasArtesao(),
-    listarPecas(),
+  const { artesao } = await exigirArtesao()
+  const [{ dados: pend }, { dados: conversas }, { dados: pecas }, { dados: pedidos }] = await Promise.all([
+    listarPedidosPendentes(artesao.slug),
+    listarConversasArtesao(artesao.slug),
+    pecasPorArtesao(artesao.slug),
+    listarPedidos(),
   ])
   const mapaPecas = new Map((pecas ?? []).map((p) => [p.slug, p]))
   const conversasArtesao = conversas ?? []
@@ -29,16 +31,48 @@ export default async function Painel() {
   })
 
   const naoLidas = conversasArtesao.filter((c) => c.naoLida).length
+  const slugsDoArtesao = new Set((pecas ?? []).filter((peca) => peca.artesao === artesao.slug).map((peca) => peca.slug))
+  const pedidosDoArtesao = (pedidos ?? []).filter((pedido) =>
+    (pedido.itens ?? [{ slug: pedido.pecaSlug }]).some((item) => slugsDoArtesao.has(item.slug)),
+  )
+  const estadosEncerrados = new Set(['recusado', 'cancelado', 'reembolsado'])
+  const pecasUnicasVendidas = new Set(
+    pedidosDoArtesao.filter((pedido) => !estadosEncerrados.has(pedido.estado)).flatMap((pedido) =>
+      (pedido.itens ?? [{ slug: pedido.pecaSlug }])
+        .filter((item) => mapaPecas.get(item.slug)?.disponibilidade === 'unica')
+        .map((item) => item.slug),
+    ),
+  )
+  const pecasAtivas = (pecas ?? []).filter((peca) =>
+    !peca.inativadoEm && !pecasUnicasVendidas.has(peca.slug) && (peca.situacao ?? 'publicada') === 'publicada',
+  ).length
+  const avisosPecas = (pecas ?? []).flatMap((peca) => {
+    if (pecasUnicasVendidas.has(peca.slug) || peca.vendidaEmPedido) return [{ slug: peca.slug, nome: peca.nome, motivo: 'Peça única vendida' }]
+    if (peca.inativadoEm) return [{ slug: peca.slug, nome: peca.nome, motivo: 'Peça inativada' }]
+    return []
+  })
+  const agora = new Date()
+  const noMesAtual = (data: string) => {
+    const [dia, mes, ano] = data.split('/').map(Number)
+    const dataPedido = new Date(ano, mes - 1, dia)
+    return dataPedido.getMonth() === agora.getMonth() && dataPedido.getFullYear() === agora.getFullYear()
+  }
 
   return (
-    <LayoutPainel ativo="pedidos">
+    <>
       <Migalhas trilha={[{ texto: 'Painel do artesão', href: '/dashboard' }, { texto: 'Pedidos pendentes' }]} />
       <h1 className="titulo-pagina">Gerenciamento de pedidos</h1>
       <p className="subtitulo-pagina">
         Aceite os pedidos novos para começar a produzir. Quem comprou é avisado a cada etapa que você marcar.
       </p>
 
-      <PedidosPendentes iniciais={pendentes} faturamentoMes={8940} />
+      <PedidosPendentes
+        iniciais={pendentes}
+        emProducao={pedidosDoArtesao.filter((pedido) => pedido.estado === 'producao').length}
+        pecasAtivas={pecasAtivas}
+        avisosPecas={avisosPecas}
+        faturamentoMes={pedidosDoArtesao.filter((pedido) => !estadosEncerrados.has(pedido.estado) && noMesAtual(pedido.data)).reduce((total, pedido) => total + pedido.total, 0)}
+      />
 
       <section className="secao">
         <h2 className="secao-titulo">Conversas</h2>
@@ -53,6 +87,6 @@ export default async function Painel() {
           </Link>
         </div>
       </section>
-    </LayoutPainel>
+    </>
   )
 }

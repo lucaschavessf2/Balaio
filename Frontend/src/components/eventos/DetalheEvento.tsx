@@ -4,16 +4,17 @@ import Link from 'next/link'
 import { Retrato } from '@/components/ui/Basicos'
 import { IconeSetaDireita } from '@/components/ui/Icones'
 import MapaEventosCliente from '@/components/eventos/MapaEventosCliente'
-import { rotuloTipoEvento, type Evento } from '@/mocks/eventos'
-import { acharArtesao } from '@/mocks/artesaos'
-import { acharColetivo } from '@/mocks/coletivos'
+import { rotuloTipoEvento } from '@/constants/eventos'
+import type { Evento } from '@/types/dominio'
+import { useDados } from '@/store/dados'
 
 export default function DetalheEvento({ evento }: { evento: Evento }) {
+  const { artesaos, coletivos } = useDados()
   const artesaosDoEvento = evento.artesaos
-    .map(acharArtesao)
+    .map((slug) => artesaos.find((a) => a.slug === slug))
     .filter((artesao): artesao is NonNullable<typeof artesao> => Boolean(artesao))
   const coletivosDoEvento = evento.coletivos
-    .map(acharColetivo)
+    .map((slug) => coletivos.find((c) => c.slug === slug))
     .filter((coletivo): coletivo is NonNullable<typeof coletivo> => Boolean(coletivo))
   const semParticipantes = artesaosDoEvento.length === 0 && coletivosDoEvento.length === 0
 

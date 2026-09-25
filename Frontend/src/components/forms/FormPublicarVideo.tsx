@@ -1,14 +1,20 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
+import { criarVideo } from '@/services/api/videos.servico'
 import { useRef, useState, type FormEvent } from 'react'
 import { Campo } from '@/components/ui/Basicos'
 import { avisar } from '@/components/feedback/Avisos'
 import { validarObrigatorio } from '@/utils/validacao'
 import { IconePincel } from '@/components/ui/Icones'
+import { useSessao } from '@/store/sessao'
 
 type PecaVinculavel = { slug: string; nome: string }
 
 export default function FormPublicarVideo({ pecas }: { pecas: PecaVinculavel[] }) {
+  const roteador = useRouter()
+  const { sessao } = useSessao()
+  const [salvando, definirSalvando] = useState(false)
   const formulario = useRef<HTMLFormElement>(null)
   const [erroLegenda, definirErroLegenda] = useState<string | null>(null)
   const [temVideo, definirTemVideo] = useState(false)
@@ -33,18 +39,24 @@ export default function FormPublicarVideo({ pecas }: { pecas: PecaVinculavel[] }
     definirTemVideo(false)
   }
 
-  function publicar(evento: FormEvent<HTMLFormElement>) {
-    evento.preventDefault()
-    if (!validar()) return
+  async function salvar(rascunho: boolean) {
+    if (salvando || !validar() || !sessao?.artesao) return
+    const dados = new FormData(formulario.current!)
+    definirSalvando(true)
+    const resposta = await criarVideo({
+      id: crypto.randomUUID(), artesao: '', peca: String(dados.get('peca') || ''),
+      legenda: String(dados.get('legenda')), etiquetas: String(dados.get('etiquetas') || '').split(/\s+/).filter(Boolean),
+      duracao: '0:00', visualizacoes: 0, curtidas: 0, comentarios: 0,
+      publicadoEm: rascunho ? 'Rascunho' : 'agora', capa: '/fotos/ImagemBase.webp', situacao: rascunho ? 'rascunho' : 'publicada',
+    })
+    definirSalvando(false)
+    if (resposta.erro) { avisar.erro('Não foi possível salvar', resposta.erro.mensagem); return }
     limpar()
-    avisar.sucesso('Vídeo enviado para curadoria', 'Ele entra no feed assim que for aprovado.')
+    avisar.sucesso(rascunho ? 'Rascunho salvo' : 'Vídeo de demonstração publicado')
+    roteador.refresh()
   }
-
-  function salvarRascunho() {
-    if (!validar()) return
-    limpar()
-    avisar.sucesso('Rascunho de vídeo salvo')
-  }
+  function publicar(evento: FormEvent<HTMLFormElement>) { evento.preventDefault(); void salvar(false) }
+  function salvarRascunho() { void salvar(true) }
 
   return (
     <form ref={formulario} onSubmit={publicar} noValidate>
@@ -56,7 +68,7 @@ export default function FormPublicarVideo({ pecas }: { pecas: PecaVinculavel[] }
           <span style={{ display: 'block', fontWeight: 600, color: 'var(--tinta)' }}>
             {temVideo ? 'Vídeo escolhido' : 'Toque para escolher o vídeo'}
           </span>
-          <span className="campo-ajuda">MP4 ou MOV, até 2 minutos e 200 MB.</span>
+          <span className="campo-ajuda">Demonstração: apenas legenda e etiquetas são salvas; o arquivo não é enviado.</span>
           <input
             type="file"
             accept="video/mp4,video/quicktime"
@@ -98,10 +110,10 @@ export default function FormPublicarVideo({ pecas }: { pecas: PecaVinculavel[] }
         </Campo>
 
         <div className="acoes-linha">
-          <button type="submit" className="botao botao-primario">
+          <button disabled={salvando} type="submit" className="botao botao-primario">
             Publicar
           </button>
-          <button type="button" className="botao botao-fantasma" onClick={salvarRascunho}>
+          <button type="button" className="botao botao-fantasma" disabled={salvando} onClick={salvarRascunho}>
             Salvar rascunho
           </button>
         </div>

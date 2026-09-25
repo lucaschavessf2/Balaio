@@ -1,20 +1,21 @@
+'use client'
+
 import Link from 'next/link'
 import { Retrato } from '@/components/ui/Basicos'
 import BotaoSair from '@/components/conta/BotaoSair'
 import { IconeCadeado, IconeCoracao, IconeMapa, IconePacote, IconePincel, IconeUsuario } from '@/components/ui/Icones'
-import { pedidos } from '@/mocks/pedidos'
-import { usuarioAtual } from '@/mocks/usuario'
+import type { Usuario } from '@/types/dominio'
 
 export type ChaveConta = 'pedidos' | 'favoritos' | 'enderecos' | 'dados'
 
-export default function MenuConta({ ativo }: { ativo?: ChaveConta }) {
+export default function MenuConta({ ativo, usuario, totalPedidos = 0 }: { ativo?: ChaveConta; usuario: Usuario; totalPedidos?: number }) {
   return (
     <nav className="menu-lateral" aria-label="Minha conta">
       <div className="menu-oficina">
-        <Retrato imagem={usuarioAtual.imagem} tamanho={44} />
+        <Retrato imagem={usuario.imagem} tamanho={44} />
         <div className="encolhivel">
-          <p className="menu-oficina-nome">{usuarioAtual.nome}</p>
-          <p className="menu-oficina-local">{usuarioAtual.email}</p>
+          <p className="menu-oficina-nome">{usuario.nome}</p>
+          <p className="menu-oficina-local">{usuario.email}</p>
         </div>
       </div>
 
@@ -26,7 +27,7 @@ export default function MenuConta({ ativo }: { ativo?: ChaveConta }) {
         >
           <IconePacote />
           Meus pedidos
-          <span className="menu-marcador">{pedidos.length}</span>
+          <span className="menu-marcador">{totalPedidos}</span>
         </Link>
         <Link
           href="/favorites"
@@ -52,14 +53,16 @@ export default function MenuConta({ ativo }: { ativo?: ChaveConta }) {
           <IconeUsuario />
           Meus dados
         </Link>
-        <Link href="/login/recover" className="menu-item">
+        <Link href="/account/details#seguranca" className="menu-item">
           <IconeCadeado />
           Alterar senha
         </Link>
-        <Link href="/dashboard" className="menu-item">
-          <IconePincel />
-          Painel do artesão
-        </Link>
+        {usuario.perfil === 'artesao' && (
+          <Link href="/dashboard" className="menu-item">
+            <IconePincel />
+            Painel do artesão
+          </Link>
+        )}
         <BotaoSair />
       </div>
     </nav>

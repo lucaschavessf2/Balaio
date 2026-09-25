@@ -6,10 +6,11 @@ import { Campo, Retrato } from '@/components/ui/Basicos'
 import { avisar } from '@/components/feedback/Avisos'
 import { validarObrigatorio } from '@/utils/validacao'
 import MapaEventosCliente from '@/components/eventos/MapaEventosCliente'
-import { gerarSlugEvento, salvarEventoLocal } from '@/components/eventos/eventosLocais'
-import { municipiosPE, rotuloTipoEvento, type Evento, type Ponto, type TipoEvento } from '@/mocks/eventos'
-import { artesaos } from '@/mocks/artesaos'
-import { coletivos } from '@/mocks/coletivos'
+import { criarEvento } from '@/services/api/eventos.servico'
+import { gerarSlugEvento } from '@/components/eventos/eventosLocais'
+import { municipiosPE, rotuloTipoEvento } from '@/constants/eventos'
+import type { Evento, Ponto, TipoEvento } from '@/types/dominio'
+import { useDados } from '@/store/dados'
 
 const idPorCampo: Record<string, string> = {
   nome: 'evento-nome',
@@ -18,10 +19,12 @@ const idPorCampo: Record<string, string> = {
   cidade: 'evento-cidade',
   local: 'evento-local',
   descricao: 'evento-descricao',
-  participantes: `participante-${artesaos[0].slug}`,
+  participantes: 'participantes',
 }
 
 export default function FormCriarEvento() {
+  const { artesaos, coletivos, erro: erroParticipantes } = useDados()
+  const [salvando, definirSalvando] = useState(false)
   const [nome, definirNome] = useState('')
   const [tipo, definirTipo] = useState<TipoEvento>('feira')
   const [organizador, definirOrganizador] = useState('')
@@ -90,8 +93,9 @@ export default function FormCriarEvento() {
     definirPublicado(null)
   }
 
-  function enviar(evento: FormEvent<HTMLFormElement>) {
+  async function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
+    if (salvando) return
 
     const problemas: Record<string, string> = {}
     const conferencias: [string, string | null][] = [
@@ -137,9 +141,12 @@ export default function FormCriarEvento() {
       criadoPorVoce: true,
     }
 
-    salvarEventoLocal(novoEvento)
-    avisar.sucesso('Evento publicado na agenda', 'Ele já aparece no mapa da vitrine e na agenda deste navegador.')
-    definirPublicado(novoEvento)
+    definirSalvando(true)
+    const resposta = await criarEvento(novoEvento)
+    definirSalvando(false)
+    if (resposta.erro) { avisar.erro('Não foi possível publicar', resposta.erro.mensagem); return }
+    avisar.sucesso('Evento publicado na agenda')
+    definirPublicado(resposta.dados)
   }
 
   if (publicado) {
@@ -152,7 +159,7 @@ export default function FormCriarEvento() {
         <h2 className="secao-titulo">Evento na agenda!</h2>
         <p className="texto-suave abaixo-4">
           “{publicado.nome}” já aparece no mapa da vitrine e na agenda, com o pino marcado em {publicado.cidade}.
-          Enquanto não há backend, ele fica salvo apenas neste navegador.
+          O evento foi salvo e está disponível na agenda.
         </p>
         <div className="acoes-linha acoes-empilhaveis">
           <Link href={`/events/${publicado.slug}`} className="botao botao-primario">
@@ -172,6 +179,7 @@ export default function FormCriarEvento() {
   return (
     <form className="cartao" onSubmit={enviar} noValidate>
       <h2 className="secao-titulo">Dados do evento</h2>
+      {erroParticipantes && <p role="alert">{erroParticipantes}</p>}
 
       <Campo rotulo="Nome do evento" id="evento-nome" erro={erros.nome}>
         <input
@@ -313,7 +321,7 @@ export default function FormCriarEvento() {
         />
       </Campo>
 
-      <fieldset className="campo" style={{ border: 0, padding: 0, margin: 0 }}>
+      <fieldset id="participantes" tabIndex={-1} className="campo" style={{ border: 0, padding: 0, margin: 0 }}>
         <legend className="campo-rotulo">Quem vai participar?</legend>
         <span className="campo-ajuda">Marque os artesãos e coletivos da plataforma confirmados no evento.</span>
         <div className="lista-participantes">
@@ -361,7 +369,7 @@ export default function FormCriarEvento() {
       </fieldset>
 
       <div className="acoes-linha acoes-empilhaveis acima-4">
-        <button type="submit" className="botao botao-primario">
+        <button disabled={salvando || !!erroParticipantes} type="submit" className="botao botao-primario">
           Publicar na agenda
         </button>
         <Link href="/events" className="botao botao-fantasma">

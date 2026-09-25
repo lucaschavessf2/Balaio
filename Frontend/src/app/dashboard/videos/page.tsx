@@ -1,13 +1,13 @@
 import Link from 'next/link'
-import LayoutPainel from '@/components/painel/LayoutPainel'
 import { Migalhas } from '@/components/ui/Basicos'
 import FormPublicarVideo from '@/components/forms/FormPublicarVideo'
 import { IconeAviso, IconeGrafico, IconeSetaDireita } from '@/components/ui/Icones'
 import ImagemComFallback from '@/components/ui/ImagemComFallback'
-import { emMilhares } from '@/mocks/videos'
-import { fallbackDe } from '@/mocks/imagens'
+import { emMilhares } from '@/utils/formato'
+import { fallbackDe } from '@/utils/imagem'
 import { listarVideos } from '@/services/api/videos.servico'
 import { pecasPorArtesao } from '@/services/api/pecas.servico'
+import { exigirArtesao } from '@/services/autenticacao'
 
 const dicas = [
   'Filme na horizontal do celular apoiado, ou na vertical se for mostrar as mãos de perto.',
@@ -21,15 +21,16 @@ function resumirLegenda(legenda: string): string {
 }
 
 export default async function PublicarVideo() {
+  const { artesao } = await exigirArtesao()
   const [{ dados: todosVideos }, { dados: pecasArtesao }] = await Promise.all([
-    listarVideos(),
-    pecasPorArtesao('mestre-nuca'),
+    listarVideos(true),
+    pecasPorArtesao(artesao.slug),
   ])
-  const meus = (todosVideos ?? []).filter((v) => v.artesao === 'mestre-nuca')
+  const meus = (todosVideos ?? []).filter((v) => v.artesao === artesao.slug)
   const pecas = (pecasArtesao ?? []).map((p) => ({ slug: p.slug, nome: p.nome }))
 
   return (
-    <LayoutPainel ativo="videos">
+    <>
       <Migalhas trilha={[{ texto: 'Painel do artesão', href: '/dashboard' }, { texto: 'Vídeos' }]} />
       <h1 className="titulo-pagina">Publicar um vídeo</h1>
       <p className="subtitulo-pagina">
@@ -77,12 +78,12 @@ export default async function PublicarVideo() {
           <p className="aviso">
             <IconeAviso />
             <span>
-              O vídeo também passa por <strong>curadoria</strong>, pelos mesmos critérios das peças: precisa ser do
-              seu trabalho e mostrar a sua produção.
+              O vídeo precisa ser do <strong>seu trabalho</strong> e mostrar a sua produção. Conteúdo de terceiros é
+              retirado do ar.
             </span>
           </p>
         </aside>
       </div>
-    </LayoutPainel>
+    </>
   )
 }

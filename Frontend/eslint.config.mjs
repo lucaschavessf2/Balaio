@@ -1,12 +1,18 @@
-import { FlatCompat } from '@eslint/eslintrc'
+import nextConfig from 'eslint-config-next/core-web-vitals'
+import nextTypescriptConfig from 'eslint-config-next/typescript'
 
-const compat = new FlatCompat({ baseDirectory: import.meta.dirname })
-
-export default [
-  ...compat.extends('next/core-web-vitals', 'next/typescript'),
+const config = [
+  ...nextConfig,
+  ...nextTypescriptConfig,
   {
     rules: {
       '@next/next/no-img-element': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
+      'import/no-anonymous-default-export': 'off',
+      'react-hooks/refs': 'off',
+      'react-hooks/set-state-in-effect': 'off',
     },
   },
 ]
+
+export default config

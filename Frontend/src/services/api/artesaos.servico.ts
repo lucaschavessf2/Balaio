@@ -1,15 +1,36 @@
-import { artesaos, acharArtesao } from '@/mocks/artesaos'
 import { type Artesao } from '@/types/dominio'
-import { API_FAKE, buscar } from './cliente'
-import { falha, sucesso, type RespostaApi } from './tipos'
+import { buscar, enviar } from './cliente'
+import { type RespostaApi } from './tipos'
 
 export async function listarArtesaos(): Promise<RespostaApi<Artesao[]>> {
-  if (!API_FAKE) return buscar<Artesao[]>('/artesaos')
-  return sucesso(artesaos)
+  return buscar<Artesao[]>('/artesaos')
 }
 
 export async function obterArtesao(slug: string): Promise<RespostaApi<Artesao>> {
-  if (!API_FAKE) return buscar<Artesao>(`/artesaos/${slug}`)
-  const artesao = acharArtesao(slug)
-  return artesao ? sucesso(artesao) : falha('RECURSO_NAO_ENCONTRADO', 'Artesão não encontrado.')
+  return buscar<Artesao>(`/artesaos/${encodeURIComponent(slug)}`)
+}
+
+export const obterMeuAtelie = (token?: string) => buscar<Artesao>('/artesao/me', token ? { headers: { Authorization: `Bearer ${token}` } } : undefined)
+export const atualizarMeuAtelie = (alteracoes: Partial<Artesao>) => enviar<Artesao>('/artesao/me', alteracoes, 'PATCH')
+
+export type PerfilArtesao = Pick<Artesao, 'nome' | 'atelie' | 'historia' | 'territorio' | 'tecnica' | 'imagem'>
+
+export function atualizarArtesao(slug: string, perfil: Partial<PerfilArtesao>): Promise<RespostaApi<Artesao>> {
+  return enviar<Artesao>(`/artesaos/${encodeURIComponent(slug)}`, perfil, 'PATCH')
+}
+
+export type ConfiguracoesAtelie = {
+  cepOrigem: string
+  prazoPadraoDias: number
+  aceitaEncomendas: boolean
+  encomendasPausadas: boolean
+  chavePix: string
+}
+
+export function obterConfiguracoes(slug: string): Promise<RespostaApi<ConfiguracoesAtelie>> {
+  return buscar<ConfiguracoesAtelie>(`/artesaos/${encodeURIComponent(slug)}/configuracoes`)
+}
+
+export function atualizarConfiguracoes(slug: string, alteracoes: Partial<ConfiguracoesAtelie>): Promise<RespostaApi<ConfiguracoesAtelie>> {
+  return enviar<ConfiguracoesAtelie>(`/artesaos/${encodeURIComponent(slug)}/configuracoes`, alteracoes, 'PATCH')
 }

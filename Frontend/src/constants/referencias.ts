@@ -17,3 +17,14 @@ export const territorios = [
 ]
 
 export const categorias = ['Decoração & Arte', 'Casa & Mesa', 'Vestuário & Acessórios']
+
+export const tipos = [
+  'Jarras & Vasos',
+  'Esculturas & Bonecos',
+  'Mesa & Cozinha',
+  'Toalhas & Rendas',
+  'Couro: Bolsas, Cintos & Gibões',
+  'Gravuras & Cordéis',
+] as const
+
+export type TipoPeca = (typeof tipos)[number]
