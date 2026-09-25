@@ -3,9 +3,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { listarArtesaos } from '@/services/api/artesaos.servico'
 import { listarColetivos } from '@/services/api/coletivos.servico'
-import type { Artesao } from '@/types/dominio'
-import type { Coletivo } from '@/mocks/coletivos'
-import type { OpcaoFrete } from '@/mocks/frete'
+import type { Artesao, Coletivo, OpcaoFrete } from '@/types/dominio'
 import { listarFretes } from '@/services/api/conta.servico'
 
 type Dados = { artesaos: Artesao[]; coletivos: Coletivo[]; fretes: OpcaoFrete[]; carregando: boolean; erro: string | null }

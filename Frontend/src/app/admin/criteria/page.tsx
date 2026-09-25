@@ -3,15 +3,15 @@ import { Migalhas } from '@/components/ui/Basicos'
 import { IconeAviso, IconeCheck, IconeSelo } from '@/components/ui/Icones'
 
 const aprovamos = [
-  'Peça feita à mão, com técnica e território identificáveis.',
-  'Fotos próprias, que mostrem o detalhe do acabamento.',
-  'História que explique a origem e o processo.',
+  'Trabalho feito à mão, com técnica e território identificáveis.',
+  'Peças publicadas com fotos próprias, que mostrem o acabamento.',
+  'Vínculo com a associação ou comunidade do território.',
 ]
 
 const devolvemos = [
-  'Produto industrializado ou revenda de terceiros.',
-  'Foto de banco de imagens ou de outro artesão.',
-  'Origem não verificável junto à associação do território.',
+  'Loja com produto industrializado ou revenda de terceiros.',
+  'Fotos de banco de imagens ou de outro artesão.',
+  'Origem não confirmada junto à associação do território.',
 ]
 
 export default function Criterios() {
@@ -21,14 +21,14 @@ export default function Criterios() {
 
       <h1 className="titulo-pagina">Critérios de curadoria</h1>
       <p className="subtitulo-pagina">
-        A régua que vale para toda peça analisada. Quem pede ajuste explica o motivo com base nesta lista.
+        A régua para conceder o selo de artesão verificado. O selo não bloqueia vendas: quem pede ajuste explica o motivo com base nesta lista.
       </p>
 
       <div className="grade-dois">
         <section className="cartao">
           <p className="campo-rotulo secao-titulo-icone abaixo-3">
             <IconeSelo />
-            O que aprovamos
+            O que garante o selo
           </p>
           <ul className="lista-criterios">
             {aprovamos.map((criterio) => (
@@ -42,7 +42,7 @@ export default function Criterios() {
 
         <section className="cartao">
           <p className="campo-rotulo secao-titulo-icone abaixo-3">
-            <IconeAviso />O que devolvemos para ajuste
+            <IconeAviso />O que pede ajuste antes do selo
           </p>
           <ul className="lista-criterios lista-criterios-atencao">
             {devolvemos.map((criterio) => (

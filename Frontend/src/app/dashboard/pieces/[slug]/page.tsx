@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import NovaPeca from '../new/page'
+import FormPeca from '@/components/painel/FormPeca'
 import { pecasPorArtesao } from '@/services/api/pecas.servico'
 import { exigirArtesao } from '@/services/autenticacao'
 
@@ -11,5 +11,5 @@ export default async function EditarPeca({ params }: Props) {
   const resposta = await pecasPorArtesao(artesao.slug)
   const peca = resposta.dados?.find((item) => item.slug === slug)
   if (!peca) notFound()
-  return <NovaPeca initialPeca={peca} />
+  return <FormPeca key={peca.slug} peca={peca} />
 }

@@ -47,16 +47,16 @@ export const telas: Tela[] = [
   { rota: '/events/new', nome: 'Criar evento', descricao: 'Organizador publica feira ou festival com ponto no mapa e participantes.', fluxo: 'organizador', requisitos: [] },
 
   { rota: '/dashboard', nome: 'Painel de pedidos', descricao: 'Métricas do mês e pedidos aguardando aceitação.', fluxo: 'artesao', requisitos: ['RF-13'] },
-  { rota: '/dashboard/pieces', nome: 'Minhas peças', descricao: 'Publicadas, em curadoria e rascunhos.', fluxo: 'artesao', requisitos: ['RF-03'] },
+  { rota: '/dashboard/pieces', nome: 'Minhas peças', descricao: 'Publicadas e rascunhos.', fluxo: 'artesao', requisitos: ['RF-03'] },
   { rota: '/dashboard/pieces/new', nome: 'Cadastrar peça', descricao: 'Formulário com apoio à precificação e disponibilidade.', fluxo: 'artesao', requisitos: ['RF-03', 'RF-09'] },
   { rota: '/dashboard/videos', nome: 'Publicar vídeo', descricao: 'Upload, legenda, etiquetas e vínculo com a peça.', fluxo: 'artesao', requisitos: ['RF-15'] },
   { rota: '/dashboard/messages', nome: 'Central de mensagens', descricao: 'Fios de conversa por pedido e por pergunta.', fluxo: 'artesao', requisitos: ['RF-08', 'RF-17'] },
   { rota: '/dashboard/sales', nome: 'Vendas e insights', descricao: 'Faturamento por mês, peças que mais vendem e leituras dos números.', fluxo: 'artesao', requisitos: ['RF-14'] },
   { rota: '/dashboard/settings', nome: 'Configurações da oficina', descricao: 'Identidade do ateliê, envio, prazo e recebimento.', fluxo: 'artesao', requisitos: ['RF-13'] },
 
-  { rota: '/admin', nome: 'Curadoria e mediação', descricao: 'Fila de aprovação de peças e disputas abertas.', fluxo: 'plataforma', requisitos: ['RF-16', 'RF-19'] },
+  { rota: '/admin', nome: 'Curadoria e mediação', descricao: 'Selo de artesão verificado e disputas abertas.', fluxo: 'plataforma', requisitos: ['RF-16', 'RF-19'] },
   { rota: '/admin/mediations', nome: 'Mediações', descricao: 'Disputas abertas pelos compradores aguardando a plataforma.', fluxo: 'plataforma', requisitos: ['RF-19'] },
-  { rota: '/admin/criteria', nome: 'Critérios de curadoria', descricao: 'Regras que a plataforma aplica ao aprovar ou recusar uma peça.', fluxo: 'plataforma', requisitos: ['RF-16'] },
+  { rota: '/admin/criteria', nome: 'Critérios de curadoria', descricao: 'Regras que a curadoria aplica ao conceder o selo de artesão verificado.', fluxo: 'plataforma', requisitos: ['RF-16'] },
   { rota: '/route-that-does-not-exist', nome: 'Página não encontrada', descricao: 'Estado de erro 404 do sistema.', fluxo: 'plataforma', requisitos: [] },
 
   { rota: '/about/who-we-are', nome: 'Quem somos', descricao: 'A origem do projeto e o que ele defende.', fluxo: 'institucional', requisitos: [] },

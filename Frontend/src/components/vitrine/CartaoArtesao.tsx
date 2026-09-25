@@ -11,7 +11,7 @@ export default function CartaoArtesao({ artesao, totalPecas }: { artesao: Artesa
         {artesao.selo && (
           <span className="cartao-artesao-selo">
             <IconeSelo tamanho={14} />
-            Selo de origem
+            Artesão verificado
           </span>
         )}
       </span>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { distanciaKm, type Evento } from '@/mocks/eventos'
+import { distanciaKm } from '@/utils/eventos'
+import type { Evento } from '@/types/dominio'
 import { listarEventos } from '@/services/api/eventos.servico'
 import { useLocalizacao } from '@/hooks/useLocalizacao'
 import type { PontoEvento } from '@/components/eventos/MapaEventos'

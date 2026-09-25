@@ -1,4 +1,4 @@
-import type { ConversaArtesao, ItemCuradoria, Mediacao, Mensagem, Pedido, PedidoPendente } from '@/types/dominio'
+import type { ConversaArtesao, Mediacao, Mensagem, Pedido, PedidoPendente } from '@/types/dominio'
 import { buscar, enviar } from './cliente'
 import { type RespostaApi } from './tipos'
 
@@ -53,10 +53,6 @@ export const recusarPedido = (id: string, motivo: string) =>
 
 export const cancelarPedido = (id: string) =>
   enviar<Pedido>(`/pedidos/${encodeURIComponent(id)}/cancelar`, {}, 'PATCH')
-
-export async function listarFilaCuradoria(): Promise<RespostaApi<ItemCuradoria[]>> {
-  return buscar<ItemCuradoria[]>('/admin/curadoria')
-}
 
 export async function listarMediacoes(): Promise<RespostaApi<Mediacao[]>> {
   return buscar<Mediacao[]>('/admin/mediacoes')

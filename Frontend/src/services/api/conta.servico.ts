@@ -1,6 +1,5 @@
 import { buscar, enviar } from './cliente'
-import type { EnderecoUsuario, Usuario } from '@/mocks/usuario'
-import type { OpcaoFrete } from '@/mocks/frete'
+import type { EnderecoUsuario, OpcaoFrete, Usuario } from '@/types/dominio'
 
 export type Cadastro = { nome: string; email: string; senha: string; perfil: 'comprador' | 'artesao'; territorio?: string; tecnica?: string }
 export type Credenciais = { email: string; senha: string }

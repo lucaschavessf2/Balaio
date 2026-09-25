@@ -7,7 +7,8 @@ import EstadoErro from '@/components/feedback/EstadoErro'
 import EstadoCarregando from '@/components/feedback/EstadoCarregando'
 import MapaEventosCliente from '@/components/eventos/MapaEventosCliente'
 import { notaDeLocalizacao, useEventosProximos } from '@/hooks/useEventosProximos'
-import { distanciaLegivel, resumoParticipantes, rotuloTipoEvento } from '@/mocks/eventos'
+import { rotuloTipoEvento } from '@/constants/eventos'
+import { distanciaLegivel, resumoParticipantes } from '@/utils/eventos'
 
 export default function AgendaEventos() {
   const { ordenados, pontos, posicao, origem, carregando, erro } = useEventosProximos()

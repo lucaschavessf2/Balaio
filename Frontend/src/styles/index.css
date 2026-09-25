@@ -20,6 +20,7 @@
 @import "./components/metrica.css";
 @import "./components/estado.css";
 @import "./components/menu.css";
+@import "./components/menu-perfil.css";
 @import "./components/prateleira.css";
 @import "./components/toast.css";
 @import "./features/hero.css";

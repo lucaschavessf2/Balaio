@@ -6,7 +6,7 @@ import { Foto } from '@/components/ui/Basicos'
 import { IconePlay, IconeSetaDireita, IconeSetaEsquerda } from '@/components/ui/Icones'
 import ImagemComFallback from '@/components/ui/ImagemComFallback'
 import MiniaturaMapa from '@/components/eventos/MiniaturaMapa'
-import { fallbackDe } from '@/mocks/imagens'
+import { fallbackDe } from '@/utils/imagem'
 
 export type Destaque = {
   slug: string

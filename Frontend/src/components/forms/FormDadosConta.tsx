@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { avisar } from '@/components/feedback/Avisos'
 import { Campo } from '@/components/ui/Basicos'
 import { atualizarUsuario } from '@/services/api/conta.servico'
-import type { Usuario } from '@/mocks/usuario'
+import type { Usuario } from '@/types/dominio'
 
 export default function FormDadosConta({ usuario }: { usuario: Usuario }) {
   const roteador = useRouter()

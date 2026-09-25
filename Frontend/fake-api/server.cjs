@@ -1,6 +1,6 @@
 const jsonServer = require('json-server')
 const bodyParser = require('body-parser')
-const { existsSync, copyFileSync, readFileSync } = require('node:fs')
+const { existsSync, copyFileSync, readFileSync, mkdirSync, writeFileSync, rmSync } = require('node:fs')
 const path = require('node:path')
 const { randomBytes, randomUUID, scryptSync, timingSafeEqual } = require('node:crypto')
 
@@ -10,6 +10,33 @@ const normalizar = (texto) => String(texto).normalize('NFD').replace(/[\u0300-\u
 const slugificar = (texto) => normalizar(texto).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 const preco = (peca) => peca.preco * (1 - (peca.desconto || 0) / 100)
 const FOTO_VALIDA = /^(\/fotos\/[\w./-]+|data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+)$/
+const FOTO_PECA_ENVIADA = /^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/
+const FOTO_PECA_ARMAZENADA = /^(\/fotos\/[\w./-]+|\/api\/v1\/arquivos\/pecas\/[\w-]+\.(jpg|png|webp))$/
+const EXTENSAO_POR_FORMATO = { jpeg: 'jpg', png: 'png', webp: 'webp' }
+const NOME_ARQUIVO_PECA = /^[\w-]+\.(jpg|png|webp)$/
+const PREFIXO_URL_FOTOS_PECAS = '/api/v1/arquivos/pecas/'
+const IMAGEM_PADRAO_PECA = '/fotos/ImagemBase.webp'
+const MAX_FOTOS_PECA = 5
+const MAX_BYTES_FOTO_PECA = 5 * 1024 * 1024
+const LIMITE_CORPO_COM_FOTOS = '45mb'
+const LIMITE_NOME_PECA = 120
+const LIMITE_HISTORIA_PECA = 4000
+const PRECO_MAXIMO_PECA = 1_000_000
+const SITUACOES_PECA = ['publicada', 'rascunho']
+const DISPONIBILIDADES = ['disponivel', 'encomenda', 'unica']
+const CAMPOS_EDITAVEIS_PECA = ['nome', 'territorio', 'tecnica', 'categoria', 'tipo', 'historia', 'preco', 'disponibilidade', 'prazoProducaoDias', 'fotos', 'situacao', 'inativadoEm']
+const CAMPOS_DE_REFERENCIA_PECA = [['tecnica', 'tecnicas', 'Escolha uma técnica válida.'], ['territorio', 'territorios', 'Escolha um território válido.'], ['categoria', 'categorias', 'Escolha uma categoria válida.'], ['tipo', 'tipos', 'Escolha um tipo de peça válido.']]
+const LIMITE_MENSAGEM_SELO = 1000
+const prazoValido = (prazo) => Number.isInteger(prazo) && prazo >= 1 && prazo <= 120
+const novaSolicitacaoSelo = (artesao, mensagem) => ({
+  id: `SEL-${randomUUID().slice(0, 8).toUpperCase()}`,
+  artesaoSlug: artesao.slug,
+  artesao: artesao.nome,
+  atelie: artesao.atelie,
+  mensagem,
+  situacao: 'pendente',
+  solicitadoEm: new Date().toISOString(),
+})
 const CAMPOS_PERFIL = ['nome', 'atelie', 'historia', 'territorio', 'tecnica', 'imagem']
 const CONFIGURACOES_PADRAO = { cepOrigem: '', prazoPadraoDias: 15, aceitaEncomendas: true, encomendasPausadas: false, chavePix: '' }
 const LIMITE_CHAVE_PIX = 140
@@ -37,7 +64,7 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
   const router = jsonServer.router(arquivo)
   const db = router.db
   const seed = JSON.parse(readFileSync(path.join(__dirname, 'seed.json'), 'utf8'))
-  const artesaoDaPecaNoBanco = (slug) => db.get('pecas').find({ id: slug }).value()?.artesao
+  const pastaFotosPecas = path.join(path.dirname(arquivo), 'arquivos', 'pecas')
   for (const colecao of Object.keys(seed)) {
     if (!db.has(colecao).value()) db.set(colecao, seed[colecao]).write()
   }
@@ -60,11 +87,14 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
   }
   const vendedores = new Set(usuarios.value().filter((u) => u.papel === 'artesao').map((u) => u.artesao))
   db.get('pecas').remove((p) => !vendedores.has(p.artesao)).value()
-  const artesaoPeloNome = (nome) => db.get('artesaos').value().find((a) => a.atelie === nome || a.nome === nome)?.slug
-  for (const item of db.get('curadoria').value()) {
-    item.artesaoSlug = item.artesaoSlug ?? artesaoDaPecaNoBanco(item.pecaSlug) ?? artesaoPeloNome(item.artesao)
+  db.get('curadoria').remove((c) => !vendedores.has(c.artesaoSlug) || !c.situacao).value()
+  for (const artesao of db.get('artesaos').value().filter((a) => vendedores.has(a.slug) && !a.selo)) {
+    if (db.get('curadoria').value().some((c) => c.artesaoSlug === artesao.slug)) continue
+    db.get('curadoria').push(novaSolicitacaoSelo(artesao, '')).value()
   }
-  db.get('curadoria').remove((c) => !vendedores.has(c.artesaoSlug)).value()
+  for (const peca of db.get('pecas').value().filter((p) => !SITUACOES_PECA.includes(p.situacao))) {
+    peca.situacao = 'publicada'
+  }
   for (const peca of db.get('pecas').value().filter((p) => !p.tipo)) {
     const original = seed.pecas.find((s) => s.id === peca.id)
     if (original) peca.tipo = original.tipo
@@ -76,8 +106,15 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
   }
   db.write()
   server.use(jsonServer.defaults({ static: path.join(__dirname, '../public'), logger: process.env.NODE_ENV !== 'test' }))
-  server.post('/api/v1/pecas', bodyParser.json({ limit: '45mb' }))
+  server.post('/api/v1/pecas', bodyParser.json({ limit: LIMITE_CORPO_COM_FOTOS }))
+  server.patch('/api/v1/pecas/:id', bodyParser.json({ limit: LIMITE_CORPO_COM_FOTOS }))
   server.use(jsonServer.bodyParser)
+  server.get('/api/v1/arquivos/pecas/:nome', (req, res) => {
+    if (!NOME_ARQUIVO_PECA.test(req.params.nome)) return erro(res, 404, 'Arquivo não encontrado.')
+    const caminho = path.join(pastaFotosPecas, req.params.nome)
+    if (!existsSync(caminho)) return erro(res, 404, 'Arquivo não encontrado.')
+    res.set('Cache-Control', 'public, max-age=31536000, immutable').sendFile(caminho)
+  })
   const ler = (nome) => db.get(nome).value()
   const encontrar = (nome, id) => ler(nome).find((item) => item.id === id)
   const inserir = (nome, item) => { db.get(nome).push(item).write(); return item }
@@ -189,6 +226,93 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
     if (!usuario) erro(res, 401, 'Entre na sua conta para continuar.', 'NAO_AUTENTICADO')
     return usuario
   }
+  const exigirArtesaoLogado = (req, res) => {
+    const usuario = exigirUsuario(req, res)
+    if (!usuario) return null
+    if (usuario.papel !== 'artesao' || !encontrar('artesaos', usuario.artesaoId)) {
+      erro(res, 403, 'Esta conta não possui um ateliê.', 'PERFIL_INVALIDO')
+      return null
+    }
+    return usuario
+  }
+  const exigirAdmin = (req, res) => {
+    const usuario = exigirUsuario(req, res)
+    if (!usuario) return null
+    if (usuario.papel !== 'admin') {
+      erro(res, 403, 'Apenas a curadoria pode acessar este recurso.', 'SEM_PERMISSAO')
+      return null
+    }
+    return usuario
+  }
+  const pecaDoArtesaoLogado = (req, res) => {
+    const usuario = exigirArtesaoLogado(req, res)
+    if (!usuario) return null
+    const peca = encontrar('pecas', req.params.id)
+    if (!peca || peca.artesao !== usuario.artesaoId) {
+      erro(res, 404, 'Peça não encontrada.')
+      return null
+    }
+    return peca
+  }
+  const slugUnicoDePeca = (nome) => {
+    const base = slugificar(nome).slice(0, 60).replace(/-$/, '') || 'peca'
+    let slug = base, sufixo = 2
+    while (encontrar('pecas', slug)) slug = `${base}-${sufixo++}`
+    return slug
+  }
+  const problemaNaPeca = (peca, camposRecebidos) => {
+    const referencias = ler('referencias')
+    if (!SITUACOES_PECA.includes(peca.situacao)) return 'Situação da peça inválida.'
+    const nome = typeof peca.nome === 'string' ? peca.nome.trim() : ''
+    if (!nome || nome.length > LIMITE_NOME_PECA) return `Informe um nome de até ${LIMITE_NOME_PECA} caracteres.`
+    for (const [campo, lista, mensagem] of CAMPOS_DE_REFERENCIA_PECA) {
+      const obrigatorio = campo === 'tipo'
+      if ((obrigatorio || camposRecebidos.includes(campo)) && !(referencias[lista] ?? []).includes(peca[campo])) return mensagem
+    }
+    if (!Array.isArray(peca.historia) || peca.historia.some((trecho) => typeof trecho !== 'string')) return 'História da peça inválida.'
+    if (peca.historia.join('\n').length > LIMITE_HISTORIA_PECA) return `A história pode ter no máximo ${LIMITE_HISTORIA_PECA} caracteres.`
+    if (!Number.isFinite(peca.preco) || peca.preco < 0 || peca.preco > PRECO_MAXIMO_PECA) return 'Preço inválido.'
+    if (peca.situacao === 'publicada' && peca.preco <= 0) return 'Informe o preço para publicar a peça.'
+    if (!DISPONIBILIDADES.includes(peca.disponibilidade)) return 'Disponibilidade inválida.'
+    if (peca.prazoProducaoDias != null && !prazoValido(peca.prazoProducaoDias)) return 'Informe um prazo de produção entre 1 e 120 dias.'
+    if (peca.situacao === 'publicada' && peca.disponibilidade === 'encomenda' && !prazoValido(peca.prazoProducaoDias)) return 'Informe um prazo de produção entre 1 e 120 dias.'
+    return null
+  }
+  const problemaNasFotos = (fotos) => {
+    if (!Array.isArray(fotos)) return 'Fotos inválidas.'
+    if (fotos.length > MAX_FOTOS_PECA) return `Envie no máximo ${MAX_FOTOS_PECA} fotos.`
+    for (const foto of fotos) {
+      if (!foto || typeof foto.id !== 'string' || typeof foto.url !== 'string') return 'Fotos inválidas.'
+      const enviada = FOTO_PECA_ENVIADA.exec(foto.url)
+      if (!enviada && !FOTO_PECA_ARMAZENADA.test(foto.url)) return 'Use fotos em JPG, PNG ou WebP.'
+      if (enviada && Buffer.byteLength(enviada[2], 'base64') > MAX_BYTES_FOTO_PECA) return `Cada foto pode ter no máximo ${MAX_BYTES_FOTO_PECA / 1024 / 1024} MB.`
+    }
+    return null
+  }
+  const guardarFotos = (fotos, slug) => fotos.map((foto, ordem) => {
+    const enviada = FOTO_PECA_ENVIADA.exec(foto.url)
+    let url = foto.url
+    if (enviada) {
+      const nomeArquivo = `${slug}-${randomUUID().slice(0, 8)}.${EXTENSAO_POR_FORMATO[enviada[1]]}`
+      mkdirSync(pastaFotosPecas, { recursive: true })
+      writeFileSync(path.join(pastaFotosPecas, nomeArquivo), Buffer.from(enviada[2], 'base64'))
+      url = PREFIXO_URL_FOTOS_PECAS + nomeArquivo
+    }
+    return { id: foto.id, nome: String(foto.nome ?? '').slice(0, 200), url, ordem }
+  })
+  const camposDeFotos = (fotos) => ({
+    fotos,
+    imagem: fotos[0]?.url ?? IMAGEM_PADRAO_PECA,
+    ordemFotos: fotos.map((foto) => foto.id),
+  })
+  const apagarFotosSemUso = (anteriores = [], atuais = []) => {
+    const emUso = new Set(atuais.map((foto) => foto.url))
+    for (const foto of anteriores) {
+      if (!foto.url?.startsWith(PREFIXO_URL_FOTOS_PECAS) || emUso.has(foto.url)) continue
+      const nomeArquivo = foto.url.slice(PREFIXO_URL_FOTOS_PECAS.length)
+      if (NOME_ARQUIVO_PECA.test(nomeArquivo)) rmSync(path.join(pastaFotosPecas, nomeArquivo), { force: true })
+    }
+  }
 
   server.post('/api/v1/auth/cadastro', (req, res) => {
     const nome = String(req.body.nome || '').trim()
@@ -216,6 +340,7 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
         aceitaEncomendas: true, chavePix: email,
       }
       inserir('artesaos', artesao)
+      inserir('curadoria', novaSolicitacaoSelo(artesao, 'Cadastro de novo ateliê.'))
       usuario.artesaoId = slug
       usuario.artesao = slug
     }
@@ -457,43 +582,93 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
     res.status(201).json(ok(inserir('videos', video)))
   })
   server.post('/api/v1/pecas', (req, res) => {
-    const usuario = usuarioDaRequisicao(req)
-    const peca = { ...req.body, id: req.body.slug, ...(usuario?.artesaoId ? { artesao: usuario.artesaoId } : {}) }
-    if (!peca.slug || !peca.nome || !encontrar('artesaos', peca.artesao)) return erro(res, 400, 'Informe nome, slug e artesão válido.')
-    if (!ler('referencias').tipos.includes(peca.tipo)) return erro(res, 400, 'Escolha um tipo de peça válido.')
-    if (encontrar('pecas', peca.id)) return erro(res, 409, 'Esta peça já existe.')
-    if (peca.situacao !== 'rascunho' && (!Number.isFinite(peca.preco) || peca.preco <= 0)) return erro(res, 400, 'Preço inválido.')
-    if (peca.situacao === 'curadoria') {
-      db.get('curadoria').push({ id: randomUUID(), pecaSlug: peca.slug, peca: peca.nome, artesao: encontrar('artesaos', peca.artesao).nome, artesaoSlug: peca.artesao, enviadoEm: 'agora', motivo: 'Nova publicação' }).value()
+    const usuario = exigirArtesaoLogado(req, res)
+    if (!usuario) return
+    const camposRecebidos = CAMPOS_EDITAVEIS_PECA.filter((campo) => campo !== 'inativadoEm' && req.body[campo] !== undefined)
+    const dados = Object.fromEntries(camposRecebidos.map((campo) => [campo, req.body[campo]]))
+    const peca = {
+      historia: [], preco: 0, disponibilidade: 'disponivel', fotos: [], situacao: 'publicada',
+      ...dados,
+      nome: typeof dados.nome === 'string' ? dados.nome.trim() : dados.nome,
+      artesao: usuario.artesaoId,
     }
-    res.status(201).json(ok(inserir('pecas', peca)))
+    const problema = problemaNaPeca(peca, camposRecebidos) ?? problemaNasFotos(peca.fotos)
+    if (problema) return erro(res, 400, problema)
+    const slug = slugUnicoDePeca(peca.nome)
+    const nova = { ...peca, id: slug, slug, ...camposDeFotos(guardarFotos(peca.fotos, slug)), criadaEm: new Date().toISOString() }
+    res.status(201).json(ok(inserir('pecas', nova)))
   })
   server.patch('/api/v1/pecas/:id', (req, res) => {
-    const peca = encontrar('pecas', req.params.id)
-    if (!peca) return erro(res, 404, 'Peça não encontrada.')
-    const campos = ['nome', 'territorio', 'tecnica', 'categoria', 'tipo', 'historia', 'preco', 'disponibilidade', 'prazoProducaoDias', 'imagem', 'fotos', 'ordemFotos', 'situacao', 'inativadoEm', 'vendidaEmPedido']
-    const alteracoes = Object.fromEntries(campos.filter((campo) => req.body[campo] !== undefined).map((campo) => [campo, req.body[campo]]))
-    if (alteracoes.nome !== undefined && (!String(alteracoes.nome).trim() || String(alteracoes.nome).length > 180)) return erro(res, 400, 'Informe um nome válido para a peça.')
-    if (alteracoes.preco !== undefined && (!Number.isFinite(alteracoes.preco) || alteracoes.preco < 0)) return erro(res, 400, 'Preço inválido.')
-    if (alteracoes.disponibilidade !== undefined && !['disponivel', 'encomenda', 'unica'].includes(alteracoes.disponibilidade)) return erro(res, 400, 'Disponibilidade inválida.')
-    const proximaDisponibilidade = alteracoes.disponibilidade ?? peca.disponibilidade
-    const proximoPrazo = alteracoes.prazoProducaoDias ?? peca.prazoProducaoDias
-    if (proximaDisponibilidade === 'encomenda' && (!Number.isInteger(proximoPrazo) || proximoPrazo < 1 || proximoPrazo > 120)) return erro(res, 400, 'Informe um prazo de produção entre 1 e 120 dias.')
-    res.json(ok(db.get('pecas').find({ id: req.params.id }).assign(alteracoes).write()))
+    const peca = pecaDoArtesaoLogado(req, res)
+    if (!peca) return
+    const camposRecebidos = CAMPOS_EDITAVEIS_PECA.filter((campo) => req.body[campo] !== undefined)
+    const alteracoes = Object.fromEntries(camposRecebidos.map((campo) => [campo, req.body[campo]]))
+    if (typeof alteracoes.nome === 'string') alteracoes.nome = alteracoes.nome.trim()
+    if ('inativadoEm' in alteracoes) alteracoes.inativadoEm = alteracoes.inativadoEm ? new Date().toISOString() : null
+    const problema = problemaNaPeca({ ...peca, ...alteracoes }, camposRecebidos) ?? ('fotos' in alteracoes ? problemaNasFotos(alteracoes.fotos) : null)
+    if (problema) return erro(res, 400, problema)
+    if ('fotos' in alteracoes) {
+      Object.assign(alteracoes, camposDeFotos(guardarFotos(alteracoes.fotos, peca.slug)))
+      apagarFotosSemUso(peca.fotos, alteracoes.fotos)
+    }
+    res.json(ok(db.get('pecas').find({ id: peca.id }).assign(alteracoes).write()))
   })
   server.delete('/api/v1/pecas/:id', (req, res) => {
-    const peca = encontrar('pecas', req.params.id)
-    if (!peca) return erro(res, 404, 'Peça não encontrada.')
-    db.get('pecas').remove({ id: req.params.id }).write()
+    const peca = pecaDoArtesaoLogado(req, res)
+    if (!peca) return
+    db.get('pecas').remove({ id: peca.id }).write()
+    apagarFotosSemUso(peca.fotos)
     res.json(ok(peca))
   })
+  const solicitacaoComArtesao = (solicitacao) => {
+    const artesao = encontrar('artesaos', solicitacao.artesaoSlug)
+    return {
+      ...solicitacao,
+      artesao: artesao?.nome ?? solicitacao.artesao,
+      atelie: artesao?.atelie ?? solicitacao.atelie,
+      territorio: artesao?.territorio ?? '',
+      tecnica: artesao?.tecnica ?? '',
+      imagem: artesao?.imagem ?? '',
+      pecasPublicadas: ler('pecas').filter((p) => p.artesao === solicitacao.artesaoSlug && p.situacao === 'publicada' && !p.inativadoEm).length,
+    }
+  }
+  const seloDoArtesao = (slug) => ({
+    selo: Boolean(encontrar('artesaos', slug)?.selo),
+    solicitacao: ler('curadoria').filter((c) => c.artesaoSlug === slug).at(-1) ?? null,
+  })
+  server.get('/api/v1/artesao/selo', (req, res) => {
+    const usuario = exigirArtesaoLogado(req, res)
+    if (usuario) res.json(ok(seloDoArtesao(usuario.artesaoId)))
+  })
+  server.post('/api/v1/artesao/selo', (req, res) => {
+    const usuario = exigirArtesaoLogado(req, res)
+    if (!usuario) return
+    const atual = seloDoArtesao(usuario.artesaoId)
+    if (atual.selo) return erro(res, 409, 'Seu ateliê já tem o selo de verificado.', 'SELO_ATIVO')
+    if (atual.solicitacao?.situacao === 'pendente') return erro(res, 409, 'Sua solicitação já está com a curadoria.', 'SOLICITACAO_PENDENTE')
+    const mensagem = typeof req.body.mensagem === 'string' ? req.body.mensagem.trim() : ''
+    if (mensagem.length > LIMITE_MENSAGEM_SELO) return erro(res, 400, `A mensagem pode ter no máximo ${LIMITE_MENSAGEM_SELO} caracteres.`)
+    inserir('curadoria', novaSolicitacaoSelo(encontrar('artesaos', usuario.artesaoId), mensagem))
+    res.status(201).json(ok(seloDoArtesao(usuario.artesaoId)))
+  })
+  server.get('/api/v1/admin/curadoria', (req, res) => {
+    if (!exigirAdmin(req, res)) return
+    res.json(ok(ler('curadoria').filter((c) => c.situacao === 'pendente').map(solicitacaoComArtesao)))
+  })
   server.post('/api/v1/admin/curadoria/:id/decisao', (req, res) => {
-    const item = encontrar('curadoria', req.params.id)
-    if (!item) return erro(res, 404, 'Item não encontrado.')
-    if (!['aprovada', 'ajuste'].includes(req.body.decisao)) return erro(res, 400, 'Decisão inválida.')
-    if (item.pecaSlug) db.get('pecas').find({ id: item.pecaSlug }).assign({ situacao: req.body.decisao === 'aprovada' ? 'publicada' : 'rascunho' }).value()
-    db.get('curadoria').remove({ id: item.id }).write()
-    res.json(ok({ ...item, decisao: req.body.decisao }))
+    const admin = exigirAdmin(req, res)
+    if (!admin) return
+    const solicitacao = encontrar('curadoria', req.params.id)
+    if (!solicitacao) return erro(res, 404, 'Solicitação não encontrada.')
+    if (solicitacao.situacao !== 'pendente') return erro(res, 409, 'Esta solicitação já foi analisada.')
+    const { decisao } = req.body
+    const motivo = typeof req.body.motivo === 'string' ? req.body.motivo.trim() : ''
+    if (!['aprovada', 'ajuste'].includes(decisao)) return erro(res, 400, 'Decisão inválida.')
+    if (decisao === 'ajuste' && !motivo) return erro(res, 400, 'Explique ao artesão o que precisa ser ajustado.')
+    if (motivo.length > LIMITE_MENSAGEM_SELO) return erro(res, 400, `O motivo pode ter no máximo ${LIMITE_MENSAGEM_SELO} caracteres.`)
+    db.get('curadoria').find({ id: solicitacao.id }).assign({ situacao: decisao, motivo, decididoEm: new Date().toISOString(), decididoPor: admin.id }).write()
+    if (decisao === 'aprovada') db.get('artesaos').find({ id: solicitacao.artesaoSlug }).assign({ selo: true }).write()
+    res.json(ok(solicitacaoComArtesao(encontrar('curadoria', solicitacao.id))))
   })
   server.patch('/api/v1/artesaos/:id', (req, res) => {
     if (!encontrar('artesaos', req.params.id)) return erro(res, 404, 'Artesão não encontrado.')
@@ -646,6 +821,11 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
     if (ler('mediacoes').some((m) => m.pedido === req.body.pedido)) return erro(res, 409, 'Já existe uma mediação para este pedido.')
     next()
   })
+  server.all(['/api/v1/curadoria*', '/api/v1/admin/curadoria*'], (req, res) => erro(res, 405, 'Operação não permitida.', 'OPERACAO_NAO_PERMITIDA'))
+  server.all(['/api/v1/pecas*', '/api/v1/artesaos*'], (req, res, next) => {
+    if (req.method === 'GET') return next()
+    erro(res, 405, 'Operação não permitida.', 'OPERACAO_NAO_PERMITIDA')
+  })
   server.use(jsonServer.rewriter({
     '/api/v1/admin/curadoria*': '/curadoria$1',
     '/api/v1/admin/mediacoes*': '/mediacoes$1',
@@ -666,7 +846,12 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
   server.use(router)
   // Inclui erros de JSON inválido no mesmo contrato consumido pelo frontend.
   server.use((error, req, res, next) => { // eslint-disable-line @typescript-eslint/no-unused-vars
-    erro(res, error.status || 500, error.status === 400 ? 'JSON inválido.' : 'Falha ao processar a requisição.')
+    const status = error.status || 500
+    const mensagens = {
+      400: 'JSON inválido.',
+      413: `O envio ficou grande demais. Use até ${MAX_FOTOS_PECA} fotos de até ${MAX_BYTES_FOTO_PECA / 1024 / 1024} MB cada.`,
+    }
+    erro(res, status, mensagens[status] ?? 'Falha ao processar a requisição.', status === 413 ? 'ENVIO_MUITO_GRANDE' : undefined)
   })
   return server
 }

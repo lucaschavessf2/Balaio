@@ -189,7 +189,7 @@ export default async function DetalhePeca({ params }: { params: Promise<{ slug: 
               {artesao.selo && (
                 <span className="selo selo-disponivel" style={{ alignSelf: 'center' }}>
                   <IconeSelo tamanho={14} />
-                  Selo de origem
+                  Artesão verificado
                 </span>
               )}
             </div>

@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { IconeCalendario, IconeMapa } from '@/components/ui/Icones'
-import { resumoParticipantes, rotuloTipoEvento, type Evento } from '@/mocks/eventos'
+import { rotuloTipoEvento } from '@/constants/eventos'
+import { resumoParticipantes } from '@/utils/eventos'
+import type { Evento } from '@/types/dominio'
 
 export default function CartaoEventoMini({ evento }: { evento: Evento }) {
   return (

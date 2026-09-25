@@ -132,6 +132,11 @@
   }
 }
 
+.menu-item-sair:hover,
+.menu-item-sair:focus-visible {
+  @apply text-vermelho-tinta bg-vermelho/12;
+}
+
 .menu-sair {
   @apply mt-3 pt-3 border-t border-linha;
 }

@@ -5,7 +5,7 @@ import { Campo } from '@/components/ui/Basicos'
 import { avisar } from '@/components/feedback/Avisos'
 import { IconeEditar, IconeEstrela, IconeLixeira } from '@/components/ui/Icones'
 import { validarCEP, validarObrigatorio } from '@/utils/validacao'
-import type { EnderecoUsuario } from '@/mocks/usuario'
+import type { EnderecoUsuario } from '@/types/dominio'
 import { atualizarEndereco, criarEndereco, excluirEndereco } from '@/services/api/conta.servico'
 
 const NOVO = '__novo__'

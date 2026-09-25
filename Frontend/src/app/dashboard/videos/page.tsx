@@ -3,8 +3,8 @@ import { Migalhas } from '@/components/ui/Basicos'
 import FormPublicarVideo from '@/components/forms/FormPublicarVideo'
 import { IconeAviso, IconeGrafico, IconeSetaDireita } from '@/components/ui/Icones'
 import ImagemComFallback from '@/components/ui/ImagemComFallback'
-import { emMilhares } from '@/mocks/videos'
-import { fallbackDe } from '@/mocks/imagens'
+import { emMilhares } from '@/utils/formato'
+import { fallbackDe } from '@/utils/imagem'
 import { listarVideos } from '@/services/api/videos.servico'
 import { pecasPorArtesao } from '@/services/api/pecas.servico'
 import { exigirArtesao } from '@/services/autenticacao'
@@ -78,8 +78,8 @@ export default async function PublicarVideo() {
           <p className="aviso">
             <IconeAviso />
             <span>
-              O vídeo também passa por <strong>curadoria</strong>, pelos mesmos critérios das peças: precisa ser do
-              seu trabalho e mostrar a sua produção.
+              O vídeo precisa ser do <strong>seu trabalho</strong> e mostrar a sua produção. Conteúdo de terceiros é
+              retirado do ar.
             </span>
           </p>
         </aside>

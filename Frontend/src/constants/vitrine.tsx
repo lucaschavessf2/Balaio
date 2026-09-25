@@ -17,9 +17,9 @@ export type Garantia = { icone: ReactNode; titulo: string; texto: string; resumo
 export const garantias: Garantia[] = [
   {
     icone: <IconeSelo />,
-    titulo: 'Selo de origem',
-    texto: 'A associação do território confirma que a peça é feita à mão por quem diz ter feito.',
-    resumo: 'Autoria confirmada pela associação',
+    titulo: 'Artesão verificado',
+    texto: 'A curadoria confere, com a associação do território, que o ateliê faz à mão o que vende.',
+    resumo: 'Autoria conferida pela curadoria',
   },
   {
     icone: <IconeCadeado />,

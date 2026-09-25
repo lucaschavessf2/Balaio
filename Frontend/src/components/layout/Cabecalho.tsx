@@ -2,11 +2,10 @@ import Link from 'next/link'
 import { Suspense } from 'react'
 import BarraDepartamentos from '@/components/layout/BarraDepartamentos'
 import BuscaCabecalho from '@/components/layout/BuscaCabecalho'
-import { IconeCoracao, IconeGrade, IconeSacola } from '@/components/ui/Icones'
+import { IconeSacola } from '@/components/ui/Icones'
 import AlternadorTema from '@/components/layout/AlternadorTema'
 import ContadorSacola from '@/components/carrinho/ContadorSacola'
-import ContadorFavoritos from '@/components/favoritos/ContadorFavoritos'
-import LinkConta from '@/components/layout/LinkConta'
+import MenuPerfil from '@/components/perfil/MenuPerfil'
 import { listarArtesaos } from '@/services/api/artesaos.servico'
 import { listarPecas } from '@/services/api/pecas.servico'
 import { obterReferencias } from '@/services/api/referencias.servico'
@@ -36,18 +35,7 @@ export default async function Cabecalho() {
         <div className="cabecalho-acoes">
           <AlternadorTema />
 
-          <Link href="/screens" className="cabecalho-link mapa esconde-mobile" title="Mapa de todas as telas do protótipo">
-            <IconeGrade />
-            <span className="rotulo-acao">Telas</span>
-          </Link>
-
-          <Link href="/favorites" className="cabecalho-link" title="Peças salvas">
-            <IconeCoracao />
-            <span className="rotulo-acao">Salvas</span>
-            <ContadorFavoritos esconderZero />
-          </Link>
-
-          <LinkConta />
+          <MenuPerfil />
 
           <Link href="/cart" className="cabecalho-link sacola">
             <IconeSacola />

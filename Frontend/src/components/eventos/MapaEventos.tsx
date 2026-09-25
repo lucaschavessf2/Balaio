@@ -2,7 +2,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { inscrever, lerTema, type Tema } from '@/store/tema'
-import type { Ponto } from '@/mocks/eventos'
+import type { Ponto } from '@/types/dominio'
 
 export type PontoEvento = {
   slug: string

@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import CartaoPeca from '@/components/produto/CartaoPeca'
-import { EstadoVazio } from '@/components/ui/Basicos'
+import EstadoVazio from '@/components/feedback/EstadoVazio'
 import { IconeCoracao } from '@/components/ui/Icones'
 import { useFavoritos } from '@/store/favoritos'
 import { usePecas } from '@/hooks/usePecas'

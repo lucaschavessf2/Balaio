@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { EstadoVazio } from '@/components/ui/Basicos'
+import EstadoVazio from '@/components/feedback/EstadoVazio'
 import { IconeAviso } from '@/components/ui/Icones'
 
 export default function EstadoErro({ mensagem }: { mensagem?: string }) {

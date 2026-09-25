@@ -8,7 +8,8 @@ import { validarObrigatorio } from '@/utils/validacao'
 import MapaEventosCliente from '@/components/eventos/MapaEventosCliente'
 import { criarEvento } from '@/services/api/eventos.servico'
 import { gerarSlugEvento } from '@/components/eventos/eventosLocais'
-import { municipiosPE, rotuloTipoEvento, type Evento, type Ponto, type TipoEvento } from '@/mocks/eventos'
+import { municipiosPE, rotuloTipoEvento } from '@/constants/eventos'
+import type { Evento, Ponto, TipoEvento } from '@/types/dominio'
 import { useDados } from '@/store/dados'
 
 const idPorCampo: Record<string, string> = {
