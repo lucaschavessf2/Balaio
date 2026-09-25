@@ -11,8 +11,31 @@ import { obterPecaHistorico } from '@/services/api/pecas.servico'
 import { obterArtesao } from '@/services/api/artesaos.servico'
 import { rotuloEstadoPedido } from '@/constants/rotulos'
 import { exigirSessao } from '@/services/autenticacao'
+import type { EstadoPedido, EtapaPedido } from '@/types/dominio'
 
 export const dynamic = 'force-dynamic'
+
+const etapasPadrao: { estado: EstadoPedido; titulo: string; pendente: string }[] = [
+  { estado: 'confirmado', titulo: 'Pedido confirmado', pendente: 'Aguardando confirmação da compra.' },
+  { estado: 'producao', titulo: 'Em produção', pendente: 'O artesão ainda não iniciou esta etapa.' },
+  { estado: 'enviado', titulo: 'Enviado', pendente: 'O envio ainda não foi registrado.' },
+  { estado: 'entregue', titulo: 'Entregue no seu endereço', pendente: 'A entrega ainda não foi confirmada.' },
+]
+
+function linhaDoTempo(estado: EstadoPedido, registradas: EtapaPedido[]): EtapaPedido[] {
+  const indiceAtual = etapasPadrao.findIndex((etapa) => etapa.estado === estado)
+  return etapasPadrao.map((etapa, indice) => {
+    const registrada = registradas.find((item) => item.estado === etapa.estado)
+    return {
+      estado: etapa.estado,
+      titulo: registrada?.titulo ?? etapa.titulo,
+      detalhe: registrada?.detalhe ?? (indice === 0 ? 'Compra registrada.' : etapa.pendente),
+      concluida: indice < indiceAtual || (indice === indiceAtual && (estado === 'confirmado' || estado === 'entregue')),
+      atual: indice === indiceAtual,
+      nota: registrada?.nota,
+    }
+  })
+}
 
 export default async function Acompanhamento({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -24,6 +47,7 @@ export default async function Acompanhamento({ params }: { params: Promise<{ id:
   const { dados: peca } = await obterPecaHistorico(pedido.pecaSlug)
   const artesao = peca ? (await obterArtesao(peca.artesao)).dados : null
   const { dados: conversa } = await conversaDoPedido(id)
+  const etapas = linhaDoTempo(pedido.estado, pedido.etapas ?? [])
 
   return (
     <Pagina>
@@ -67,7 +91,7 @@ export default async function Acompanhamento({ params }: { params: Promise<{ id:
             <h2 className="secao-titulo">Status de produção e entrega</h2>
 
             <ol className="linha-tempo">
-              {pedido.etapas.map((etapa) => (
+              {etapas.map((etapa) => (
                 <li
                   key={etapa.estado}
                   className={`etapa${etapa.concluida ? ' etapa-feita' : ''}${etapa.atual ? ' etapa-atual' : ''}`}
@@ -94,37 +118,51 @@ export default async function Acompanhamento({ params }: { params: Promise<{ id:
 
           <section className="cartao">
             <h2 className="secao-titulo">Informações de envio</h2>
+            {!pedido.rastreio && (
+              <p className="texto-suave abaixo-3">O código de rastreamento aparece aqui quando o envio for registrado.</p>
+            )}
             <div className="grade-dois">
               <div className="dado">
                 <span className="dado-rotulo">Código de rastreamento</span>
-                <span className="dado-valor preco-destaque">{pedido.rastreio}</span>
+                <span className="dado-valor preco-destaque">{pedido.rastreio ?? 'Ainda não disponível'}</span>
               </div>
               <div className="dado">
                 <span className="dado-rotulo">Transportadora parceira</span>
-                <span className="dado-valor">{pedido.transportadora}</span>
+                <span className="dado-valor">{pedido.transportadora ?? 'A definir'}</span>
               </div>
               <div className="dado">
                 <span className="dado-rotulo">Entrega estimada</span>
                 <span className="dado-valor" style={{ color: 'var(--verde-tinta)' }}>
-                  {pedido.previsaoEntrega}
+                  {pedido.previsaoEntrega ?? 'Aguardando previsão'}
                 </span>
               </div>
             </div>
-            <BotaoRastreio
-              className="botao botao-secundario acima-4"
-              codigo={pedido.rastreio}
-              transportadora={pedido.transportadora}
-            >
-              Acompanhar na transportadora
-              <IconeSetaDireita />
-            </BotaoRastreio>
+            {pedido.rastreio && (
+              <BotaoRastreio
+                className="botao botao-secundario acima-4"
+                codigo={pedido.rastreio}
+                transportadora={pedido.transportadora}
+              >
+                Acompanhar na transportadora
+                <IconeSetaDireita />
+              </BotaoRastreio>
+            )}
           </section>
+
+          {pedido.estado === 'entregue' && (
+            <section className="cartao acima-5">
+              <h2 className="secao-titulo">Sua avaliação</h2>
+              <p className="texto-suave abaixo-3">
+                {pedido.avaliado ? 'Obrigado por avaliar esta compra.' : 'Conte como foi receber a peça e ajude outros compradores.'}
+              </p>
+              {!pedido.avaliado && <Link href={`/orders/${pedido.id}/review`} className="botao botao-primario">Avaliar compra</Link>}
+            </section>
+          )}
 
           <section className="cartao acima-5">
             <h2 className="secao-titulo">Algo deu errado?</h2>
             <p className="texto-suave abaixo-3">
-              Fale primeiro com o artesão pela conversa ao lado. A maioria dos casos se resolve por lá. Se não
-              resolver, a plataforma entra como mediadora e o repasse do pagamento fica retido até a decisão.
+              Fale primeiro com o artesão pela conversa ao lado. Se não resolver, você pode pedir a mediação da plataforma.
             </p>
             <Link href={`/orders/${pedido.id}/mediation`} className="botao botao-fantasma">
               Pedir mediação da plataforma

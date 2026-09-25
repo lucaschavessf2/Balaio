@@ -1,27 +1,27 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Pagina from '@/components/layout/Pagina'
 import CartaoPeca from '@/components/produto/CartaoPeca'
-import { Estrelas, Migalhas, Retrato } from '@/components/ui/Basicos'
-import { IconeConversa, IconeMapa, IconeSelo } from '@/components/ui/Icones'
+import EstadoErro from '@/components/feedback/EstadoErro'
+import { EstadoVazio, Migalhas, Retrato } from '@/components/ui/Basicos'
+import { IconeConversa, IconeMapa, IconePacote, IconeSelo } from '@/components/ui/Icones'
 import { obterArtesao } from '@/services/api/artesaos.servico'
 import { pecasPorArtesao } from '@/services/api/pecas.servico'
-import { listarPedidos } from '@/services/api/pedidos.servico'
 
 export const dynamic = 'force-dynamic'
 
-const depoimentos = [
-  {
-    autor: 'Clarissa de Recife',
-    nota: 5,
-    texto: 'O leão é deslumbrante. A textura do barro é perceptível em cada caracol. Chegou perfeitamente embalado e com o certificado.',
-  },
-  {
-    autor: 'Carlos de Olinda',
-    nota: 5,
-    texto: 'Excelente atendimento e envio rápido direto de Tracunhaém. Ter uma peça dessa tradição em casa traz paz e história.',
-  },
-]
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
+  const { dados: artesao } = await obterArtesao(slug)
+  if (!artesao) return { title: 'Artesão não encontrado | Balaio' }
+  const descricao = artesao.historia.trim() || `Conheça ${artesao.nome}, seu trabalho em ${artesao.tecnica} e suas peças no Balaio.`
+  return {
+    title: `${artesao.nome} | ${artesao.atelie} | Balaio`,
+    description: descricao,
+    openGraph: { title: `${artesao.nome} | ${artesao.atelie}`, description: descricao },
+  }
+}
 
 export default async function PerfilArtesao({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -29,13 +29,9 @@ export default async function PerfilArtesao({ params }: { params: Promise<{ slug
   if (erro && erro.codigo !== 'RECURSO_NAO_ENCONTRADO') throw new Error(erro.mensagem)
   if (!artesao) notFound()
 
-  const [{ dados: pecasArtesao }, { dados: todosPedidos }] = await Promise.all([
-    pecasPorArtesao(artesao.slug),
-    listarPedidos(),
-  ])
-  const pecas = pecasArtesao ?? []
-  const slugsDoArtesao = new Set(pecas.map((p) => p.slug))
-  const pedidoComArtesao = (todosPedidos ?? []).find((p) => slugsDoArtesao.has(p.pecaSlug))
+  const { dados: pecasArtesao, erro: erroPecas } = await pecasPorArtesao(artesao.slug)
+  if (erroPecas) return <Pagina><EstadoErro mensagem={erroPecas.mensagem} /></Pagina>
+  const pecas = (pecasArtesao ?? []).filter((peca) => !peca.inativadoEm && (!peca.situacao || peca.situacao === 'publicada'))
 
   return (
     <Pagina>
@@ -60,18 +56,11 @@ export default async function PerfilArtesao({ params }: { params: Promise<{ slug
           </p>
         </div>
         <div className="acoes-linha">
-          {pedidoComArtesao ? (
-            <Link href={`/orders/${pedidoComArtesao.id}`} className="botao botao-primario">
+          {pecas[0] && (
+            <Link href={`/pieces/${pecas[0].slug}#nova-pergunta`} className="botao botao-primario">
               <IconeConversa />
-              Falar com o artesão
+              Perguntar sobre uma peça
             </Link>
-          ) : (
-            pecas[0] && (
-              <Link href={`/pieces/${pecas[0].slug}#nova-pergunta`} className="botao botao-primario">
-                <IconeConversa />
-                Perguntar sobre uma peça
-              </Link>
-            )
           )}
         </div>
       </header>
@@ -82,11 +71,11 @@ export default async function PerfilArtesao({ params }: { params: Promise<{ slug
           {pecas.length === 1 ? 'peça à venda' : 'peças à venda'}
         </li>
         <li>
-          <strong>★ {artesao.avaliacaoMedia.toFixed(1)}</strong>
-          avaliação média
+          <strong>{artesao.avaliacaoMedia > 0 ? `★ ${artesao.avaliacaoMedia.toFixed(1)}` : '—'}</strong>
+          {artesao.avaliacaoMedia > 0 ? 'avaliação média' : 'sem avaliações'}
         </li>
         <li>
-          <strong>{artesao.obrasComercializadas}+</strong>
+          <strong>{artesao.obrasComercializadas > 0 ? `${artesao.obrasComercializadas}+` : '0'}</strong>
           obras comercializadas
         </li>
       </ul>
@@ -94,7 +83,7 @@ export default async function PerfilArtesao({ params }: { params: Promise<{ slug
       <div className="duas-colunas secao">
         <section>
           <h2 className="secao-titulo">Nossa história</h2>
-          <p className="texto-suave abaixo-4">{artesao.historia}</p>
+          <p className="texto-suave abaixo-4">{artesao.historia || 'Este ateliê ainda não contou sua história.'}</p>
 
           {artesao.selo && (
             <p className="aviso">
@@ -121,27 +110,20 @@ export default async function PerfilArtesao({ params }: { params: Promise<{ slug
 
       <section className="secao">
         <h2 className="secao-titulo">Coleção viva do atelier</h2>
-        <div className="grade-pecas">
-          {pecas.map((p) => (
-            <CartaoPeca key={p.slug} peca={p} />
-          ))}
-        </div>
+        {pecas.length ? (
+          <div className="grade-pecas">
+            {pecas.map((p) => <CartaoPeca key={p.slug} peca={p} />)}
+          </div>
+        ) : (
+          <EstadoVazio
+            icone={<IconePacote tamanho={34} />}
+            titulo="Este ateliê ainda não tem peças disponíveis"
+            descricao="Enquanto a coleção é preparada, explore outros trabalhos de artesãos pernambucanos."
+            acao={<Link href="/search" className="botao botao-primario">Explorar peças</Link>}
+          />
+        )}
       </section>
 
-      <section className="secao">
-        <h2 className="secao-titulo">Depoimentos de colecionadores</h2>
-        <div className="grade-dois">
-          {depoimentos.map((d) => (
-            <article className="depoimento" key={d.autor}>
-              <div className="depoimento-topo">
-                <strong>{d.autor}</strong>
-                <Estrelas nota={d.nota} />
-              </div>
-              <p className="autoria">{d.texto}</p>
-            </article>
-          ))}
-        </div>
-      </section>
     </Pagina>
   )
 }

@@ -49,6 +49,7 @@ export default function FormAvaliacao({ pedidoId, pecaNome, pecaImagem, artesaoN
   const [aspectosMarcados, definirAspectosMarcados] = useState<string[]>([])
   const [comentario, definirComentario] = useState('')
   const [erroNota, definirErroNota] = useState<string | null>(null)
+  const [erroEnvio, definirErroEnvio] = useState<string | null>(null)
 
   const aspectos = aspectosDaNota(nota)
 
@@ -75,9 +76,14 @@ export default function FormAvaliacao({ pedidoId, pecaNome, pecaImagem, artesaoN
       return
     }
     definirSalvando(true)
+    definirErroEnvio(null)
     const resposta = await avaliarPedido(pedidoId, { nota, comentario, aspectos: aspectosMarcados })
     definirSalvando(false)
-    if (resposta.erro) { avisar.erro('Não foi possível avaliar', resposta.erro.mensagem); return }
+    if (resposta.erro) {
+      definirErroEnvio(resposta.erro.mensagem)
+      avisar.erro('Não foi possível avaliar', resposta.erro.mensagem)
+      return
+    }
     roteador.refresh()
     avisar.sucesso('Avaliação enviada', 'Obrigado por fortalecer o trabalho do artesão.')
     roteador.push(`/orders/${pedidoId}`)
@@ -142,7 +148,7 @@ export default function FormAvaliacao({ pedidoId, pecaNome, pecaImagem, artesaoN
 
       <Campo
         rotulo="Quer contar mais alguma coisa?"
-        ajuda="Seu comentário aparece no perfil do artesão, com o seu primeiro nome."
+        ajuda="Seu comentário ficará registrado na avaliação deste pedido."
         id="comentario"
       >
         <textarea
@@ -152,6 +158,8 @@ export default function FormAvaliacao({ pedidoId, pecaNome, pecaImagem, artesaoN
           onChange={(evento) => definirComentario(evento.target.value)}
         />
       </Campo>
+
+      {erroEnvio && <p className="aviso abaixo-4" role="alert">{erroEnvio}</p>}
 
       <div className="acoes-linha acoes-empilhaveis">
         <button disabled={salvando} type="submit" className="botao botao-primario">
