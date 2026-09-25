@@ -18,7 +18,7 @@ export default function MapaDeTelas() {
         </h1>
         <p className="subtitulo-pagina" style={{ marginBottom: 0 }}>
           As <strong>{telas.length} telas</strong> do Balaio, agrupadas por quem usa cada uma. Clique para
-          abrir. Os dados são de demonstração e os formulários não enviam nada.
+          abrir. As ações usam uma API local de demonstração; nenhum pagamento real é processado.
         </p>
       </header>
 

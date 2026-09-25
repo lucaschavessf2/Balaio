@@ -1,10 +1,10 @@
 import Link from 'next/link'
-import { itensAdmin, type ChaveAdmin } from '@/components/admin/itensAdmin'
+import { itensAdmin, type ChaveAdmin, type ContagensAdmin } from '@/components/admin/itensAdmin'
 
-export default function MenuAdminAbas({ ativo }: { ativo: ChaveAdmin }) {
+export default function MenuAdminAbas({ ativo, contagens }: { ativo: ChaveAdmin; contagens?: ContagensAdmin }) {
   return (
     <nav className="painel-abas" aria-label="Menu da administração">
-      {itensAdmin().map((item) => (
+      {itensAdmin(contagens).map((item) => (
         <Link
           key={item.chave}
           href={item.href}

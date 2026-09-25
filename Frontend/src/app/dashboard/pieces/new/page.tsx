@@ -6,10 +6,9 @@ import { gerarSlugEvento } from '@/components/eventos/eventosLocais'
 import type { Peca, Tecnica } from '@/types/dominio'
 import type { TipoPeca } from '@/constants/referencias'
 import { useEffect, useRef, useState, type ChangeEvent, type DragEvent, type FormEvent } from 'react'
-import LayoutPainel from '@/components/painel/LayoutPainel'
 import { Campo, Migalhas } from '@/components/ui/Basicos'
 import { avisar } from '@/components/feedback/Avisos'
-import { validarObrigatorio, validarPreco, validarPrazoDias } from '@/utils/validacao'
+import { numeroDoPreco, validarObrigatorio, validarPreco, validarPrazoDias } from '@/utils/validacao'
 import { IconeAviso, IconePincel } from '@/components/ui/Icones'
 import EstadoCarregando from '@/components/feedback/EstadoCarregando'
 import { useReferencias } from '@/hooks/useReferencias'
@@ -48,6 +47,7 @@ export default function NovaPeca({ initialPeca }: Props) {
   const [salvando, definirSalvando] = useState(false)
   const { tecnicas, territorios, categorias, tipos, carregando } = useReferencias()
   const [disponibilidade, definirDisponibilidade] = useState<Disponibilidade>(initialPeca?.disponibilidade ?? 'disponivel')
+  const [preco, definirPreco] = useState(() => initialPeca?.preco === undefined ? '' : emReais(initialPeca.preco))
   const [erros, definirErros] = useState<Record<string, string>>({})
   const fotosIniciais = initialPeca
     ? initialPeca.fotos?.length
@@ -85,7 +85,7 @@ export default function NovaPeca({ initialPeca }: Props) {
 
   if (carregando) {
     return (
-      <LayoutPainel ativo="pecas">
+      <>
         <Migalhas
           trilha={[
             { texto: 'Painel do artesão', href: '/dashboard' },
@@ -95,7 +95,7 @@ export default function NovaPeca({ initialPeca }: Props) {
         />
         <h1 className="titulo-pagina">Cadastrar uma peça</h1>
         <EstadoCarregando rotulo="Carregando o formulário…" cartoes={0} />
-      </LayoutPainel>
+      </>
     )
   }
 
@@ -234,7 +234,7 @@ export default function NovaPeca({ initialPeca }: Props) {
         territorio: String(dados.get('territorio')), categoria: String(dados.get('categoria')),
         tipo: String(dados.get('tipo')) as TipoPeca,
         historia: [String(dados.get('historia') || '')],
-        preco: Number(String(dados.get('preco') || '0').replace(/\./g, '').replace(',', '.')) || 0,
+        preco: numeroDoPreco(String(dados.get('preco') || '0')) || 0,
         disponibilidade, prazoProducaoDias: disponibilidade === 'encomenda' ? Number(dados.get('prazo')) : undefined,
         imagem: fotosParaEnviar[0]?.url ?? '/fotos/ImagemBase.webp',
         fotos: fotosParaEnviar,
@@ -262,7 +262,7 @@ export default function NovaPeca({ initialPeca }: Props) {
   function salvarRascunho() { void salvar(true) }
 
   return (
-    <LayoutPainel ativo="pecas">
+    <>
       <Migalhas
         trilha={[
           { texto: 'Painel do artesão', href: '/dashboard' },
@@ -502,8 +502,20 @@ export default function NovaPeca({ initialPeca }: Props) {
               </Campo>
             )}
 
-            <Campo rotulo="Preço" erro={erros['peca-preco']} id="peca-preco">
-              <input id="peca-preco" name="preco" inputMode="decimal" placeholder="R$ 0,00" defaultValue={initialPeca?.preco} />
+            <Campo rotulo="Preço" ajuda="O valor é exibido em reais ao sair do campo." erro={erros['peca-preco']} id="peca-preco">
+              <input
+                id="peca-preco"
+                name="preco"
+                inputMode="decimal"
+                placeholder="R$ 0,00"
+                value={preco}
+                onFocus={() => definirPreco((valor) => valor.replace(/^R\$\s*/, ''))}
+                onChange={(evento) => definirPreco(evento.target.value.replace(/[^\d,.]/g, ''))}
+                onBlur={() => {
+                  const valor = numeroDoPreco(preco)
+                  if (Number.isFinite(valor) && valor > 0) definirPreco(emReais(valor))
+                }}
+              />
             </Campo>
 
             <div className="acoes-linha acima-2">
@@ -549,6 +561,6 @@ export default function NovaPeca({ initialPeca }: Props) {
           </p>
         </aside>
       </div>
-    </LayoutPainel>
+    </>
   )
 }

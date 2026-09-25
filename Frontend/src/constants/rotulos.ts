@@ -6,6 +6,9 @@ export const rotuloEstadoPedido: Record<EstadoPedido, { texto: string; classe: s
   producao: { texto: 'Em produção', classe: 'selo-encomenda' },
   enviado: { texto: 'Enviado', classe: 'selo-neutro' },
   entregue: { texto: 'Entregue', classe: 'selo-disponivel' },
+  recusado: { texto: 'Recusado pelo artesão', classe: 'selo-unica' },
+  cancelado: { texto: 'Cancelado', classe: 'selo-unica' },
+  reembolsado: { texto: 'Reembolsado', classe: 'selo-disponivel' },
 }
 
 export const rotuloDisponibilidade: Record<Disponibilidade, string> = {

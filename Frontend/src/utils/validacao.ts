@@ -16,10 +16,15 @@ export function validarSenha(valor: string): string | null {
 }
 
 export function validarPreco(valor: string): string | null {
-  const normalizado = valor.trim().replace(/\./g, '').replace(',', '.')
-  const numero = Number(normalizado)
+  const numero = numeroDoPreco(valor)
   if (!valor.trim() || Number.isNaN(numero) || numero <= 0) return 'Digite um preço válido, como 180,00'
   return null
+}
+
+export function numeroDoPreco(valor: string): number {
+  const limpo = valor.trim().replace(/[^\d,.-]/g, '')
+  if (!limpo) return Number.NaN
+  return Number(limpo.includes(',') ? limpo.replace(/\./g, '').replace(',', '.') : limpo)
 }
 
 export function validarPrazoDias(valor: string): string | null {
@@ -28,3 +33,8 @@ export function validarPrazoDias(valor: string): string | null {
   if (numero > 120) return 'O prazo máximo é de 120 dias'
   return null
 }
+
+export function validarEstado(valor: string): string | null {
+  return SIGLAS_ESTADOS.has(valor.trim().toUpperCase()) ? null : 'Selecione uma UF válida na lista'
+}
+import { SIGLAS_ESTADOS } from '@/constants/estados'

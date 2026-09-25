@@ -81,6 +81,43 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
   const ler = (nome) => db.get(nome).value()
   const encontrar = (nome, id) => ler(nome).find((item) => item.id === id)
   const inserir = (nome, item) => { db.get(nome).push(item).write(); return item }
+  const itensDoPedido = (pedido) => pedido.itens ?? [{ slug: pedido.pecaSlug, quantidade: 1 }]
+  const materializarPedidoPendente = (id) => {
+    const existente = encontrar('pedidos', id)
+    if (existente) return existente
+    const pendente = encontrar('pedidosPendentes', id)
+    if (!pendente) return null
+    return inserir('pedidos', {
+      id: pendente.id,
+      pecaSlug: pendente.pecaSlug,
+      itens: [{ slug: pendente.pecaSlug, quantidade: 1 }],
+      compradorNome: pendente.comprador,
+      data: pendente.quando,
+      total: pendente.valor,
+      estado: 'confirmado',
+      avaliado: false,
+      etapas: [{ estado: 'confirmado', titulo: 'Pedido confirmado', detalhe: `Recebido ${pendente.quando}.`, concluida: true, atual: true }],
+    })
+  }
+  const reativarPecasUnicas = (pedido) => {
+    for (const item of itensDoPedido(pedido)) {
+      const peca = encontrar('pecas', item.slug)
+      if (peca?.disponibilidade === 'unica') {
+        db.get('pecas').find({ id: peca.id }).assign({ inativadoEm: null, vendidaEmPedido: null }).write()
+      }
+    }
+  }
+  const encerrarPedido = (pedido, estado, motivo) => {
+    const titulo = estado === 'recusado' ? 'Pedido recusado pelo artesão' : 'Pedido cancelado pelo comprador'
+    const detalhe = estado === 'recusado' ? motivo : 'Cancelado antes do início da produção.'
+    const etapas = [...(pedido.etapas ?? []).map((etapa) => ({ ...etapa, atual: false })), {
+      estado, titulo, detalhe, concluida: true, atual: true,
+    }]
+    db.get('pedidos').find({ id: pedido.id }).assign({ estado, motivoEncerramento: motivo, etapas }).write()
+    db.get('pedidosPendentes').remove({ id: pedido.id }).write()
+    reativarPecasUnicas(pedido)
+    return encontrar('pedidos', pedido.id)
+  }
 
   server.all(['/api/v1/usuarios*', '/api/v1/configuracoesAtelie*'], (req, res) => erro(res, 404, 'Recurso não encontrado.'))
   const configuracoesDe = (slug) => ({ ...CONFIGURACOES_PADRAO, ...(ler('configuracoesAtelie').find((c) => c.id === slug) ?? {}), id: slug })
@@ -434,10 +471,14 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
   server.patch('/api/v1/pecas/:id', (req, res) => {
     const peca = encontrar('pecas', req.params.id)
     if (!peca) return erro(res, 404, 'Peça não encontrada.')
-    const campos = ['nome', 'territorio', 'tecnica', 'categoria', 'tipo', 'historia', 'preco', 'disponibilidade', 'prazoProducaoDias', 'imagem', 'fotos', 'ordemFotos', 'situacao', 'inativadoEm']
+    const campos = ['nome', 'territorio', 'tecnica', 'categoria', 'tipo', 'historia', 'preco', 'disponibilidade', 'prazoProducaoDias', 'imagem', 'fotos', 'ordemFotos', 'situacao', 'inativadoEm', 'vendidaEmPedido']
     const alteracoes = Object.fromEntries(campos.filter((campo) => req.body[campo] !== undefined).map((campo) => [campo, req.body[campo]]))
     if (alteracoes.nome !== undefined && (!String(alteracoes.nome).trim() || String(alteracoes.nome).length > 180)) return erro(res, 400, 'Informe um nome válido para a peça.')
     if (alteracoes.preco !== undefined && (!Number.isFinite(alteracoes.preco) || alteracoes.preco < 0)) return erro(res, 400, 'Preço inválido.')
+    if (alteracoes.disponibilidade !== undefined && !['disponivel', 'encomenda', 'unica'].includes(alteracoes.disponibilidade)) return erro(res, 400, 'Disponibilidade inválida.')
+    const proximaDisponibilidade = alteracoes.disponibilidade ?? peca.disponibilidade
+    const proximoPrazo = alteracoes.prazoProducaoDias ?? peca.prazoProducaoDias
+    if (proximaDisponibilidade === 'encomenda' && (!Number.isInteger(proximoPrazo) || proximoPrazo < 1 || proximoPrazo > 120)) return erro(res, 400, 'Informe um prazo de produção entre 1 e 120 dias.')
     res.json(ok(db.get('pecas').find({ id: req.params.id }).assign(alteracoes).write()))
   })
   server.delete('/api/v1/pecas/:id', (req, res) => {
@@ -512,7 +553,7 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
     for (const item of itens) {
       if (!item) return erro(res, 400, 'Item inválido.')
       const peca = encontrar('pecas', item.slug)
-      if (!peca || !Number.isInteger(item.quantidade) || item.quantidade < 1 || item.quantidade > 3 || (peca.disponibilidade === 'unica' && item.quantidade !== 1)) return erro(res, 400, 'Peça ou quantidade inválida.')
+      if (!peca || peca.inativadoEm || !Number.isInteger(item.quantidade) || item.quantidade < 1 || item.quantidade > 3 || (peca.disponibilidade === 'unica' && item.quantidade !== 1)) return erro(res, 400, 'Peça indisponível ou quantidade inválida.')
       subtotal += preco(peca) * item.quantidade
     }
     const pedido = {
@@ -522,11 +563,39 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
       endereco, meio, freteId, simulado: true,
       etapas: [{ estado: 'confirmado', titulo: 'Pedido confirmado', detalhe: 'Compra de demonstração registrada.', concluida: true, atual: true }],
     }
-    res.status(201).json(ok(inserir('pedidos', pedido)))
+    inserir('pedidos', pedido)
+    for (const item of itens) {
+      const peca = encontrar('pecas', item.slug)
+      if (peca?.disponibilidade === 'unica') {
+        db.get('pecas').find({ id: peca.id }).assign({ inativadoEm: new Date().toISOString(), vendidaEmPedido: pedido.id }).write()
+      }
+    }
+    res.status(201).json(ok(pedido))
+  })
+  server.patch('/api/v1/pedidos/:id/recusar', (req, res) => {
+    const usuario = usuarioDaRequisicao(req)
+    if (!usuario || usuario.perfil !== 'artesao' || !usuario.artesaoId) return erro(res, 403, 'Somente o artesão responsável pode recusar o pedido.', 'SEM_PERMISSAO')
+    const pedido = materializarPedidoPendente(req.params.id)
+    if (!pedido) return erro(res, 404, 'Pedido não encontrado.')
+    if (pedido.estado !== 'confirmado') return erro(res, 409, 'Só é possível recusar antes de iniciar a produção.')
+    const pertenceAoArtesao = itensDoPedido(pedido).some((item) => encontrar('pecas', item.slug)?.artesao === usuario.artesaoId)
+    if (!pertenceAoArtesao) return erro(res, 403, 'Este pedido pertence a outro ateliê.', 'SEM_PERMISSAO')
+    const motivo = String(req.body.motivo || '').trim()
+    if (motivo.length < 5) return erro(res, 400, 'Informe o motivo da recusa.')
+    res.json(ok(encerrarPedido(pedido, 'recusado', motivo)))
+  })
+  server.patch('/api/v1/pedidos/:id/cancelar', (req, res) => {
+    const usuario = usuarioDaRequisicao(req)
+    if (!usuario) return erro(res, 401, 'Entre na sua conta para cancelar o pedido.', 'NAO_AUTENTICADO')
+    const pedido = encontrar('pedidos', req.params.id)
+    if (!pedido || (pedido.compradorId ?? pedido.usuarioId) !== usuario.id) return erro(res, 404, 'Pedido não encontrado.')
+    if (pedido.estado !== 'confirmado') return erro(res, 409, 'A produção já começou. Solicite a mediação da plataforma.')
+    res.json(ok(encerrarPedido(pedido, 'cancelado', 'Cancelado pelo comprador antes do início da produção.')))
   })
   server.patch('/api/v1/pedidos/:id/estado', (req, res) => {
     const pedido = encontrar('pedidos', req.params.id)
     if (!pedido) return erro(res, 404, 'Pedido não encontrado.')
+    if (['recusado', 'cancelado', 'reembolsado'].includes(pedido.estado)) return erro(res, 409, 'Este pedido já foi encerrado.')
     const estados = ['confirmado', 'producao', 'enviado', 'entregue']
     if (!estados.includes(req.body.estado)) return erro(res, 400, 'Estado do pedido inválido.')
     const indiceAtual = estados.indexOf(req.body.estado)

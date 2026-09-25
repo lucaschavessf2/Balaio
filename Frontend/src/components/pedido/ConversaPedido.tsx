@@ -19,15 +19,22 @@ export default function ConversaPedido({ iniciais, atelie, imagem, id, pedidoId 
   const [salvando, definirSalvando] = useState(false)
   const [mensagens, definirMensagens] = useState(iniciais)
   const [rascunho, definirRascunho] = useState('')
+  const [erroEnvio, definirErroEnvio] = useState<string | null>(null)
 
   async function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
     const texto = rascunho.trim()
     if (!texto || salvando) return
     definirSalvando(true)
+    definirErroEnvio(null)
     const resposta = await enviarMensagem(pedidoId, { autor: 'comprador', texto, hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) })
     definirSalvando(false)
-    if (resposta.erro || !resposta.dados) { avisar.erro('Mensagem não enviada', resposta.erro?.mensagem); return }
+    if (resposta.erro || !resposta.dados) {
+      const mensagem = resposta.erro?.mensagem ?? 'Tente novamente em instantes.'
+      definirErroEnvio(mensagem)
+      avisar.erro('Mensagem não enviada', mensagem)
+      return
+    }
     definirMensagens((atuais) => [...atuais, resposta.dados!])
     definirRascunho('')
   }
@@ -38,10 +45,7 @@ export default function ConversaPedido({ iniciais, atelie, imagem, id, pedidoId 
         <Retrato imagem={imagem} tamanho={44} />
         <div className="encolhivel">
           <p className="texto-forte">{atelie}</p>
-          <p className="autoria linha-flex" style={{ gap: 6 }}>
-            <span className="selo-ponto" style={{ background: 'var(--verde)' }} />
-            Online agora
-          </p>
+          <p className="autoria">Conversa deste pedido</p>
         </div>
       </div>
 
@@ -53,6 +57,8 @@ export default function ConversaPedido({ iniciais, atelie, imagem, id, pedidoId 
           </div>
         ))}
       </div>
+
+      {erroEnvio && <p className="campo-erro acima-3" role="alert">{erroEnvio} Sua mensagem foi mantida.</p>}
 
       <form className="conversa-envio" onSubmit={enviar}>
         <label className="so-leitor" htmlFor="mensagem">

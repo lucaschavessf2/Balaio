@@ -52,6 +52,7 @@ export default async function MeusPedidos() {
           const artesao = peca ? acharArtesao(peca.artesao) : undefined
           const estado = rotuloEstadoPedido[pedido.estado]
           const entregue = pedido.estado === 'entregue'
+          const encerrado = ['recusado', 'cancelado', 'reembolsado'].includes(pedido.estado)
 
           return (
             <article className="cartao-pedido" key={pedido.id}>
@@ -73,14 +74,18 @@ export default async function MeusPedidos() {
                     por {artesao?.nome} · Pedido #{pedido.id}
                   </p>
                   <p className={`cartao-pedido-status${entregue ? ' status-bom' : ''}`}>
-                    {entregue ? 'Entregue no seu endereço' : (pedido.previsaoEntrega ? `Previsão de entrega: ${pedido.previsaoEntrega}` : 'Aguardando previsão de entrega')}
+                    {encerrado
+                      ? pedido.motivoEncerramento ?? 'Este pedido foi encerrado.'
+                      : entregue
+                        ? 'Entregue no seu endereço'
+                        : (pedido.previsaoEntrega ? `Previsão de entrega: ${pedido.previsaoEntrega}` : 'Aguardando previsão de entrega')}
                   </p>
                   <p className="preco-destaque">{emReais(pedido.total)}</p>
                 </div>
               </Link>
 
               <footer className="acoes-linha acoes-empilhaveis cartao-pedido-acoes">
-                {!entregue && (
+                {!entregue && !encerrado && (
                   <Link href={`/orders/${pedido.id}`} className="botao botao-primario">
                     Acompanhar pedido
                   </Link>
@@ -103,9 +108,11 @@ export default async function MeusPedidos() {
                     Ver detalhes
                   </Link>
                 )}
-                <Link href={`/orders/${pedido.id}/mediation`} className="botao botao-fantasma">
-                  Preciso de ajuda
-                </Link>
+                {encerrado ? (
+                  <Link href={`/orders/${pedido.id}`} className="botao botao-fantasma">Ver detalhes</Link>
+                ) : (
+                  <Link href={`/orders/${pedido.id}/mediation`} className="botao botao-fantasma">Preciso de ajuda</Link>
+                )}
               </footer>
             </article>
           )

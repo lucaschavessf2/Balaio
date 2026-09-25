@@ -8,9 +8,14 @@ import { useSessao } from '@/store/sessao'
 import type { Artesao } from '@/types/dominio'
 
 const EVENTO_ARTESAO_ATUALIZADO = 'balaio:artesao-atualizado'
+const EVENTO_PAINEL_ATUALIZADO = 'balaio:painel-atualizado'
 
 export function avisarArtesaoAtualizado(artesao: Artesao) {
   window.dispatchEvent(new CustomEvent<Artesao>(EVENTO_ARTESAO_ATUALIZADO, { detail: artesao }))
+}
+
+export function avisarPainelAtualizado() {
+  window.dispatchEvent(new Event(EVENTO_PAINEL_ATUALIZADO))
 }
 
 export function useArtesaoLogado(): Artesao | null {
@@ -46,15 +51,20 @@ export function useContagensPainel(): ContagensPainel {
   useEffect(() => {
     if (!slug) return
     let vivo = true
-    Promise.all([listarPedidosPendentes(slug), listarConversasArtesao(slug)]).then(([pendentes, conversas]) => {
-      if (!vivo) return
-      definirContagens({
-        pendentes: pendentes.dados?.length ?? 0,
-        naoLidas: (conversas.dados ?? []).filter((c) => c.naoLida).length,
+    function carregar() {
+      Promise.all([listarPedidosPendentes(slug), listarConversasArtesao(slug)]).then(([pendentes, conversas]) => {
+        if (!vivo) return
+        definirContagens({
+          pendentes: pendentes.dados?.length ?? 0,
+          naoLidas: (conversas.dados ?? []).filter((c) => c.naoLida).length,
+        })
       })
-    })
+    }
+    carregar()
+    window.addEventListener(EVENTO_PAINEL_ATUALIZADO, carregar)
     return () => {
       vivo = false
+      window.removeEventListener(EVENTO_PAINEL_ATUALIZADO, carregar)
     }
   }, [slug])
 

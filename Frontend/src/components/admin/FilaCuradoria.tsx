@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { EstadoVazio } from '@/components/ui/Basicos'
 import { avisar } from '@/components/feedback/Avisos'
 import { IconeAviso, IconeCheck, IconeSelo } from '@/components/ui/Icones'
+import { useRouter } from 'next/navigation'
 
 type ItemCuradoria = { id: string; peca: string; artesao: string; enviadoEm: string; motivo: string }
 
@@ -17,6 +18,7 @@ export default function FilaCuradoria({
   mediacoesAbertas: number
   artesaosAtivos: number
 }) {
+  const roteador = useRouter()
   const [fila, definirFila] = useState(filaInicial)
   const [analisadas, definirAnalisadas] = useState(0)
 
@@ -42,6 +44,7 @@ export default function FilaCuradoria({
     if (resposta.erro) { avisar.erro('Não foi possível aprovar', resposta.erro.mensagem); return }
     definirFila(fila.filter((f) => f.id !== item.id))
     definirAnalisadas((n) => n + 1)
+    roteador.refresh()
     avisar.sucesso('Peça aprovada e publicada no catálogo', `${item.peca}, de ${item.artesao}.`)
   }
 
@@ -50,6 +53,7 @@ export default function FilaCuradoria({
     if (resposta.erro) { avisar.erro('Não foi possível registrar', resposta.erro.mensagem); return }
     definirFila(fila.filter((f) => f.id !== item.id))
     definirAnalisadas((n) => n + 1)
+    roteador.refresh()
     avisar.info('Pedido de ajuste enviado ao artesão', `${item.artesao} recebe o motivo por mensagem.`)
   }
 
