@@ -11,7 +11,7 @@ import EstadoErro from '@/components/feedback/EstadoErro'
 import EstadoCarregando from '@/components/feedback/EstadoCarregando'
 import { useSacola } from '@/store/sacola'
 import { usePecas } from '@/hooks/usePecas'
-import { validarCEP, validarObrigatorio } from '@/utils/validacao'
+import { validarCEP, validarEstado, validarObrigatorio } from '@/utils/validacao'
 import { useDados } from '@/store/dados'
 import { useSessao } from '@/store/sessao'
 import { emReais, precoComDesconto } from '@/utils/formato'
@@ -24,6 +24,15 @@ const meios: { id: Meio; nome: string; nota: string }[] = [
   { id: 'cartao', nome: 'Cartão', nota: 'Simulado' },
   { id: 'boleto', nome: 'Boleto', nota: 'Simulado' },
 ]
+
+const estados = [
+  ['AC', 'Acre'], ['AL', 'Alagoas'], ['AP', 'Amapá'], ['AM', 'Amazonas'], ['BA', 'Bahia'], ['CE', 'Ceará'],
+  ['DF', 'Distrito Federal'], ['ES', 'Espírito Santo'], ['GO', 'Goiás'], ['MA', 'Maranhão'], ['MT', 'Mato Grosso'],
+  ['MS', 'Mato Grosso do Sul'], ['MG', 'Minas Gerais'], ['PA', 'Pará'], ['PB', 'Paraíba'], ['PR', 'Paraná'],
+  ['PE', 'Pernambuco'], ['PI', 'Piauí'], ['RJ', 'Rio de Janeiro'], ['RN', 'Rio Grande do Norte'],
+  ['RS', 'Rio Grande do Sul'], ['RO', 'Rondônia'], ['RR', 'Roraima'], ['SC', 'Santa Catarina'], ['SP', 'São Paulo'],
+  ['SE', 'Sergipe'], ['TO', 'Tocantins'],
+] as const
 
 export default function CheckoutFormulario() {
   const { sessao } = useSessao()
@@ -74,7 +83,7 @@ export default function CheckoutFormulario() {
     const problemaCidade = validarObrigatorio(String(dados.get('cidade') ?? ''), 'Informe a cidade')
     if (problemaCidade) proximosErros['cidade'] = problemaCidade
 
-    const problemaEstado = validarObrigatorio(String(dados.get('estado') ?? ''), 'Informe o estado')
+    const problemaEstado = validarEstado(String(dados.get('estado') ?? ''))
     if (problemaEstado) proximosErros['estado'] = problemaEstado
 
     definirErros(proximosErros)
@@ -193,8 +202,27 @@ export default function CheckoutFormulario() {
               <Campo rotulo="Cidade" erro={erros['cidade']} id="cidade">
                 <input id="cidade" name="cidade" value={entrega.cidade} onChange={(e) => definirEntrega({ ...entrega, cidade: e.target.value })} />
               </Campo>
-              <Campo rotulo="Estado" erro={erros['estado']} id="estado">
-                <input id="estado" name="estado" maxLength={2} value={entrega.estado} onChange={(e) => definirEntrega({ ...entrega, estado: e.target.value })} />
+              <Campo
+                rotulo="Estado"
+                ajuda="Digite a UF para filtrar ou escolha na lista."
+                erro={erros['estado']}
+                id="estado"
+              >
+                <input
+                  id="estado"
+                  name="estado"
+                  list="estados-brasileiros"
+                  autoComplete="address-level1"
+                  maxLength={2}
+                  placeholder="PE"
+                  value={entrega.estado}
+                  onChange={(e) => definirEntrega({ ...entrega, estado: e.target.value.replace(/[^a-z]/gi, '').toUpperCase().slice(0, 2) })}
+                />
+                <datalist id="estados-brasileiros">
+                  {estados.map(([sigla, nome]) => (
+                    <option key={sigla} value={sigla} label={nome}>{nome}</option>
+                  ))}
+                </datalist>
               </Campo>
             </div>
           </section>
