@@ -5,13 +5,14 @@ import ResumoItensPedido from '@/components/pedido/ResumoItensPedido'
 import { Migalhas } from '@/components/ui/Basicos'
 import ConversaPedido from '@/components/pedido/ConversaPedido'
 import BotaoRastreio from '@/components/pedido/BotaoRastreio'
-import { IconeCaminhao, IconeCheck, IconeSetaDireita } from '@/components/ui/Icones'
+import { IconeAviso, IconeCaminhao, IconeCheck, IconeSetaDireita } from '@/components/ui/Icones'
 import { obterPedido, conversaDoPedido } from '@/services/api/pedidos.servico'
 import { obterPecaHistorico } from '@/services/api/pecas.servico'
 import { obterArtesao } from '@/services/api/artesaos.servico'
 import { rotuloEstadoPedido } from '@/constants/rotulos'
 import { exigirSessao } from '@/services/autenticacao'
 import type { EstadoPedido, EtapaPedido } from '@/types/dominio'
+import CancelarPedido from '@/components/pedido/CancelarPedido'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,6 +24,7 @@ const etapasPadrao: { estado: EstadoPedido; titulo: string; pendente: string }[]
 ]
 
 function linhaDoTempo(estado: EstadoPedido, registradas: EtapaPedido[]): EtapaPedido[] {
+  if (['recusado', 'cancelado', 'reembolsado'].includes(estado)) return registradas
   const indiceAtual = etapasPadrao.findIndex((etapa) => etapa.estado === estado)
   return etapasPadrao.map((etapa, indice) => {
     const registrada = registradas.find((item) => item.estado === etapa.estado)
@@ -48,6 +50,7 @@ export default async function Acompanhamento({ params }: { params: Promise<{ id:
   const artesao = peca ? (await obterArtesao(peca.artesao)).dados : null
   const { dados: conversa } = await conversaDoPedido(id)
   const etapas = linhaDoTempo(pedido.estado, pedido.etapas ?? [])
+  const encerrado = ['recusado', 'cancelado', 'reembolsado'].includes(pedido.estado)
 
   return (
     <Pagina>
@@ -87,36 +90,47 @@ export default async function Acompanhamento({ params }: { params: Promise<{ id:
             <ResumoItensPedido pedido={pedido} />
           </section>
 
+          {encerrado && (
+            <section className="pedido-encerrado abaixo-5" role="status">
+              <h2>{rotuloEstadoPedido[pedido.estado].texto}</h2>
+              <p>{pedido.motivoEncerramento ?? 'Este pedido foi encerrado.'}</p>
+              <p className="campo-ajuda">Se havia uma peça única neste pedido, ela voltou a ficar disponível na vitrine.</p>
+            </section>
+          )}
+
           <section className="cartao abaixo-5">
             <h2 className="secao-titulo">Status de produção e entrega</h2>
 
             <ol className="linha-tempo">
-              {etapas.map((etapa) => (
-                <li
-                  key={etapa.estado}
-                  className={`etapa${etapa.concluida ? ' etapa-feita' : ''}${etapa.atual ? ' etapa-atual' : ''}`}
-                >
-                  <span className="etapa-marca">
-                    {etapa.concluida ? <IconeCheck tamanho={14} /> : etapa.atual ? <IconeCaminhao tamanho={14} /> : null}
-                  </span>
-                  <div className="encolhivel">
-                    <p className="etapa-titulo">
-                      {etapa.titulo}
-                      {etapa.atual && <span className="selo selo-encomenda">Fase atual</span>}
-                    </p>
-                    <p className="etapa-detalhe">{etapa.detalhe}</p>
-                    {etapa.nota && (
-                      <p className="nota-artesao">
-                        <strong>Nota do artesão:</strong> <em>{etapa.nota}</em>
+              {etapas.map((etapa) => {
+                const etapaEncerrada = ['recusado', 'cancelado', 'reembolsado'].includes(etapa.estado)
+                return (
+                  <li
+                    key={etapa.estado}
+                    className={`etapa${etapa.concluida ? ' etapa-feita' : ''}${etapa.atual ? ' etapa-atual' : ''}${etapaEncerrada ? ' etapa-encerrada' : ''}`}
+                  >
+                    <span className="etapa-marca">
+                      {etapaEncerrada ? <IconeAviso tamanho={14} /> : etapa.concluida ? <IconeCheck tamanho={14} /> : etapa.atual ? <IconeCaminhao tamanho={14} /> : null}
+                    </span>
+                    <div className="encolhivel">
+                      <p className="etapa-titulo">
+                        {etapa.titulo}
+                        {etapa.atual && <span className={`selo ${etapaEncerrada ? 'selo-unica' : 'selo-encomenda'}`}>{etapaEncerrada ? 'Pedido encerrado' : 'Fase atual'}</span>}
                       </p>
-                    )}
-                  </div>
-                </li>
-              ))}
+                      <p className="etapa-detalhe">{etapa.detalhe}</p>
+                      {etapa.nota && (
+                        <p className="nota-artesao">
+                          <strong>Nota do artesão:</strong> <em>{etapa.nota}</em>
+                        </p>
+                      )}
+                    </div>
+                  </li>
+                )
+              })}
             </ol>
           </section>
 
-          <section className="cartao">
+          {!encerrado && <section className="cartao">
             <h2 className="secao-titulo">Informações de envio</h2>
             {!pedido.rastreio && (
               <p className="texto-suave abaixo-3">O código de rastreamento aparece aqui quando o envio for registrado.</p>
@@ -147,7 +161,7 @@ export default async function Acompanhamento({ params }: { params: Promise<{ id:
                 <IconeSetaDireita />
               </BotaoRastreio>
             )}
-          </section>
+          </section>}
 
           {pedido.estado === 'entregue' && (
             <section className="cartao acima-5">
@@ -160,13 +174,24 @@ export default async function Acompanhamento({ params }: { params: Promise<{ id:
           )}
 
           <section className="cartao acima-5">
-            <h2 className="secao-titulo">Algo deu errado?</h2>
-            <p className="texto-suave abaixo-3">
-              Fale primeiro com o artesão pela conversa ao lado. Se não resolver, você pode pedir a mediação da plataforma.
-            </p>
-            <Link href={`/orders/${pedido.id}/mediation`} className="botao botao-fantasma">
-              Pedir mediação da plataforma
-            </Link>
+            <h2 className="secao-titulo">Cancelamento e ajuda</h2>
+            {pedido.estado === 'confirmado' ? (
+              <>
+                <p className="texto-suave abaixo-3">A produção ainda não começou, então você pode cancelar diretamente.</p>
+                <CancelarPedido pedidoId={pedido.id} />
+              </>
+            ) : encerrado ? (
+              <p className="texto-suave">O pedido já foi encerrado. Se precisar contestar o resultado, fale com a plataforma.</p>
+            ) : (
+              <>
+                <p className="texto-suave abaixo-3">
+                  Como a produção já começou, o cancelamento precisa ser analisado pela plataforma.
+                </p>
+                <Link href={`/orders/${pedido.id}/mediation`} className="botao botao-fantasma">
+                  Solicitar cancelamento pela mediação
+                </Link>
+              </>
+            )}
           </section>
         </div>
 

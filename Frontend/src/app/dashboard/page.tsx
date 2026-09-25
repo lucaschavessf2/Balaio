@@ -3,7 +3,7 @@ import { Migalhas } from '@/components/ui/Basicos'
 import PedidosPendentes from '@/components/pedido/PedidosPendentes'
 import { IconeSetaDireita } from '@/components/ui/Icones'
 import { listarPedidos, listarPedidosPendentes, listarConversasArtesao } from '@/services/api/pedidos.servico'
-import { listarPecas } from '@/services/api/pecas.servico'
+import { pecasPorArtesao } from '@/services/api/pecas.servico'
 import { exigirArtesao } from '@/services/autenticacao'
 
 export default async function Painel() {
@@ -11,7 +11,7 @@ export default async function Painel() {
   const [{ dados: pend }, { dados: conversas }, { dados: pecas }, { dados: pedidos }] = await Promise.all([
     listarPedidosPendentes(artesao.slug),
     listarConversasArtesao(artesao.slug),
-    listarPecas(),
+    pecasPorArtesao(artesao.slug),
     listarPedidos(),
   ])
   const mapaPecas = new Map((pecas ?? []).map((p) => [p.slug, p]))
@@ -35,6 +35,22 @@ export default async function Painel() {
   const pedidosDoArtesao = (pedidos ?? []).filter((pedido) =>
     (pedido.itens ?? [{ slug: pedido.pecaSlug }]).some((item) => slugsDoArtesao.has(item.slug)),
   )
+  const estadosEncerrados = new Set(['recusado', 'cancelado', 'reembolsado'])
+  const pecasUnicasVendidas = new Set(
+    pedidosDoArtesao.filter((pedido) => !estadosEncerrados.has(pedido.estado)).flatMap((pedido) =>
+      (pedido.itens ?? [{ slug: pedido.pecaSlug }])
+        .filter((item) => mapaPecas.get(item.slug)?.disponibilidade === 'unica')
+        .map((item) => item.slug),
+    ),
+  )
+  const pecasAtivas = (pecas ?? []).filter((peca) =>
+    !peca.inativadoEm && !pecasUnicasVendidas.has(peca.slug) && (peca.situacao ?? 'publicada') === 'publicada',
+  ).length
+  const avisosPecas = (pecas ?? []).flatMap((peca) => {
+    if (pecasUnicasVendidas.has(peca.slug) || peca.vendidaEmPedido) return [{ slug: peca.slug, nome: peca.nome, motivo: 'Peça única vendida' }]
+    if (peca.inativadoEm) return [{ slug: peca.slug, nome: peca.nome, motivo: 'Peça inativada' }]
+    return []
+  })
   const agora = new Date()
   const noMesAtual = (data: string) => {
     const [dia, mes, ano] = data.split('/').map(Number)
@@ -53,8 +69,9 @@ export default async function Painel() {
       <PedidosPendentes
         iniciais={pendentes}
         emProducao={pedidosDoArtesao.filter((pedido) => pedido.estado === 'producao').length}
-        enviadosMes={pedidosDoArtesao.filter((pedido) => pedido.estado === 'enviado' && noMesAtual(pedido.data)).length}
-        faturamentoMes={pedidosDoArtesao.filter((pedido) => noMesAtual(pedido.data)).reduce((total, pedido) => total + pedido.total, 0)}
+        pecasAtivas={pecasAtivas}
+        avisosPecas={avisosPecas}
+        faturamentoMes={pedidosDoArtesao.filter((pedido) => !estadosEncerrados.has(pedido.estado) && noMesAtual(pedido.data)).reduce((total, pedido) => total + pedido.total, 0)}
       />
 
       <section className="secao">

@@ -16,6 +16,7 @@ import { useDados } from '@/store/dados'
 import { useSessao } from '@/store/sessao'
 import { emReais, precoComDesconto } from '@/utils/formato'
 import { obterUsuario } from '@/services/api/conta.servico'
+import SeletorEstado from '@/components/forms/SeletorEstado'
 
 type Meio = 'pix' | 'cartao' | 'boleto'
 
@@ -24,15 +25,6 @@ const meios: { id: Meio; nome: string; nota: string }[] = [
   { id: 'cartao', nome: 'Cartão', nota: 'Simulado' },
   { id: 'boleto', nome: 'Boleto', nota: 'Simulado' },
 ]
-
-const estados = [
-  ['AC', 'Acre'], ['AL', 'Alagoas'], ['AP', 'Amapá'], ['AM', 'Amazonas'], ['BA', 'Bahia'], ['CE', 'Ceará'],
-  ['DF', 'Distrito Federal'], ['ES', 'Espírito Santo'], ['GO', 'Goiás'], ['MA', 'Maranhão'], ['MT', 'Mato Grosso'],
-  ['MS', 'Mato Grosso do Sul'], ['MG', 'Minas Gerais'], ['PA', 'Pará'], ['PB', 'Paraíba'], ['PR', 'Paraná'],
-  ['PE', 'Pernambuco'], ['PI', 'Piauí'], ['RJ', 'Rio de Janeiro'], ['RN', 'Rio Grande do Norte'],
-  ['RS', 'Rio Grande do Sul'], ['RO', 'Rondônia'], ['RR', 'Roraima'], ['SC', 'Santa Catarina'], ['SP', 'São Paulo'],
-  ['SE', 'Sergipe'], ['TO', 'Tocantins'],
-] as const
 
 export default function CheckoutFormulario() {
   const { sessao } = useSessao()
@@ -49,12 +41,39 @@ export default function CheckoutFormulario() {
   const [erroConfirmacao, definirErroConfirmacao] = useState<string | null>(null)
   const [entrega, definirEntrega] = useState({ cep: '', endereco: '', cidade: '', estado: '' })
 
+  function atualizarEntrega(campo: keyof typeof entrega, valor: string) {
+    definirEntrega((atual) => ({ ...atual, [campo]: valor }))
+    const id = campo === 'cep' ? 'cep-checkout' : campo
+    definirErros((atuais) => {
+      if (!atuais[id]) return atuais
+      const problema = campo === 'cep'
+        ? validarCEP(valor)
+        : campo === 'estado'
+          ? validarEstado(valor)
+          : validarObrigatorio(valor, campo === 'endereco' ? 'Informe o endereço de entrega' : 'Informe a cidade')
+      if (problema === atuais[id]) return atuais
+      const proximos = { ...atuais }
+      if (problema) proximos[id] = problema
+      else delete proximos[id]
+      return proximos
+    })
+  }
+
   useEffect(() => {
     obterUsuario().then(({ dados }) => {
       const principal = dados?.enderecos?.find((item) => item.principal) ?? dados?.enderecos?.[0]
       if (!principal) return
       const partes = principal.bairro.split(',').map((item) => item.trim())
-      definirEntrega({ cep: principal.cep, endereco: principal.rua, cidade: partes.slice(0, -1).join(', '), estado: partes.at(-1) ?? '' })
+      const enderecoCarregado = { cep: principal.cep, endereco: principal.rua, cidade: partes.slice(0, -1).join(', '), estado: partes.at(-1) ?? '' }
+      definirEntrega(enderecoCarregado)
+      definirErros((atuais) => {
+        const proximos = { ...atuais }
+        if (!validarCEP(enderecoCarregado.cep)) delete proximos['cep-checkout']
+        if (!validarObrigatorio(enderecoCarregado.endereco)) delete proximos.endereco
+        if (!validarObrigatorio(enderecoCarregado.cidade)) delete proximos.cidade
+        if (!validarEstado(enderecoCarregado.estado)) delete proximos.estado
+        return proximos
+      })
     })
   }, [])
 
@@ -193,37 +212,21 @@ export default function CheckoutFormulario() {
           <section className="cartao abaixo-5">
             <h2 className="secao-titulo">Endereço de entrega</h2>
             <Campo rotulo="CEP" erro={erros['cep-checkout']} id="cep-checkout">
-              <input id="cep-checkout" name="cep" inputMode="numeric" maxLength={9} placeholder="50000-000" value={entrega.cep} onChange={(e) => definirEntrega({ ...entrega, cep: e.target.value })} />
+              <input id="cep-checkout" name="cep" inputMode="numeric" maxLength={9} placeholder="50000-000" value={entrega.cep} onChange={(e) => atualizarEntrega('cep', e.target.value)} />
             </Campo>
             <Campo rotulo="Endereço" erro={erros['endereco']} id="endereco">
-              <input id="endereco" name="endereco" value={entrega.endereco} onChange={(e) => definirEntrega({ ...entrega, endereco: e.target.value })} />
+              <input id="endereco" name="endereco" value={entrega.endereco} onChange={(e) => atualizarEntrega('endereco', e.target.value)} />
             </Campo>
             <div className="grade-dois">
               <Campo rotulo="Cidade" erro={erros['cidade']} id="cidade">
-                <input id="cidade" name="cidade" value={entrega.cidade} onChange={(e) => definirEntrega({ ...entrega, cidade: e.target.value })} />
+                <input id="cidade" name="cidade" value={entrega.cidade} onChange={(e) => atualizarEntrega('cidade', e.target.value)} />
               </Campo>
-              <Campo
-                rotulo="Estado"
-                ajuda="Digite a UF para filtrar ou escolha na lista."
+              <SeletorEstado
                 erro={erros['estado']}
                 id="estado"
-              >
-                <input
-                  id="estado"
-                  name="estado"
-                  list="estados-brasileiros"
-                  autoComplete="address-level1"
-                  maxLength={2}
-                  placeholder="PE"
-                  value={entrega.estado}
-                  onChange={(e) => definirEntrega({ ...entrega, estado: e.target.value.replace(/[^a-z]/gi, '').toUpperCase().slice(0, 2) })}
-                />
-                <datalist id="estados-brasileiros">
-                  {estados.map(([sigla, nome]) => (
-                    <option key={sigla} value={sigla} label={nome}>{nome}</option>
-                  ))}
-                </datalist>
-              </Campo>
+                value={entrega.estado}
+                onChange={(valor) => atualizarEntrega('estado', valor)}
+              />
             </div>
           </section>
 

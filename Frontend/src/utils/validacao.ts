@@ -35,5 +35,6 @@ export function validarPrazoDias(valor: string): string | null {
 }
 
 export function validarEstado(valor: string): string | null {
-  return /^[A-Z]{2}$/.test(valor.trim()) ? null : 'Selecione uma UF válida na lista'
+  return SIGLAS_ESTADOS.has(valor.trim().toUpperCase()) ? null : 'Selecione uma UF válida na lista'
 }
+import { SIGLAS_ESTADOS } from '@/constants/estados'

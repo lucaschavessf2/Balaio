@@ -1,11 +1,6 @@
-import type { conversasArtesao, pedidosPendentesArtesao, filaCuradoria } from '@/mocks/pedidos'
-import type { Mediacao, Mensagem, Pedido } from '@/types/dominio'
+import type { ConversaArtesao, ItemCuradoria, Mediacao, Mensagem, Pedido, PedidoPendente } from '@/types/dominio'
 import { buscar, enviar } from './cliente'
 import { type RespostaApi } from './tipos'
-
-type ConversaArtesao = (typeof conversasArtesao)[number]
-type PedidoPendente = (typeof pedidosPendentesArtesao)[number]
-type ItemCuradoria = (typeof filaCuradoria)[number]
 
 export type Checkout = {
   itens: { slug: string; quantidade: number }[]
@@ -52,6 +47,12 @@ export async function listarPedidosPendentes(artesao?: string): Promise<Resposta
 }
 
 export const atualizarEstadoPedido = (id: string, estado: Pedido['estado']) => enviar<Pedido>(`/pedidos/${encodeURIComponent(id)}/estado`, { estado }, 'PATCH')
+
+export const recusarPedido = (id: string, motivo: string) =>
+  enviar<Pedido>(`/pedidos/${encodeURIComponent(id)}/recusar`, { motivo }, 'PATCH')
+
+export const cancelarPedido = (id: string) =>
+  enviar<Pedido>(`/pedidos/${encodeURIComponent(id)}/cancelar`, {}, 'PATCH')
 
 export async function listarFilaCuradoria(): Promise<RespostaApi<ItemCuradoria[]>> {
   return buscar<ItemCuradoria[]>('/admin/curadoria')

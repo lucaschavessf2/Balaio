@@ -19,6 +19,7 @@ export type FotoPeca = {
 export type Peca = {
   situacao?: 'publicada' | 'curadoria' | 'rascunho'
   inativadoEm?: string | null
+  vendidaEmPedido?: string | null
   slug: string
   nome: string
   artesao: string
@@ -55,7 +56,7 @@ export type Artesao = {
   chavePix?: string
 }
 
-export type EstadoPedido = 'confirmado' | 'producao' | 'enviado' | 'entregue'
+export type EstadoPedido = 'confirmado' | 'producao' | 'enviado' | 'entregue' | 'recusado' | 'cancelado' | 'reembolsado'
 
 export type EtapaPedido = {
   estado: EstadoPedido
@@ -82,6 +83,35 @@ export type Pedido = {
   previsaoEntrega?: string
   etapas: EtapaPedido[]
   avaliado: boolean
+  motivoEncerramento?: string
+}
+
+export type PedidoPendente = {
+  id: string
+  pecaSlug: string
+  comprador: string
+  quando: string
+  valor: number
+}
+
+export type ConversaArtesao = {
+  id: string
+  pessoa: string
+  assunto: string
+  previa: string
+  quando: string
+  naoLida: boolean
+  retrato: string
+}
+
+export type ItemCuradoria = {
+  id: string
+  pecaSlug?: string
+  peca: string
+  artesao: string
+  artesaoSlug?: string
+  enviadoEm: string
+  motivo: string
 }
 
 export type Mensagem = {
