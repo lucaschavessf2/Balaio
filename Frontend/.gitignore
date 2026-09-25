@@ -8,3 +8,4 @@ fake-api/db.json
 .env.local
 .env.example
 .env
+.claude

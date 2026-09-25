@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { IconeBusca, IconeCasa, IconePlay, IconeSacola, IconeUsuario } from '@/components/ui/Icones'
+import { IconeBusca, IconeCasa, IconeCoracao, IconePlay, IconeSacola, IconeUsuario } from '@/components/ui/Icones'
 import { destinoInicial, type Sessao } from '@/services/sessao/cookie'
 
 const TEXTO_CONTA = { comprador: 'Conta', artesao: 'Painel', admin: 'Admin' } as const
@@ -10,6 +10,7 @@ export type ItemNavegacao = {
   href: string
   icone: ReactNode
   mostraContadorSacola?: boolean
+  mostraContadorFavoritos?: boolean
 }
 
 export function itensNavegacao(sessao: Sessao | null): ItemNavegacao[] {
@@ -17,6 +18,13 @@ export function itensNavegacao(sessao: Sessao | null): ItemNavegacao[] {
     { chave: 'inicio', texto: 'Início', href: '/', icone: <IconeCasa tamanho={22} /> },
     { chave: 'busca', texto: 'Buscar', href: '/search', icone: <IconeBusca tamanho={22} /> },
     { chave: 'atelie', texto: 'Ateliê', href: '/videos', icone: <IconePlay tamanho={22} /> },
+    {
+      chave: 'salvas',
+      texto: 'Salvas',
+      href: '/favorites',
+      icone: <IconeCoracao tamanho={22} />,
+      mostraContadorFavoritos: true,
+    },
     {
       chave: 'sacola',
       texto: 'Sacola',
