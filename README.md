@@ -6,7 +6,7 @@
 | | |
 |---|---|
 | **Deploy** | https://balaio.torreszx.space |
-| **Vídeo de demonstração** | `PREENCHER: link do vídeo` |
+| **Vídeo de demonstração** | https://drive.google.com/drive/folders/15IKHFOWQSm875Nvx7uebCf1Xy0AcMu4r?usp=sharing |
 | **Repositório** | https://github.com/lucaschavessf2/marketplace-artesanato |
 | **Branch principal** | Hoje o desenvolvimento acontece em `develop`, por pull request, e `main` é a branch padrão |
 | **Entrega atual** | Avaliação 1: frontend responsivo + Fake API estruturada |
