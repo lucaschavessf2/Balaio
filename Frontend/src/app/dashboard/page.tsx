@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import LayoutPainel from '@/components/painel/LayoutPainel'
 import { Migalhas } from '@/components/ui/Basicos'
 import PedidosPendentes from '@/components/pedido/PedidosPendentes'
 import { IconeSetaDireita } from '@/components/ui/Icones'
@@ -44,7 +43,7 @@ export default async function Painel() {
   }
 
   return (
-    <LayoutPainel ativo="pedidos">
+    <>
       <Migalhas trilha={[{ texto: 'Painel do artesão', href: '/dashboard' }, { texto: 'Pedidos pendentes' }]} />
       <h1 className="titulo-pagina">Gerenciamento de pedidos</h1>
       <p className="subtitulo-pagina">
@@ -71,6 +70,6 @@ export default async function Painel() {
           </Link>
         </div>
       </section>
-    </LayoutPainel>
+    </>
   )
 }

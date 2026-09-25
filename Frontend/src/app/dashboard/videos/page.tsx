@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import LayoutPainel from '@/components/painel/LayoutPainel'
 import { Migalhas } from '@/components/ui/Basicos'
 import FormPublicarVideo from '@/components/forms/FormPublicarVideo'
 import { IconeAviso, IconeGrafico, IconeSetaDireita } from '@/components/ui/Icones'
@@ -31,7 +30,7 @@ export default async function PublicarVideo() {
   const pecas = (pecasArtesao ?? []).map((p) => ({ slug: p.slug, nome: p.nome }))
 
   return (
-    <LayoutPainel ativo="videos">
+    <>
       <Migalhas trilha={[{ texto: 'Painel do artesão', href: '/dashboard' }, { texto: 'Vídeos' }]} />
       <h1 className="titulo-pagina">Publicar um vídeo</h1>
       <p className="subtitulo-pagina">
@@ -85,6 +84,6 @@ export default async function PublicarVideo() {
           </p>
         </aside>
       </div>
-    </LayoutPainel>
+    </>
   )
 }

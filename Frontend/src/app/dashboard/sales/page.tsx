@@ -1,4 +1,3 @@
-import LayoutPainel from '@/components/painel/LayoutPainel'
 import GraficoFaturamento from '@/components/painel/GraficoFaturamento'
 import { Migalhas } from '@/components/ui/Basicos'
 import { IconeGrafico } from '@/components/ui/Icones'
@@ -34,7 +33,7 @@ export default async function Vendas() {
     return { mes: rotulo, valor }
   })
   return (
-    <LayoutPainel ativo="vendas">
+    <>
       <Migalhas trilha={[{ texto: 'Painel do artesão', href: '/dashboard' }, { texto: 'Vendas & faturamento' }]} />
       <h1 className="titulo-pagina">Vendas e faturamento</h1>
       <p className="subtitulo-pagina">Resultados calculados a partir dos pedidos registrados para suas peças.</p>
@@ -45,6 +44,6 @@ export default async function Vendas() {
       </div>
       <section className="secao"><h2 className="secao-titulo">Faturamento por mês</h2><div className="cartao"><GraficoFaturamento meses={meses} /></div></section>
       <section className="secao"><h2 className="secao-titulo">Suas peças que mais vendem</h2>{maisVendidas.map((item) => <article className="linha-pedido" key={item.nome}><div className="dado"><span className="dado-rotulo">Peça</span><span className="dado-valor">{item.nome}</span></div><div className="dado"><span className="dado-rotulo">Unidades</span><span className="dado-valor">{item.unidades}</span></div><div className="dado"><span className="dado-rotulo">Receita</span><span className="dado-valor preco-destaque">{emReais(item.receita)}</span></div><span className="selo selo-neutro"><IconeGrafico tamanho={13} />{total ? Math.round(item.receita / total * 100) : 0}% do total</span></article>)}</section>
-    </LayoutPainel>
+    </>
   )
 }

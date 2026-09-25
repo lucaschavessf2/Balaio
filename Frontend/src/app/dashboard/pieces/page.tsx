@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import LayoutPainel from '@/components/painel/LayoutPainel'
 import { Foto, Migalhas, SeloDisponibilidade } from '@/components/ui/Basicos'
 import { IconeSetaDireita } from '@/components/ui/Icones'
 import InativarPeca from '@/components/painel/InativarPeca'
@@ -19,7 +18,7 @@ export default async function MinhasPecas() {
   const { dados: pecas } = await pecasPorArtesao(artesao.slug)
 
   return (
-    <LayoutPainel ativo="pecas">
+    <>
       <Migalhas trilha={[{ texto: 'Painel do artesão', href: '/dashboard' }, { texto: 'Minhas peças' }]} />
 
       <div className="catalogo-topo" style={{ marginBottom: 8 }}>
@@ -81,6 +80,6 @@ export default async function MinhasPecas() {
           </article>
         )
       })}
-    </LayoutPainel>
+    </>
   )
 }

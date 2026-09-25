@@ -6,7 +6,6 @@ import { gerarSlugEvento } from '@/components/eventos/eventosLocais'
 import type { Peca, Tecnica } from '@/types/dominio'
 import type { TipoPeca } from '@/constants/referencias'
 import { useEffect, useRef, useState, type ChangeEvent, type DragEvent, type FormEvent } from 'react'
-import LayoutPainel from '@/components/painel/LayoutPainel'
 import { Campo, Migalhas } from '@/components/ui/Basicos'
 import { avisar } from '@/components/feedback/Avisos'
 import { validarObrigatorio, validarPreco, validarPrazoDias } from '@/utils/validacao'
@@ -85,7 +84,7 @@ export default function NovaPeca({ initialPeca }: Props) {
 
   if (carregando) {
     return (
-      <LayoutPainel ativo="pecas">
+      <>
         <Migalhas
           trilha={[
             { texto: 'Painel do artesão', href: '/dashboard' },
@@ -95,7 +94,7 @@ export default function NovaPeca({ initialPeca }: Props) {
         />
         <h1 className="titulo-pagina">Cadastrar uma peça</h1>
         <EstadoCarregando rotulo="Carregando o formulário…" cartoes={0} />
-      </LayoutPainel>
+      </>
     )
   }
 
@@ -262,7 +261,7 @@ export default function NovaPeca({ initialPeca }: Props) {
   function salvarRascunho() { void salvar(true) }
 
   return (
-    <LayoutPainel ativo="pecas">
+    <>
       <Migalhas
         trilha={[
           { texto: 'Painel do artesão', href: '/dashboard' },
@@ -549,6 +548,6 @@ export default function NovaPeca({ initialPeca }: Props) {
           </p>
         </aside>
       </div>
-    </LayoutPainel>
+    </>
   )
 }

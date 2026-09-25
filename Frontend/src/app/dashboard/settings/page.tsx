@@ -1,4 +1,3 @@
-import LayoutPainel from '@/components/painel/LayoutPainel'
 import { Migalhas } from '@/components/ui/Basicos'
 import FormPerfilAtelie from '@/components/painel/FormPerfilAtelie'
 import FormEnvioProducao from '@/components/painel/FormEnvioProducao'
@@ -22,7 +21,7 @@ export default async function Configuracoes() {
   const territorios = refs.dados?.territorios ?? []
 
   return (
-    <LayoutPainel ativo="config">
+    <>
       <Migalhas trilha={[{ texto: 'Painel do artesão', href: '/dashboard' }, { texto: 'Configurações da oficina' }]} />
       <h1 className="titulo-pagina">Configurações da oficina</h1>
       <p className="subtitulo-pagina">
@@ -78,6 +77,6 @@ export default async function Configuracoes() {
           </p>
         </aside>
       </div>
-    </LayoutPainel>
+    </>
   )
 }
