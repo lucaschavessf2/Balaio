@@ -1,4 +1,4 @@
-import type { Evento } from '@/mocks/eventos'
+import type { Evento } from '@/types/dominio'
 import { buscar, enviar, montarQuery } from './cliente'
 import { type RespostaApi } from './tipos'
 

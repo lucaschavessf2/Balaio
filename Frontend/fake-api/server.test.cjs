@@ -23,7 +23,7 @@ test('contrato HTTP, filtros, relações, CRUD e persistência', async (t) => {
     const res = await fetch(base + url, opcoes)
     return { status: res.status, cookie: res.headers.get('set-cookie'), ...await res.json() }
   }
-  for (const recurso of ['pecas', 'artesaos', 'coletivos', 'eventos', 'videos', 'pedidos', 'artesao/conversas', 'artesao/pedidos-pendentes', 'admin/curadoria', 'admin/mediacoes']) {
+  for (const recurso of ['pecas', 'artesaos', 'coletivos', 'eventos', 'videos', 'pedidos', 'artesao/conversas', 'artesao/pedidos-pendentes', 'admin/mediacoes']) {
     const res = await request('/' + recurso)
     assert.equal(res.status, 200, recurso)
     assert.equal(res.erro, null, recurso)
@@ -122,19 +122,83 @@ test('contrato HTTP, filtros, relações, CRUD e persistência', async (t) => {
   assert.equal(disco.eventos.find((e) => e.slug === 'evento-teste').nome, 'Atualizado')
   assert.equal((await request('/eventos/evento-teste', {}, 'DELETE')).status, 200)
   assert.equal((await request('/eventos/evento-teste')).status, 404)
-  const pecaNova = { ...primeira, id: undefined, slug: 'peca-teste', situacao: 'curadoria' }
-  assert.equal((await request('/pecas', { ...pecaNova, tipo: 'Inexistente' })).status, 400)
-  assert.equal((await request('/pecas', pecaNova)).status, 201)
-  assert.ok(!(await request('/pecas')).dados.some((p) => p.slug === 'peca-teste'))
-  const fila = (await request('/admin/curadoria')).dados.find((p) => p.pecaSlug === 'peca-teste')
-  assert.ok(fila)
-  assert.equal((await request(`/admin/curadoria/${fila.id}/decisao`, { decisao: 'aprovada' })).status, 200)
-  assert.ok((await request('/pecas')).dados.some((p) => p.slug === 'peca-teste'))
-  assert.equal((await request('/pecas/peca-teste', { preco: 321 }, 'PATCH')).dados.preco, 321)
-  assert.equal((await request('/pecas/peca-teste', { disponibilidade: 'encomenda' }, 'PATCH')).status, 400)
-  assert.equal((await request('/pecas/peca-teste', { disponibilidade: 'encomenda', prazoProducaoDias: 12 }, 'PATCH')).dados.prazoProducaoDias, 12)
-  assert.equal((await request('/pecas/peca-teste', {}, 'DELETE')).status, 200)
+  const origem = base.replace('/api/v1', '')
+  const comoVendedor = { Cookie: cookieVendedor }
+  const pecaNova = { nome: 'Peça Teste', tecnica: primeira.tecnica, territorio: primeira.territorio, categoria: primeira.categoria, tipo: primeira.tipo, historia: ['Feita à mão.'], preco: 150, disponibilidade: 'disponivel', situacao: 'publicada', fotos: [] }
+  assert.equal((await request('/pecas', pecaNova)).status, 401)
+  assert.equal((await request('/pecas', pecaNova, 'POST', { Cookie: cookieComprador })).status, 403)
+  const invalidas = [
+    { tipo: 'Inexistente' }, { tecnica: 'Inventada' }, { disponibilidade: 'xyz' }, { situacao: 'curadoria' },
+    { nome: 'a'.repeat(121) }, { preco: 0 }, { disponibilidade: 'encomenda' },
+    { fotos: [{ id: 'f', nome: 'x', url: 'javascript:alert(1)' }] },
+    { fotos: [{ id: 'f', nome: 'x.gif', url: 'data:image/gif;base64,R0lGOD' }] },
+  ]
+  for (const invalida of invalidas) {
+    assert.equal((await request('/pecas', { ...pecaNova, ...invalida }, 'POST', comoVendedor)).status, 400, JSON.stringify(invalida).slice(0, 60))
+  }
+  const png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
+  const criada = await request('/pecas', { ...pecaNova, artesao: primeira.artesao, fotos: [{ id: 'f1', nome: 'capa.png', url: png }] }, 'POST', comoVendedor)
+  assert.equal(criada.status, 201)
+  assert.equal(criada.dados.artesao, vendedor.dados.artesaoId, 'artesão vem da sessão, não do corpo')
+  assert.equal(criada.dados.slug, 'peca-teste')
+  assert.match(criada.dados.imagem, /^\/api\/v1\/arquivos\/pecas\/peca-teste-[\w-]+\.png$/)
+  const capa = await fetch(origem + criada.dados.imagem)
+  assert.equal(capa.status, 200)
+  assert.equal(capa.headers.get('content-type'), 'image/png')
+  assert.ok(!readFileSync(arquivo, 'utf8').includes('iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB'), 'a foto fica em arquivo, fora do banco')
+  assert.ok((await request('/pecas')).dados.some((p) => p.slug === 'peca-teste'), 'peça publicada entra direto na loja')
+  assert.equal((await request('/pecas', pecaNova, 'POST', comoVendedor)).dados.slug, 'peca-teste-2')
+  const rascunho = await request('/pecas', { ...pecaNova, nome: 'Rascunho Teste', preco: 0, situacao: 'rascunho' }, 'POST', comoVendedor)
+  assert.equal(rascunho.status, 201)
+  assert.ok(!(await request('/pecas')).dados.some((p) => p.slug === rascunho.dados.slug))
+  assert.equal((await request(`/pecas/${rascunho.dados.slug}`, { situacao: 'publicada' }, 'PATCH', comoVendedor)).status, 400)
+  assert.equal((await request(`/pecas/${rascunho.dados.slug}`, { preco: 90, situacao: 'publicada' }, 'PATCH', comoVendedor)).dados.situacao, 'publicada')
+  assert.ok((await request('/pecas')).dados.some((p) => p.slug === rascunho.dados.slug), 'rascunho publicado entra na loja')
+  assert.equal((await request(`/pecas/${primeira.slug}`, { preco: 1 }, 'PATCH')).status, 401)
+  assert.equal((await request(`/pecas/${primeira.slug}`, { preco: 1 }, 'PATCH', comoVendedor)).status, 404)
+  assert.equal((await request(`/pecas/${primeira.slug}`, {}, 'DELETE', comoVendedor)).status, 404)
+  assert.equal((await request(`/pecas/${primeira.slug}`, { ...primeira, preco: 1 }, 'PUT')).status, 405)
+  assert.equal((await request(`/artesaos/${vendedor.dados.artesaoId}`, { selo: true }, 'PUT', comoVendedor)).status, 405)
+  assert.equal((await request('/curadoria', { artesaoSlug: 'x' }, 'POST')).status, 405)
+  assert.equal((await request('/pecas/peca-teste', { preco: 321 }, 'PATCH', comoVendedor)).dados.preco, 321)
+  assert.equal((await request('/pecas/peca-teste', { disponibilidade: 'encomenda' }, 'PATCH', comoVendedor)).status, 400)
+  assert.equal((await request('/pecas/peca-teste', { disponibilidade: 'encomenda', prazoProducaoDias: 12 }, 'PATCH', comoVendedor)).dados.prazoProducaoDias, 12)
+  const fotoDe3MB = 'data:image/jpeg;base64,' + 'A'.repeat(4 * 1024 * 1024)
+  const edicaoPesada = await request('/pecas/peca-teste', { fotos: [1, 2, 3].map((n) => ({ id: `g${n}`, nome: 'g.jpg', url: fotoDe3MB })) }, 'PATCH', comoVendedor)
+  assert.equal(edicaoPesada.status, 200, 'edição aceita mais de 10 MB de fotos')
+  assert.equal(edicaoPesada.dados.fotos.length, 3)
+  assert.equal((await fetch(origem + criada.dados.imagem)).status, 404, 'foto substituída é apagada')
+  const fotoDe6MB = 'data:image/jpeg;base64,' + 'A'.repeat(8 * 1024 * 1024)
+  assert.equal((await request('/pecas/peca-teste', { fotos: [{ id: 'x', nome: 'x.jpg', url: fotoDe6MB }] }, 'PATCH', comoVendedor)).status, 400)
+  assert.equal((await request('/pecas/peca-teste', {}, 'DELETE', comoVendedor)).status, 200)
   assert.equal((await request('/pecas/peca-teste')).status, 404)
+  assert.equal((await fetch(origem + edicaoPesada.dados.imagem)).status, 404, 'fotos da peça excluída são apagadas')
+
+  const admin = await request('/auth/login', { email: 'admin@exemplo.com', senha: 'balaio123' })
+  const comoAdmin = { Cookie: admin.cookie.split(';')[0] }
+  assert.equal((await request('/admin/curadoria')).status, 401)
+  assert.equal((await request('/admin/curadoria', undefined, 'GET', comoVendedor)).status, 403)
+  const fila = (await request('/admin/curadoria', undefined, 'GET', comoAdmin)).dados
+  assert.ok(fila.some((s) => s.artesaoSlug === 'ze-do-cariri'))
+  const pedidoSelo = fila.find((s) => s.artesaoSlug === vendedor.dados.artesaoId)
+  assert.ok(pedidoSelo, 'novo artesão entra na fila do selo')
+  assert.equal(pedidoSelo.pecasPublicadas, 2)
+  assert.equal((await request('/artesao/selo', {}, 'POST', comoVendedor)).status, 409)
+  assert.equal((await request(`/admin/curadoria/${pedidoSelo.id}/decisao`, { decisao: 'aprovada' }, 'POST', comoVendedor)).status, 403)
+  assert.equal((await request(`/admin/curadoria/${pedidoSelo.id}/decisao`, { decisao: 'ajuste' }, 'POST', comoAdmin)).status, 400)
+  assert.equal((await request(`/admin/curadoria/${pedidoSelo.id}/decisao`, { decisao: 'ajuste', motivo: 'Informe sua associação.' }, 'POST', comoAdmin)).status, 200)
+  const aposAjuste = (await request('/artesao/selo', undefined, 'GET', comoVendedor)).dados
+  assert.equal(aposAjuste.selo, false)
+  assert.equal(aposAjuste.solicitacao.situacao, 'ajuste')
+  assert.equal(aposAjuste.solicitacao.motivo, 'Informe sua associação.')
+  assert.ok((await request('/pecas')).dados.some((p) => p.artesao === vendedor.dados.artesaoId), 'ajuste no selo não tira peças da loja')
+  const novaSolicitacao = await request('/artesao/selo', { mensagem: 'Associação do Cariri.' }, 'POST', comoVendedor)
+  assert.equal(novaSolicitacao.status, 201)
+  assert.equal(novaSolicitacao.dados.solicitacao.situacao, 'pendente')
+  assert.equal((await request(`/admin/curadoria/${novaSolicitacao.dados.solicitacao.id}/decisao`, { decisao: 'aprovada' }, 'POST', comoAdmin)).status, 200)
+  assert.equal((await request(`/admin/curadoria/${novaSolicitacao.dados.solicitacao.id}/decisao`, { decisao: 'aprovada' }, 'POST', comoAdmin)).status, 409)
+  assert.equal((await request(`/artesaos/${vendedor.dados.artesaoId}`)).dados.selo, true)
+  assert.equal((await request('/artesao/selo', {}, 'POST', comoVendedor)).status, 409)
   assert.equal((await request('/pedidos/PE-2026-8720/avaliacao', { nota: 0 })).status, 400)
   assert.equal((await request('/pedidos/PE-2026-8720/avaliacao', { nota: 5, comentario: 'Ótima peça', aspectos: [] })).status, 201)
   assert.equal((await request('/pedidos/PE-2026-8720')).dados.avaliado, true)
@@ -217,4 +281,22 @@ test('completa tipo das peças e referências em um banco antigo', async () => {
   rmSync(pasta, { recursive: true, force: true })
   assert.ok(atualizado.pecas.every((p) => p.tipo))
   assert.equal(atualizado.referencias.tipos.length, 6)
+})
+
+test('banco antigo: peças em curadoria vão para a loja e a fila vira pedido de selo', async () => {
+  process.env.NODE_ENV = 'test'
+  const pasta = mkdtempSync(path.join(tmpdir(), 'balaio-api-'))
+  const arquivo = path.join(pasta, 'db.json')
+  const antigo = JSON.parse(readFileSync(path.join(__dirname, 'seed.json'), 'utf8'))
+  antigo.pecas[0].situacao = 'curadoria'
+  antigo.curadoria = [{ id: 'CUR-1', pecaSlug: antigo.pecas[0].slug, peca: antigo.pecas[0].nome, artesao: 'Couraria do Pajeú', artesaoSlug: 'ze-do-cariri', enviadoEm: 'agora', motivo: 'Nova publicação' }]
+  writeFileSync(arquivo, JSON.stringify(antigo))
+  criarServidor(arquivo)
+  const atualizado = JSON.parse(readFileSync(arquivo, 'utf8'))
+  rmSync(pasta, { recursive: true, force: true })
+  assert.ok(atualizado.pecas.every((p) => ['publicada', 'rascunho'].includes(p.situacao)))
+  assert.equal(atualizado.pecas[0].situacao, 'publicada')
+  assert.ok(!atualizado.curadoria.some((c) => c.pecaSlug))
+  const semSelo = atualizado.artesaos.filter((a) => !a.selo).map((a) => a.slug)
+  assert.deepEqual(atualizado.curadoria.filter((c) => c.situacao === 'pendente').map((c) => c.artesaoSlug).sort(), semSelo.sort())
 })

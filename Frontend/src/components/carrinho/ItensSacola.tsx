@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { EstadoVazio, Foto, SeloDisponibilidade } from '@/components/ui/Basicos'
+import { Foto, SeloDisponibilidade } from '@/components/ui/Basicos'
+import EstadoVazio from '@/components/feedback/EstadoVazio'
 import { IconeSacola, IconeSetaDireita } from '@/components/ui/Icones'
 import { useSacola } from '@/store/sacola'
 import { avisar } from '@/components/feedback/Avisos'

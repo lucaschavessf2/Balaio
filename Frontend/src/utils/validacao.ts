@@ -21,10 +21,14 @@ export function validarPreco(valor: string): string | null {
   return null
 }
 
+const MILHAR_SEM_CENTAVOS = /^-?\d{1,3}(\.\d{3})+$/
+
 export function numeroDoPreco(valor: string): number {
   const limpo = valor.trim().replace(/[^\d,.-]/g, '')
   if (!limpo) return Number.NaN
-  return Number(limpo.includes(',') ? limpo.replace(/\./g, '').replace(',', '.') : limpo)
+  if (limpo.includes(',')) return Number(limpo.replace(/\./g, '').replace(',', '.'))
+  if (MILHAR_SEM_CENTAVOS.test(limpo)) return Number(limpo.replace(/\./g, ''))
+  return Number(limpo)
 }
 
 export function validarPrazoDias(valor: string): string | null {

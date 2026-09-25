@@ -19,8 +19,8 @@ const documentos: Record<string, Documento> = {
       {
         titulo: 'Curadoria e autenticidade',
         paragrafos: [
-          'Toda peça passa por curadoria antes de entrar no catálogo. Recusamos produto industrializado, revenda de terceiros e foto de banco de imagens.',
-          'O Selo de Origem é emitido pela associação do território, não pela plataforma. Ele indica que a origem e a autoria foram conferidas por quem conhece o ofício localmente.',
+          'O artesão publica suas peças direto na loja. Produto industrializado, revenda de terceiros e foto de banco de imagens violam as regras e são retirados do catálogo.',
+          'O selo de artesão verificado é concedido pela curadoria do Balaio, com apoio das associações do território. Ele indica que a origem e a autoria do ateliê foram conferidas, mas não é exigido para vender.',
         ],
       },
       {
@@ -117,7 +117,7 @@ const documentos: Record<string, Documento> = {
         titulo: 'Perfil coletivo',
         paragrafos: [
           'Uma associação pode ter um perfil próprio, que reúne os ateliês membros, as técnicas do território e o apoio institucional recebido.',
-          'O coletivo também é quem emite o Selo de Origem das peças daquele território, porque é quem tem como conferir autoria e processo de perto.',
+          'O coletivo também apoia a curadoria na concessão do selo de artesão verificado aos ateliês do território, porque é quem tem como conferir autoria e processo de perto.',
         ],
       },
       {

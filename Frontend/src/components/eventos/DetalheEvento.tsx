@@ -4,7 +4,8 @@ import Link from 'next/link'
 import { Retrato } from '@/components/ui/Basicos'
 import { IconeSetaDireita } from '@/components/ui/Icones'
 import MapaEventosCliente from '@/components/eventos/MapaEventosCliente'
-import { rotuloTipoEvento, type Evento } from '@/mocks/eventos'
+import { rotuloTipoEvento } from '@/constants/eventos'
+import type { Evento } from '@/types/dominio'
 import { useDados } from '@/store/dados'
 
 export default function DetalheEvento({ evento }: { evento: Evento }) {

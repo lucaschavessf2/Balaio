@@ -10,7 +10,6 @@ import DisponibilidadeRapida from '@/components/painel/DisponibilidadeRapida'
 
 const situacoes: Record<string, { texto: string; classe: string }> = {
   publicada: { texto: 'Publicada', classe: 'selo-disponivel' },
-  curadoria: { texto: 'Em curadoria', classe: 'selo-encomenda' },
   rascunho: { texto: 'Rascunho', classe: 'selo-neutro' },
 }
 
@@ -46,12 +45,12 @@ export default async function MinhasPecas() {
         </Link>
       </div>
       <p className="subtitulo-pagina">
-        Tudo o que você já publicou, o que está em curadoria e o que ficou como rascunho.
+        Tudo o que você já publicou na loja e o que ficou como rascunho.
       </p>
 
       {pecasLista.map((peca) => {
         const chave = peca.situacao ?? 'publicada'
-        const situacao = situacoes[chave]
+        const situacao = situacoes[chave] ?? situacoes.publicada
 
         return (
           <article className="linha-pedido" key={peca.slug}>
@@ -90,10 +89,10 @@ export default async function MinhasPecas() {
             </div>
 
             <div className="acoes-linha">
-              {!peca.inativadoEm && <Link href={`/pieces/${peca.slug}`} className="botao botao-fantasma">Ver na loja</Link>}
+              {!peca.inativadoEm && chave === 'publicada' && <Link href={`/pieces/${peca.slug}`} className="botao botao-fantasma">Ver na loja</Link>}
               <Link href={`/dashboard/pieces/${peca.slug}`} className="botao botao-secundario">Editar</Link>
               <InativarPeca slug={peca.slug} nome={peca.nome} inativada={Boolean(peca.inativadoEm)} />
-              <Link href="/dashboard/pieces/new" className="botao botao-secundario">
+              <Link href={`/dashboard/pieces/new?base=${encodeURIComponent(peca.slug)}`} className="botao botao-secundario">
                 Cadastrar semelhante
               </Link>
             </div>

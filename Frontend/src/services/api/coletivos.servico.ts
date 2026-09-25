@@ -1,4 +1,4 @@
-import type { Coletivo } from '@/mocks/coletivos'
+import type { Coletivo } from '@/types/dominio'
 import { buscar } from './cliente'
 import { type RespostaApi } from './tipos'
 

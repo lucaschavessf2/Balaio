@@ -9,4 +9,5 @@ npm-debug.log*
 .DS_Store
 .env*
 fake-api/db.json
+fake-api/arquivos/
 *.tsbuildinfo

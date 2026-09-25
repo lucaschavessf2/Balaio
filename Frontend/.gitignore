@@ -5,7 +5,7 @@ next-env.d.ts
 *.tsbuildinfo
 .DS_Store
 fake-api/db.json
+fake-api/arquivos/
 .env.local
-.env.example
 .env
 .claude

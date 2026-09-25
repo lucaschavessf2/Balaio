@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Pagina from '@/components/layout/Pagina'
 import { IconeSetaDireita } from '@/components/ui/Icones'
-import { fluxos, telas, telasDoFluxo } from '@/mocks/telas'
+import { fluxos, telas, telasDoFluxo } from '@/constants/telas'
 
 export const metadata = {
   title: 'Mapa de telas do Balaio',

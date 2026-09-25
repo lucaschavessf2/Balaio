@@ -1,5 +1,5 @@
 import type { Papel, UsuarioAutenticado } from '@/services/api/auth.servico'
-import type { Usuario } from '@/mocks/usuario'
+import type { Usuario } from '@/types/dominio'
 
 export type Sessao = UsuarioAutenticado
 
@@ -12,12 +12,6 @@ const DESTINO_POR_PAPEL: Record<Papel, string> = {
   comprador: '/account',
   artesao: '/dashboard',
   admin: '/admin',
-}
-
-export const ROTULO_AREA_POR_PAPEL: Record<Papel, string> = {
-  comprador: 'Minha conta',
-  artesao: 'Meu painel',
-  admin: 'Curadoria',
 }
 
 export function sessaoDoUsuario(usuario: Usuario): Sessao | null {

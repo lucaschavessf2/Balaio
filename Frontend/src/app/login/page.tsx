@@ -4,7 +4,7 @@ import FormEntrar from '@/components/forms/FormEntrar'
 import { destinoSeguro } from '@/services/sessao/cookie'
 
 const promessas = [
-  'Origem e autoria verificadas em cada peça',
+  'Artesãos verificados pela curadoria',
   'Converse com o artesão antes de comprar',
   'O repasse só chega ao ateliê depois da entrega',
 ]

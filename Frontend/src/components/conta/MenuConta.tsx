@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { Retrato } from '@/components/ui/Basicos'
 import BotaoSair from '@/components/conta/BotaoSair'
 import { IconeCadeado, IconeCoracao, IconeMapa, IconePacote, IconePincel, IconeUsuario } from '@/components/ui/Icones'
-import type { Usuario } from '@/mocks/usuario'
+import type { Usuario } from '@/types/dominio'
 
 export type ChaveConta = 'pedidos' | 'favoritos' | 'enderecos' | 'dados'
 

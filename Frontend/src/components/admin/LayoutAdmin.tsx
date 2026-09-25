@@ -3,12 +3,15 @@ import Pagina from '@/components/layout/Pagina'
 import MenuDrawer from '@/components/navegacao/MenuDrawer'
 import MenuAdminLateral from '@/components/admin/MenuAdminLateral'
 import type { ChaveAdmin } from '@/components/admin/itensAdmin'
-import { listarFilaCuradoria, listarMediacoes } from '@/services/api/pedidos.servico'
+import { listarMediacoes } from '@/services/api/pedidos.servico'
+import { listarFilaCuradoria } from '@/services/api/curadoria.servico'
+import { tokenDaSessao } from '@/services/autenticacao'
 
 type Props = { ativo: ChaveAdmin; children: ReactNode }
 
 export default async function LayoutAdmin({ ativo, children }: Props) {
-  const [{ dados: fila }, { dados: mediacoes }] = await Promise.all([listarFilaCuradoria(), listarMediacoes()])
+  const token = await tokenDaSessao()
+  const [{ dados: fila }, { dados: mediacoes }] = await Promise.all([listarFilaCuradoria(token), listarMediacoes()])
   const contagens = { curadoria: fila?.length ?? 0, mediacoes: mediacoes?.length ?? 0 }
   return (
     <Pagina>

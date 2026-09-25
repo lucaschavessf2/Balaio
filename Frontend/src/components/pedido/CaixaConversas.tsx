@@ -3,8 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Retrato } from '@/components/ui/Basicos'
 import { IconeEnviar, IconeSetaEsquerda } from '@/components/ui/Icones'
-import type { ConversaArtesao } from '@/mocks/pedidos'
-import { type Mensagem } from '@/types/dominio'
+import type { ConversaArtesao, Mensagem } from '@/types/dominio'
 import { conversaDoPedido, enviarMensagem } from '@/services/api/pedidos.servico'
 import { avisar } from '@/components/feedback/Avisos'
 

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import type { FotoPeca } from '@/types/dominio'
 import { IconeEtiqueta } from '@/components/ui/Icones'
 import ImagemComFallback from '@/components/ui/ImagemComFallback'
-import { fallbackDe } from '@/mocks/imagens'
+import { fallbackDe } from '@/utils/imagem'
 
 type GaleriaPecaProps = {
   imagem: string

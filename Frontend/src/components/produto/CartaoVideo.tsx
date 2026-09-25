@@ -7,9 +7,9 @@ import ImagemComFallback from '@/components/ui/ImagemComFallback'
 import { comentarVideo } from '@/services/api/videos.servico'
 import { avisar } from '@/components/feedback/Avisos'
 import { IconeConversa, IconeCoracao, IconeMarcador, IconeSelo, IconeSetaDireita } from '@/components/ui/Icones'
-import { emMilhares, type Comentario, type Video } from '@/mocks/videos'
-import { fallbackDe } from '@/mocks/imagens'
-import { emReais } from '@/utils/formato'
+import { emMilhares, emReais } from '@/utils/formato'
+import type { Comentario, Video } from '@/types/dominio'
+import { fallbackDe } from '@/utils/imagem'
 import { obterEstado, salvarVideosCurtidos, salvarVideosSalvos } from '@/services/api/estado.servico'
 
 type Autor = { slug: string; nome: string; imagem: string; territorio: string }

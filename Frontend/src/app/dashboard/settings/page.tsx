@@ -2,18 +2,21 @@ import { Migalhas } from '@/components/ui/Basicos'
 import FormPerfilAtelie from '@/components/painel/FormPerfilAtelie'
 import FormEnvioProducao from '@/components/painel/FormEnvioProducao'
 import FormRecebimento from '@/components/painel/FormRecebimento'
-import { IconeAviso, IconeSelo } from '@/components/ui/Icones'
+import CartaoSelo from '@/components/painel/CartaoSelo'
+import { IconeAviso } from '@/components/ui/Icones'
 import { notFound } from 'next/navigation'
 import { obterArtesao, obterConfiguracoes } from '@/services/api/artesaos.servico'
+import { obterMeuSelo } from '@/services/api/curadoria.servico'
 import { obterReferencias } from '@/services/api/referencias.servico'
 import { exigirArtesao } from '@/services/autenticacao'
 
 export default async function Configuracoes() {
-  const { artesao: atelie } = await exigirArtesao()
-  const [{ dados: artesao }, refs, { dados: configuracoes, erro: erroConfiguracoes }] = await Promise.all([
+  const { artesao: atelie, token } = await exigirArtesao()
+  const [{ dados: artesao }, refs, { dados: configuracoes, erro: erroConfiguracoes }, { dados: estadoSelo }] = await Promise.all([
     obterArtesao(atelie.slug),
     obterReferencias(),
     obterConfiguracoes(atelie.slug),
+    obterMeuSelo(token),
   ])
   if (!artesao) notFound()
   if (!configuracoes) throw new Error(erroConfiguracoes?.mensagem ?? 'Não foi possível carregar as configurações.')
@@ -36,35 +39,7 @@ export default async function Configuracoes() {
         </div>
 
         <aside>
-          <div className="cartao abaixo-4">
-            <h2 className="secao-titulo linha-flex" style={{ gap: 10 }}>
-              <IconeSelo tamanho={20} />
-              Selo de origem
-            </h2>
-            {artesao.selo ? (
-              <>
-                <p className="autoria abaixo-3">
-                  Seu ateliê tem o selo ativo, emitido pela associação do seu território. Ele é revalidado a cada 12
-                  meses.
-                </p>
-                <span className="selo selo-disponivel">
-                  <span className="selo-ponto" />
-                  Selo ativo
-                </span>
-              </>
-            ) : (
-              <>
-                <p className="autoria abaixo-3">
-                  Seu ateliê ainda não tem o selo. Ele é emitido pela associação do seu território depois de uma visita
-                  à oficina.
-                </p>
-                <span className="selo selo-neutro">
-                  <span className="selo-ponto" />
-                  Sem selo
-                </span>
-              </>
-            )}
-          </div>
+          <CartaoSelo estadoInicial={estadoSelo ?? { selo: artesao.selo, solicitacao: null }} />
 
           <FormRecebimento slug={artesao.slug} chavePix={configuracoes.chavePix} />
 

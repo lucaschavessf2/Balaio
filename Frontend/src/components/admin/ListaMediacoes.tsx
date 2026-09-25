@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { EstadoVazio } from '@/components/ui/Basicos'
+import EstadoVazio from '@/components/feedback/EstadoVazio'
 import { avisar } from '@/components/feedback/Avisos'
 import { IconeAviso } from '@/components/ui/Icones'
 import { enviar } from '@/services/api/cliente'

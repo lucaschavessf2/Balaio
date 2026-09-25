@@ -1,4 +1,4 @@
-import type { Mediacao, Mensagem, Pedido } from '@/types/dominio'
+import type { ConversaArtesao, Mediacao, Mensagem, Pedido, SolicitacaoSelo } from '@/types/dominio'
 
 export const pedidos: Pedido[] = [
   {
@@ -118,16 +118,6 @@ export const pedidosPendentesArtesao = [
   },
 ]
 
-export type ConversaArtesao = {
-  id: string
-  pessoa: string
-  assunto: string
-  previa: string
-  quando: string
-  naoLida: boolean
-  retrato: string
-}
-
 export const conversasArtesao: ConversaArtesao[] = [
   {
     id: 'PE-2026-8941',
@@ -158,14 +148,15 @@ export const conversasArtesao: ConversaArtesao[] = [
   },
 ]
 
-export const filaCuradoria = [
+export const filaCuradoria: SolicitacaoSelo[] = [
   {
-    id: 'CUR-112',
+    id: 'SEL-112',
     artesaoSlug: 'ze-do-cariri',
-    peca: 'Chapéu de Couro Cangaceiro',
-    artesao: 'Couraria do Pajeú',
-    enviadoEm: '19/03, 11:47',
-    motivo: 'Revisão de preço fora da faixa da categoria',
+    artesao: 'Artesão Zé do Cariri',
+    atelie: 'Couraria do Pajeú',
+    mensagem: 'Sou associado à Associação dos Artesãos do Pajeú desde 2011. Posso receber a visita na oficina em Serra Talhada.',
+    situacao: 'pendente',
+    solicitadoEm: '2026-03-19T11:47:00-03:00',
   },
 ]
 

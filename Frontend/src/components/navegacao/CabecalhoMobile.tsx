@@ -1,8 +1,7 @@
 import Link from 'next/link'
 import AlternadorTema from '@/components/layout/AlternadorTema'
-import { IconeBusca, IconeCoracao } from '@/components/ui/Icones'
+import { IconeBusca } from '@/components/ui/Icones'
 import DepartamentosMobile from '@/components/navegacao/DepartamentosMobile'
-import ContadorFavoritos from '@/components/favoritos/ContadorFavoritos'
 
 export default function CabecalhoMobile() {
   return (
@@ -18,10 +17,6 @@ export default function CabecalhoMobile() {
             <IconeBusca />
           </Link>
           <AlternadorTema />
-          <Link href="/favorites" className="cabecalho-link" aria-label="Peças salvas" title="Peças salvas">
-            <IconeCoracao />
-            <ContadorFavoritos esconderZero decorativo />
-          </Link>
         </div>
       </div>
       <DepartamentosMobile />

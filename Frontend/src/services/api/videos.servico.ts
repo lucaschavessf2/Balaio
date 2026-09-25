@@ -1,4 +1,4 @@
-import type { Comentario, Video } from '@/mocks/videos'
+import type { Comentario, Video } from '@/types/dominio'
 import { buscar, enviar } from './cliente'
 import { type RespostaApi } from './tipos'
 

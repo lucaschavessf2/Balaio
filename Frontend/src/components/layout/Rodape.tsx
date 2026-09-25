@@ -17,7 +17,6 @@ const grupos = [
       { texto: 'Imprensa', href: '/about/press' },
       { texto: 'Termos de uso', href: '/about/terms' },
       { texto: 'Privacidade', href: '/about/privacy' },
-      { texto: 'Mapa de telas', href: '/screens' },
     ],
   },
 ]

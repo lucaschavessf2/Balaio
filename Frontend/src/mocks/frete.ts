@@ -1,4 +1,4 @@
-export type OpcaoFrete = { id: string; nome: string; prazo: string; valor: number }
+import type { OpcaoFrete } from '@/types/dominio'
 
 export const opcoesFrete: OpcaoFrete[] = [
   { id: 'padrao', nome: 'Sertão Logística Regional', prazo: '10 a 14 dias úteis', valor: 38.9 },

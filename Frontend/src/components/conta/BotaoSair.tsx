@@ -19,7 +19,7 @@ export default function BotaoSair() {
   }
 
   return (
-    <button type="button" className="menu-item" onClick={sair}>
+    <button type="button" className="menu-item menu-item-sair" onClick={sair}>
       <IconeSair />
       Sair da conta
     </button>

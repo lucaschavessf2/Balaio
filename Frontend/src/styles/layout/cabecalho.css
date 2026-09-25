@@ -128,14 +128,6 @@
   @apply bg-acao text-branco rounded-pilula min-w-5 h-5 inline-flex items-center justify-center text-mini font-bold px-[5px];
 }
 
-.cabecalho-link.mapa {
-  border: 1px solid rgba(255, 255, 255, 0.5);
-}
-
-.cabecalho-link.mapa:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
 .alternador {
   @apply bg-transparent border border-[rgba(255,255,255,0.5)] cursor-pointer p-0 w-11 justify-center;
 }

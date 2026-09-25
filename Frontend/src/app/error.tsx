@@ -1,6 +1,6 @@
 'use client'
 
-import { EstadoVazio } from '@/components/ui/Basicos'
+import EstadoVazio from '@/components/feedback/EstadoVazio'
 import { IconeAviso } from '@/components/ui/Icones'
 
 export default function Erro({ reset }: { error: Error & { digest?: string }; reset: () => void }) {

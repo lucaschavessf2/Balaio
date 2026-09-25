@@ -17,7 +17,8 @@ export type FotoPeca = {
 }
 
 export type Peca = {
-  situacao?: 'publicada' | 'curadoria' | 'rascunho'
+  situacao?: 'publicada' | 'rascunho'
+  criadaEm?: string
   inativadoEm?: string | null
   vendidaEmPedido?: string | null
   slug: string
@@ -104,14 +105,30 @@ export type ConversaArtesao = {
   retrato: string
 }
 
-export type ItemCuradoria = {
+export type SituacaoSolicitacaoSelo = 'pendente' | 'aprovada' | 'ajuste'
+
+export type SolicitacaoSelo = {
   id: string
-  pecaSlug?: string
-  peca: string
+  artesaoSlug: string
   artesao: string
-  artesaoSlug?: string
-  enviadoEm: string
-  motivo: string
+  atelie: string
+  mensagem: string
+  situacao: SituacaoSolicitacaoSelo
+  solicitadoEm: string
+  motivo?: string
+  decididoEm?: string
+}
+
+export type SolicitacaoSeloNaFila = SolicitacaoSelo & {
+  territorio: string
+  tecnica: string
+  imagem: string
+  pecasPublicadas: number
+}
+
+export type EstadoSelo = {
+  selo: boolean
+  solicitacao: SolicitacaoSelo | null
 }
 
 export type Mensagem = {
@@ -128,3 +145,87 @@ export type Mediacao = {
   partes: string
   aberta: string
 }
+
+export type Coletivo = {
+  slug: string
+  nome: string
+  territorio: string
+  fundado: string
+  historia: string
+  membros: string[]
+  tecnicas: string[]
+  apoio: string[]
+  imagem: string
+}
+
+export type Ponto = { lat: number; lng: number }
+
+export type TipoEvento = 'feira' | 'festival' | 'exposicao' | 'oficina'
+
+export type Evento = {
+  slug: string
+  nome: string
+  tipo: TipoEvento
+  organizador: string
+  descricao: string
+  periodo: string
+  horario: string
+  entrada: string
+  cidade: string
+  local: string
+  endereco: string
+  lat: number
+  lng: number
+  artesaos: string[]
+  coletivos: string[]
+  criadoPorVoce?: boolean
+}
+
+export type Video = {
+  id: string
+  artesao: string
+  peca?: string
+  legenda: string
+  etiquetas: string[]
+  duracao: string
+  visualizacoes: number
+  curtidas: number
+  comentarios: number
+  publicadoEm: string
+  capa: string
+}
+
+export type Comentario = {
+  autor: string
+  texto: string
+  quando: string
+  curtidas: number
+  artesao?: boolean
+  resposta?: { texto: string; quando: string }
+}
+
+export type EnderecoUsuario = {
+  id: string
+  apelido: string
+  rua: string
+  bairro: string
+  cep: string
+  principal: boolean
+}
+
+export type Usuario = {
+  id?: string
+  nome: string
+  email: string
+  imagem: string
+  perfil?: 'comprador' | 'artesao'
+  papel?: 'comprador' | 'artesao' | 'admin'
+  telefone?: string
+  tipoComprador?: string
+  territorio?: string
+  tecnica?: string
+  artesaoId?: string
+  enderecos?: EnderecoUsuario[]
+}
+
+export type OpcaoFrete = { id: string; nome: string; prazo: string; valor: number }

@@ -2,11 +2,11 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { EstadoVazio } from '@/components/ui/Basicos'
+import EstadoVazio from '@/components/feedback/EstadoVazio'
 import { IconeCalendario } from '@/components/ui/Icones'
 import DetalheEvento from '@/components/eventos/DetalheEvento'
 import { obterEvento } from '@/services/api/eventos.servico'
-import type { Evento } from '@/mocks/eventos'
+import type { Evento } from '@/types/dominio'
 
 export default function EventoLocal({ slug }: { slug: string }) {
   const [evento, definirEvento] = useState<Evento | null | undefined>(undefined)

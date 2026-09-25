@@ -4,7 +4,8 @@ import { notFound } from 'next/navigation'
 import Pagina from '@/components/layout/Pagina'
 import CartaoPeca from '@/components/produto/CartaoPeca'
 import EstadoErro from '@/components/feedback/EstadoErro'
-import { EstadoVazio, Migalhas, Retrato } from '@/components/ui/Basicos'
+import { Migalhas, Retrato } from '@/components/ui/Basicos'
+import EstadoVazio from '@/components/feedback/EstadoVazio'
 import { IconeConversa, IconeMapa, IconePacote, IconeSelo } from '@/components/ui/Icones'
 import { obterArtesao } from '@/services/api/artesaos.servico'
 import { pecasPorArtesao } from '@/services/api/pecas.servico'
@@ -47,7 +48,7 @@ export default async function PerfilArtesao({ params }: { params: Promise<{ slug
             {artesao.selo && (
               <span className="selo selo-encomenda">
                 <IconeSelo tamanho={13} />
-                Selo de origem
+                Artesão verificado
               </span>
             )}
           </div>
@@ -89,8 +90,8 @@ export default async function PerfilArtesao({ params }: { params: Promise<{ slug
             <p className="aviso">
               <IconeSelo />
               <span>
-                <strong>Selo de autenticidade garantido.</strong> Cada obra deste atelier inclui assinatura de próprio
-                punho gravada e certificado oficial rastreado pela associação do território.
+                <strong>Artesão verificado.</strong> A curadoria do Balaio conferiu, com a associação do território, a
+                origem e a autoria do trabalho deste ateliê.
               </span>
             </p>
           )}

@@ -1,4 +1,4 @@
-import type { Peca } from '@/types/dominio'
+import type { FotoPeca, Peca } from '@/types/dominio'
 import { buscar, montarQuery, enviar } from './cliente'
 import type { RespostaApi } from './tipos'
 
@@ -33,10 +33,18 @@ export async function pecasPorTipo(
 export function pecasPorArtesao(slug: string): Promise<RespostaApi<Peca[]>> {
   return buscar('/artesaos/' + encodeURIComponent(slug) + '/pecas')
 }
-export function criarPeca(peca: Peca): Promise<RespostaApi<Peca>> {
-  return enviar('/pecas', peca)
+export type FotoParaEnviar = Pick<FotoPeca, 'id' | 'nome' | 'url'>
+export type DadosPeca = Pick<Peca, 'nome' | 'tecnica' | 'territorio' | 'categoria' | 'tipo' | 'historia' | 'preco' | 'disponibilidade'> & {
+  situacao: NonNullable<Peca['situacao']>
+  prazoProducaoDias?: number | null
+  fotos: FotoParaEnviar[]
 }
-export function atualizarPeca(slug: string, alteracoes: Partial<Peca>): Promise<RespostaApi<Peca>> {
+export type AlteracoesPeca = Partial<DadosPeca> & { inativadoEm?: string | null }
+
+export function criarPeca(dados: DadosPeca): Promise<RespostaApi<Peca>> {
+  return enviar('/pecas', dados)
+}
+export function atualizarPeca(slug: string, alteracoes: AlteracoesPeca): Promise<RespostaApi<Peca>> {
   return enviar(`/pecas/${encodeURIComponent(slug)}`, alteracoes, 'PATCH')
 }
 export function excluirPeca(slug: string): Promise<RespostaApi<Peca>> {
