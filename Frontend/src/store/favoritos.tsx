@@ -1,8 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-
-const SEMENTE = ['painel-xilogravura-sertaneja', 'toalha-renascenca-florescer', 'sanfoneiro-em-imburana']
-
-const CHAVE = 'al-favoritos'
+import { obterEstado, salvarFavoritos } from '@/services/api/estado.servico'
 
 type ContextoFavoritos = {
   slugs: string[]
@@ -13,33 +10,23 @@ type ContextoFavoritos = {
 
 const Contexto = createContext<ContextoFavoritos | null>(null)
 
-function guardar(slugs: string[]) {
-  try {
-    localStorage.setItem(CHAVE, JSON.stringify(slugs))
-  } catch {}
-}
-
 export function FavoritosProvider({ children }: { children: ReactNode }) {
-  const [slugs, setSlugs] = useState<string[]>(SEMENTE)
+  const [slugs, setSlugs] = useState<string[]>([])
   const [pronto, setPronto] = useState(false)
 
   useEffect(() => {
-    try {
-      const salvo = localStorage.getItem(CHAVE)
-      if (salvo === null) {
-        guardar(SEMENTE)
-      } else {
-        setSlugs(JSON.parse(salvo))
-      }
-    } catch {}
-    setPronto(true)
+    let vivo = true
+    obterEstado().then(({ dados }) => {
+      if (vivo) setSlugs(dados?.favoritos ?? [])
+    }).finally(() => { if (vivo) setPronto(true) })
+    return () => { vivo = false }
   }, [])
 
   function alternar(slug: string): boolean {
     const jaTem = slugs.includes(slug)
     const proximos = jaTem ? slugs.filter((s) => s !== slug) : [...slugs, slug]
     setSlugs(proximos)
-    guardar(proximos)
+    void salvarFavoritos(proximos)
     return !jaTem
   }
 

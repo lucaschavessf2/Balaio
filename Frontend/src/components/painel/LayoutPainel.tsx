@@ -1,14 +1,27 @@
+'use client'
+
+import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
-import Pagina from '@/components/layout/Pagina'
 import MenuDrawer from '@/components/navegacao/MenuDrawer'
 import MenuPainelLateral from '@/components/painel/MenuPainelLateral'
 import type { ChavePainel } from '@/components/painel/itensPainel'
 
-type Props = { ativo: ChavePainel; children: ReactNode }
+type Props = { children: ReactNode }
 
-export default function LayoutPainel({ ativo, children }: Props) {
+function itemAtivo(caminho: string): ChavePainel {
+  if (caminho.startsWith('/dashboard/pieces')) return 'pecas'
+  if (caminho.startsWith('/dashboard/sales')) return 'vendas'
+  if (caminho.startsWith('/dashboard/messages')) return 'conversas'
+  if (caminho.startsWith('/dashboard/videos')) return 'videos'
+  if (caminho.startsWith('/dashboard/settings')) return 'config'
+  return 'pedidos'
+}
+
+export default function LayoutPainel({ children }: Props) {
+  const ativo = itemAtivo(usePathname())
+
   return (
-    <Pagina comoArtesao>
+    <>
       <MenuDrawer titulo="Painel do artesão" rotulo="Menu do painel">
         <MenuPainelLateral ativo={ativo} />
       </MenuDrawer>
@@ -16,6 +29,6 @@ export default function LayoutPainel({ ativo, children }: Props) {
         <MenuPainelLateral ativo={ativo} />
         <div className="encolhivel">{children}</div>
       </div>
-    </Pagina>
+    </>
   )
 }

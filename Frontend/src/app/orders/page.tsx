@@ -1,25 +1,31 @@
 import Link from 'next/link'
+import EstadoErro from '@/components/feedback/EstadoErro'
 import Pagina from '@/components/layout/Pagina'
 import { EstadoVazio, Foto, Migalhas } from '@/components/ui/Basicos'
 import BotaoAdicionarSacola from '@/components/carrinho/BotaoAdicionarSacola'
 import { IconePacote } from '@/components/ui/Icones'
 import { listarPedidos } from '@/services/api/pedidos.servico'
-import { listarPecas } from '@/services/api/pecas.servico'
+import { obterPecaHistorico } from '@/services/api/pecas.servico'
 import { listarArtesaos } from '@/services/api/artesaos.servico'
 import { emReais } from '@/utils/formato'
 import { rotuloEstadoPedido } from '@/constants/rotulos'
+import { exigirSessao } from '@/services/autenticacao'
 
 export default async function MeusPedidos() {
-  const [{ dados: pedidos }, { dados: pecas }, { dados: artesaos }] = await Promise.all([
-    listarPedidos(),
-    listarPecas(),
+  const { token } = await exigirSessao()
+  const [{ dados: pedidos, erro }, { dados: artesaos }] = await Promise.all([
+    listarPedidos(token),
     listarArtesaos(),
   ])
-  const mapaPecas = new Map((pecas ?? []).map((p) => [p.slug, p]))
+  if (erro) return <Pagina><EstadoErro mensagem={erro.mensagem} /></Pagina>
+  const pedidosLista = pedidos ?? []
+  const slugs = [...new Set(pedidosLista.flatMap((pedido) => [pedido.pecaSlug, ...(pedido.itens ?? []).map((item) => item.slug)]))]
+  const pecas = await Promise.all(slugs.map((slug) => obterPecaHistorico(slug)))
+  const mapaPecas = new Map(pecas.flatMap((resposta) => resposta.dados ? [[resposta.dados.slug, resposta.dados] as const] : []))
   const mapaArtesaos = new Map((artesaos ?? []).map((a) => [a.slug, a]))
   const acharPeca = (slug: string) => mapaPecas.get(slug)
   const acharArtesao = (slug: string) => mapaArtesaos.get(slug)
-  const listaPedidos = pedidos ?? []
+  const listaPedidos = pedidosLista
   return (
     <Pagina>
       <Migalhas trilha={[{ texto: 'Início', href: '/' }, { texto: 'Meus pedidos' }]} />
@@ -46,6 +52,7 @@ export default async function MeusPedidos() {
           const artesao = peca ? acharArtesao(peca.artesao) : undefined
           const estado = rotuloEstadoPedido[pedido.estado]
           const entregue = pedido.estado === 'entregue'
+          const encerrado = ['recusado', 'cancelado', 'reembolsado'].includes(pedido.estado)
 
           return (
             <article className="cartao-pedido" key={pedido.id}>
@@ -62,19 +69,23 @@ export default async function MeusPedidos() {
                   {peca && <Foto nome={peca.nome} imagem={peca.imagem} decorativa />}
                 </div>
                 <div className="encolhivel">
-                  <p className="texto-forte">{peca?.nome}</p>
+                  <p className="texto-forte">{peca?.nome}{(pedido.itens?.length ?? 0) > 1 ? ` e mais ${pedido.itens!.length - 1} peça(s)` : ''}</p>
                   <p className="autoria">
                     por {artesao?.nome} · Pedido #{pedido.id}
                   </p>
                   <p className={`cartao-pedido-status${entregue ? ' status-bom' : ''}`}>
-                    {entregue ? 'Entregue no seu endereço' : `Previsão de entrega: ${pedido.previsaoEntrega}`}
+                    {encerrado
+                      ? pedido.motivoEncerramento ?? 'Este pedido foi encerrado.'
+                      : entregue
+                        ? 'Entregue no seu endereço'
+                        : (pedido.previsaoEntrega ? `Previsão de entrega: ${pedido.previsaoEntrega}` : 'Aguardando previsão de entrega')}
                   </p>
                   <p className="preco-destaque">{emReais(pedido.total)}</p>
                 </div>
               </Link>
 
               <footer className="acoes-linha acoes-empilhaveis cartao-pedido-acoes">
-                {!entregue && (
+                {!entregue && !encerrado && (
                   <Link href={`/orders/${pedido.id}`} className="botao botao-primario">
                     Acompanhar pedido
                   </Link>
@@ -84,7 +95,7 @@ export default async function MeusPedidos() {
                     Avaliar
                   </Link>
                 )}
-                {entregue && peca && (
+                {entregue && peca && !peca.inativadoEm && (
                   <BotaoAdicionarSacola
                     slug={peca.slug}
                     disponibilidade={peca.disponibilidade}
@@ -97,9 +108,11 @@ export default async function MeusPedidos() {
                     Ver detalhes
                   </Link>
                 )}
-                <Link href={`/orders/${pedido.id}/mediation`} className="botao botao-fantasma">
-                  Preciso de ajuda
-                </Link>
+                {encerrado ? (
+                  <Link href={`/orders/${pedido.id}`} className="botao botao-fantasma">Ver detalhes</Link>
+                ) : (
+                  <Link href={`/orders/${pedido.id}/mediation`} className="botao botao-fantasma">Preciso de ajuda</Link>
+                )}
               </footer>
             </article>
           )

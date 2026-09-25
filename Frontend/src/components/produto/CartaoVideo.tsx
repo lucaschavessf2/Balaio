@@ -4,11 +4,13 @@ import Link from 'next/link'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Retrato } from '@/components/ui/Basicos'
 import ImagemComFallback from '@/components/ui/ImagemComFallback'
+import { comentarVideo } from '@/services/api/videos.servico'
 import { avisar } from '@/components/feedback/Avisos'
 import { IconeConversa, IconeCoracao, IconeMarcador, IconeSelo, IconeSetaDireita } from '@/components/ui/Icones'
 import { emMilhares, type Comentario, type Video } from '@/mocks/videos'
 import { fallbackDe } from '@/mocks/imagens'
 import { emReais } from '@/utils/formato'
+import { obterEstado, salvarVideosCurtidos, salvarVideosSalvos } from '@/services/api/estado.servico'
 
 type Autor = { slug: string; nome: string; imagem: string; territorio: string }
 type PecaVinculada = { slug: string; nome: string; preco: number; imagem: string }
@@ -21,6 +23,7 @@ type Props = {
 }
 
 export default function CartaoVideo({ video, artesao, peca, comentarios }: Props) {
+  const [salvando, definirSalvando] = useState(false)
   const [curtido, definirCurtido] = useState(false)
   const [salvo, definirSalvo] = useState(false)
   const [aberto, definirAberto] = useState(false)
@@ -33,6 +36,13 @@ export default function CartaoVideo({ video, artesao, peca, comentarios }: Props
 
   const painelId = `comentarios-${video.id}`
   const totalComentarios = video.comentarios + (lista.length - comentarios.length)
+
+  useEffect(() => {
+    obterEstado().then(({ dados }) => {
+      definirCurtido(dados?.videosCurtidos.includes(video.id) ?? false)
+      definirSalvo(dados?.videosSalvos.includes(video.id) ?? false)
+    })
+  }, [video.id])
 
   useEffect(() => {
     const artigo = refArtigo.current
@@ -86,10 +96,35 @@ export default function CartaoVideo({ video, artesao, peca, comentarios }: Props
     definirAberto(true)
   }
 
-  function alternarSalvo() {
+  async function alternarSalvo() {
     const proximoSalvo = !salvo
     definirSalvo(proximoSalvo)
+    const { dados } = await obterEstado()
+    if (!dados) return definirSalvo(!proximoSalvo)
+    const lista = proximoSalvo
+      ? [...new Set([...dados.videosSalvos, video.id])]
+      : dados.videosSalvos.filter((id) => id !== video.id)
+    const resposta = await salvarVideosSalvos(lista)
+    if (resposta.erro) {
+      definirSalvo(!proximoSalvo)
+      return avisar.erro('Não foi possível atualizar os vídeos salvos', resposta.erro.mensagem)
+    }
     if (proximoSalvo) avisar.sucesso('Vídeo salvo para ver depois')
+  }
+
+  async function alternarCurtida() {
+    const proximo = !curtido
+    definirCurtido(proximo)
+    const { dados } = await obterEstado()
+    if (!dados) return definirCurtido(!proximo)
+    const lista = proximo
+      ? [...new Set([...dados.videosCurtidos, video.id])]
+      : dados.videosCurtidos.filter((id) => id !== video.id)
+    const resposta = await salvarVideosCurtidos(lista)
+    if (resposta.erro) {
+      definirCurtido(!proximo)
+      avisar.erro('Não foi possível registrar a curtida', resposta.erro.mensagem)
+    }
   }
 
   function responder(autor: string) {
@@ -97,11 +132,15 @@ export default function CartaoVideo({ video, artesao, peca, comentarios }: Props
     campoComentario.current?.focus()
   }
 
-  function enviarComentario(evento: FormEvent<HTMLFormElement>) {
+  async function enviarComentario(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
     const texto = rascunho.trim()
-    if (!texto) return
-    definirLista([...lista, { autor: 'Você', texto, quando: 'agora', curtidas: 0 }])
+    if (!texto || salvando) return
+    definirSalvando(true)
+    const resposta = await comentarVideo(video.id, { autor: 'Você', texto, quando: 'agora', curtidas: 0 })
+    definirSalvando(false)
+    if (resposta.erro || !resposta.dados) { avisar.erro('Não foi possível comentar', resposta.erro?.mensagem); return }
+    definirLista((atuais) => [...atuais, resposta.dados!])
     definirRascunho('')
   }
 
@@ -161,7 +200,7 @@ export default function CartaoVideo({ video, artesao, peca, comentarios }: Props
             <button
               type="button"
               className={`acao-video${curtido ? ' acao-video-ativa' : ''}`}
-              onClick={() => definirCurtido((v) => !v)}
+              onClick={alternarCurtida}
               aria-pressed={curtido}
             >
               <span className="acao-video-bolha">
@@ -276,7 +315,7 @@ export default function CartaoVideo({ video, artesao, peca, comentarios }: Props
               value={rascunho}
               onChange={(evento) => definirRascunho(evento.target.value)}
             />
-            <button type="submit" className="botao botao-primario" style={{ padding: '0 18px' }}>
+            <button disabled={salvando} type="submit" className="botao botao-primario" style={{ padding: '0 18px' }}>
               Enviar
             </button>
           </form>

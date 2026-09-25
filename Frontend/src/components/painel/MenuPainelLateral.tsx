@@ -1,11 +1,15 @@
+'use client'
+
 import Link from 'next/link'
 import { Retrato } from '@/components/ui/Basicos'
 import { IconeSelo, IconeSetaDireita } from '@/components/ui/Icones'
-import { acharArtesao } from '@/mocks/artesaos'
-import { artesaoDoPainel, itensPorGrupo, type ChavePainel } from '@/components/painel/itensPainel'
+import { useArtesaoLogado, useContagensPainel } from '@/hooks/useArtesaoLogado'
+import BotaoSair from '@/components/conta/BotaoSair'
+import { itensPorGrupo, type ChavePainel } from '@/components/painel/itensPainel'
 
 export default function MenuPainelLateral({ ativo }: { ativo: ChavePainel }) {
-  const artesao = acharArtesao(artesaoDoPainel)
+  const artesao = useArtesaoLogado()
+  const contagens = useContagensPainel()
 
   return (
     <nav className="menu-lateral" aria-label="Menu do painel">
@@ -19,7 +23,7 @@ export default function MenuPainelLateral({ ativo }: { ativo: ChavePainel }) {
         </div>
       )}
 
-      {itensPorGrupo().map((grupo) => (
+      {itensPorGrupo(contagens).map((grupo) => (
         <div className="menu-grupo" key={grupo.grupo}>
           <p className="menu-grupo-rotulo">{grupo.rotulo}</p>
           {grupo.itens.map((item) => (
@@ -48,6 +52,10 @@ export default function MenuPainelLateral({ ativo }: { ativo: ChavePainel }) {
           <IconeSetaDireita tamanho={14} />
         </Link>
       )}
+
+      <div className="menu-sair">
+        <BotaoSair />
+      </div>
     </nav>
   )
 }

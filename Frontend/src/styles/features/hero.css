@@ -177,3 +177,34 @@
 .hero-carrossel-pausado .hero-figura .foto img {
   animation-play-state: paused;
 }
+
+.hero-figura-video {
+  @apply relative overflow-hidden;
+}
+
+.hero-figura-video img {
+  @apply w-full h-full object-cover;
+}
+
+.hero-video-play {
+  @apply absolute inset-0 m-auto w-[72px] h-[72px] flex items-center justify-center rounded-full text-branco bg-[rgba(17,22,37,0.55)] backdrop-blur-[2px];
+  transition: transform 160ms ease;
+}
+
+.hero-figura-video:hover .hero-video-play {
+  transform: scale(1.06);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-video-play {
+    transition: none;
+  }
+}
+
+.hero-video-mosaico {
+  @apply grid grid-cols-2 grid-rows-2 gap-1 w-full h-full;
+}
+
+.hero-video-mosaico img {
+  @apply w-full h-full min-h-0 object-cover;
+}

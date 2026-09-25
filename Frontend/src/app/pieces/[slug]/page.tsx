@@ -4,60 +4,93 @@ import Pagina from '@/components/layout/Pagina'
 import CartaoPeca from '@/components/produto/CartaoPeca'
 import { Estrelas, Migalhas, Retrato, SeloDisponibilidade } from '@/components/ui/Basicos'
 import BotaoAdicionarSacola from '@/components/carrinho/BotaoAdicionarSacola'
+import BotaoFavoritar from '@/components/produto/BotaoFavoritar'
 import GaleriaPeca from '@/components/produto/GaleriaPeca'
 import CalculoFrete from '@/components/produto/CalculoFrete'
+import DetalhesPeca from '@/components/produto/DetalhesPeca'
 import PerguntasPublicas from '@/components/produto/PerguntasPublicas'
+import Prateleira from '@/components/ui/Prateleira'
+import FaixaBeneficios from '@/components/vitrine/FaixaBeneficios'
 import { IconeEtiqueta, IconeMapa, IconeSelo, IconeSetaDireita } from '@/components/ui/Icones'
-import { pecas } from '@/mocks/pecas'
 import { obterArtesao } from '@/services/api/artesaos.servico'
+import { obterPeca, pecasPorArtesao, pecasPorTipo, pecasRelacionadas } from '@/services/api/pecas.servico'
+import { listarPerguntas } from '@/services/api/perguntas.servico'
+import type { Peca } from '@/types/dominio'
 import { emReais, precoComDesconto } from '@/utils/formato'
-import { obterPeca, pecasRelacionadas } from '@/services/api/pecas.servico'
+import { hrefListagem } from '@/utils/filtrosUrl'
 
-export function generateStaticParams() {
-  return pecas.map((p) => ({ slug: p.slug }))
+export const dynamic = 'force-dynamic'
+
+const LIMITE_CARROSSEL = 10
+
+function semRepetir(listas: Peca[][], atual: string): Peca[][] {
+  const vistas = new Set([atual])
+  return listas.map((lista) =>
+    lista.filter((peca) => {
+      if (vistas.has(peca.slug)) return false
+      vistas.add(peca.slug)
+      return true
+    }),
+  )
 }
-
-const perguntas = [
-  {
-    pergunta: 'A peça acompanha algum certificado?',
-    autor: 'Clarissa M. Reis',
-    resposta: 'Sim, acompanha o Selo de Origem e a biografia impressa do atelier.',
-  },
-  {
-    pergunta: 'É possível encomendar em tamanho maior?',
-    autor: 'Renato Albuquerque',
-    resposta: 'No momento, o atelier produz apenas neste formato tradicional de 40 cm.',
-  },
-]
 
 export default async function DetalhePeca({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const { dados: peca } = await obterPeca(slug)
+  const { dados: peca, erro } = await obterPeca(slug)
+  if (erro && erro.codigo !== 'RECURSO_NAO_ENCONTRADO') throw new Error(erro.mensagem)
   if (!peca) notFound()
 
-  const { dados: artesao } = await obterArtesao(peca.artesao)
-  const relacionadas = (await pecasRelacionadas(peca.slug)).dados ?? []
+  const [artesaoResposta, doArtesaoResposta, mesmoTipoResposta, relacionadasResposta] = await Promise.all([
+    obterArtesao(peca.artesao),
+    pecasPorArtesao(peca.artesao),
+    pecasPorTipo(peca.tipo, { excluir: peca.slug, limite: LIMITE_CARROSSEL }),
+    pecasRelacionadas(peca.slug, LIMITE_CARROSSEL),
+  ])
+  const artesao = artesaoResposta.dados
+  const perguntas = (await listarPerguntas(peca.slug)).dados ?? []
+  const [doArtesao, mesmoTipo, mesmaTecnica] = semRepetir(
+    [
+      (doArtesaoResposta.dados ?? []).filter((p) => !p.situacao || p.situacao === 'publicada'),
+      mesmoTipoResposta.dados ?? [],
+      relacionadasResposta.dados ?? [],
+    ],
+    peca.slug,
+  )
+  const precoFinal = peca.desconto ? precoComDesconto(peca) : peca.preco
 
   return (
     <Pagina>
       <Migalhas
         trilha={[
           { texto: 'Início', href: '/' },
-          { texto: peca.categoria, href: '/search' },
+          { texto: peca.categoria, href: hrefListagem({ categoria: peca.categoria }) },
+          { texto: peca.tipo, href: hrefListagem({ tipo: peca.tipo }) },
           { texto: peca.nome },
         ]}
       />
 
       <div className="duas-colunas">
         <div>
-          <GaleriaPeca imagem={peca.imagem} nome={peca.nome} desconto={peca.desconto} />
+          <GaleriaPeca
+            imagem={peca.imagem}
+            fotos={peca.fotos}
+            ordemFotos={peca.ordemFotos}
+            nome={peca.nome}
+            desconto={peca.desconto}
+          />
         </div>
 
         <div className="coluna-compra">
           <SeloDisponibilidade tipo={peca.disponibilidade} prazoDias={peca.prazoProducaoDias} />
           <h1 className="titulo-pagina acima-3">{peca.nome}</h1>
-          <p className="autoria">
-            Técnica: {peca.tecnica} · {peca.categoria}
+          <p className="linha-classificacao autoria">
+            {artesao && (
+              <>
+                por <Link href={`/artisans/${artesao.slug}`}>{artesao.nome}</Link> ·
+              </>
+            )}
+            <Link href={hrefListagem({ tipo: peca.tipo })}>{peca.tipo}</Link> ·
+            <Link href={hrefListagem({ tecnica: peca.tecnica })}>{peca.tecnica}</Link>
           </p>
 
           {peca.avaliacao && (
@@ -66,58 +99,49 @@ export default async function DetalhePeca({ params }: { params: Promise<{ slug: 
             </p>
           )}
 
-          {peca.desconto ? (
-            <p className="preco-pagina">
-              <span className="preco-riscado">{emReais(peca.preco)}</span> {emReais(precoComDesconto(peca))}
-            </p>
-          ) : (
-            <p className="preco-pagina">{emReais(peca.preco)}</p>
-          )}
+          <div className="caixa-compra">
+            {peca.desconto ? (
+              <p className="preco-pagina">
+                <span className="preco-riscado">{emReais(peca.preco)}</span> {emReais(precoFinal)}
+              </p>
+            ) : (
+              <p className="preco-pagina">{emReais(peca.preco)}</p>
+            )}
 
-          {peca.desconto && (
-            <p className="aviso abaixo-4">
-              <IconeEtiqueta />
-              <span>
-                <strong>{peca.desconto}% de desconto da plataforma.</strong> O valor já sai abatido na sacola, sem
-                cupom para digitar.
-              </span>
-            </p>
-          )}
+            {peca.desconto && (
+              <p className="aviso abaixo-4">
+                <IconeEtiqueta />
+                <span>
+                  <strong>{peca.desconto}% de desconto da plataforma.</strong> O valor já sai abatido na sacola, sem
+                  cupom para digitar.
+                </span>
+              </p>
+            )}
 
-          {peca.disponibilidade === 'encomenda' && peca.prazoProducaoDias && (
-            <p className="aviso abaixo-4">
-              <IconeSelo />
-              <span>
-                Peça feita sob encomenda. O artesão leva cerca de <strong>{peca.prazoProducaoDias} dias</strong> para
-                produzir antes do envio.
-              </span>
-            </p>
-          )}
+            {peca.disponibilidade === 'encomenda' && peca.prazoProducaoDias && (
+              <p className="aviso abaixo-4">
+                <IconeSelo />
+                <span>
+                  Peça feita sob encomenda. O artesão leva cerca de <strong>{peca.prazoProducaoDias} dias</strong> para
+                  produzir antes do envio.
+                </span>
+              </p>
+            )}
 
-          <div className="barra-fixa barra-fixa-compra">
-            <p className="barra-fixa-info">
-              <span className="barra-fixa-valor">{emReais(peca.desconto ? precoComDesconto(peca) : peca.preco)}</span>
-            </p>
-            <BotaoAdicionarSacola slug={peca.slug} disponibilidade={peca.disponibilidade} />
+            <div className="caixa-compra-acoes">
+              <div className="barra-fixa barra-fixa-compra">
+                <p className="barra-fixa-info">
+                  <span className="barra-fixa-valor">{emReais(precoFinal)}</span>
+                </p>
+                <BotaoAdicionarSacola slug={peca.slug} disponibilidade={peca.disponibilidade} />
+              </div>
+              <BotaoFavoritar slug={peca.slug} nome={peca.nome} variante="rotulado" />
+            </div>
+
+            <FaixaBeneficios compacta />
           </div>
 
           <CalculoFrete territorio={peca.territorio} />
-
-          {artesao && (
-            <div className="cartao bloco-quem-fez">
-              <p className="territorio abaixo-3">Quem fez esta peça</p>
-              <div className="bloco-artesao">
-                <Retrato imagem={artesao.imagem} />
-                <div className="encolhivel">
-                  <p className="texto-forte">{artesao.nome}</p>
-                  <p className="autoria">{artesao.territorio}</p>
-                  <Link href={`/artisans/${artesao.slug}`} className="ver-peca">
-                    Ver perfil do atelier <IconeSetaDireita tamanho={14} />
-                  </Link>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
@@ -133,26 +157,87 @@ export default async function DetalhePeca({ params }: { params: Promise<{ slug: 
           </p>
         </section>
 
-        <section>
-          <PerguntasPublicas
-            iniciais={perguntas}
-            slug={peca.slug}
-            artesaoNome={artesao?.nome}
-            artesaoImagem={artesao?.imagem}
-          />
-        </section>
+        <DetalhesPeca peca={peca} />
       </div>
 
-      {relacionadas.length > 0 && (
-        <section className="secao">
-          <h2 className="secao-titulo">Outras peças que você pode gostar</h2>
-          <div className="grade-pecas">
-            {relacionadas.map((p) => (
-              <CartaoPeca key={p.slug} peca={p} />
-            ))}
+      {artesao && (
+        <section className="secao sobre-artesao" aria-labelledby="sobre-artesao-titulo">
+          <Retrato imagem={artesao.imagem} grande />
+          <div className="encolhivel">
+            <p className="territorio">Quem fez esta peça</p>
+            <h2 className="titulo-pagina" id="sobre-artesao-titulo" style={{ margin: '4px 0' }}>
+              {artesao.nome}
+            </h2>
+            <p className="autoria">
+              {artesao.atelie} · {artesao.territorio}
+            </p>
+            <div className="sobre-artesao-metricas">
+              {artesao.avaliacaoMedia > 0 && (
+                <span>
+                  <strong>{artesao.avaliacaoMedia.toFixed(1)}</strong>
+                  nota média
+                </span>
+              )}
+              <span>
+                <strong>{artesao.obrasComercializadas}</strong>
+                peças vendidas
+              </span>
+              <span>
+                <strong>{doArtesao.length + 1}</strong>
+                peças na loja
+              </span>
+              {artesao.selo && (
+                <span className="selo selo-disponivel" style={{ alignSelf: 'center' }}>
+                  <IconeSelo tamanho={14} />
+                  Selo de origem
+                </span>
+              )}
+            </div>
+            {artesao.historia && <p className="texto-historia">{artesao.historia}</p>}
+            <Link href={`/artisans/${artesao.slug}`} className="botao botao-secundario acima-3">
+              Ver perfil do ateliê
+              <IconeSetaDireita />
+            </Link>
           </div>
         </section>
       )}
+
+      {doArtesao.length > 0 && (
+        <Prateleira
+          titulo={`Mais de ${artesao?.nome ?? 'quem fez esta peça'}`}
+          verTodos={artesao ? { href: `/artisans/${artesao.slug}`, texto: 'Ver ateliê' } : undefined}
+        >
+          {doArtesao.map((p) => (
+            <CartaoPeca key={p.slug} peca={p} />
+          ))}
+        </Prateleira>
+      )}
+
+      {mesmoTipo.length > 0 && (
+        <Prateleira titulo={`Outras peças em ${peca.tipo}`} verTodos={{ href: hrefListagem({ tipo: peca.tipo }) }}>
+          {mesmoTipo.map((p) => (
+            <CartaoPeca key={p.slug} peca={p} />
+          ))}
+        </Prateleira>
+      )}
+
+      {mesmaTecnica.length > 0 && (
+        <Prateleira titulo={`Mais em ${peca.tecnica}`} verTodos={{ href: hrefListagem({ tecnica: peca.tecnica }) }}>
+          {mesmaTecnica.map((p) => (
+            <CartaoPeca key={p.slug} peca={p} />
+          ))}
+        </Prateleira>
+      )}
+
+      <section className="secao">
+        <PerguntasPublicas
+          iniciais={perguntas}
+          slug={peca.slug}
+          artesaoSlug={peca.artesao}
+          artesaoNome={artesao?.nome}
+          artesaoImagem={artesao?.imagem}
+        />
+      </section>
     </Pagina>
   )
 }

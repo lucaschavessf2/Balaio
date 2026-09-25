@@ -1,3 +1,5 @@
+import type { TipoPeca } from '@/constants/referencias'
+
 export type Disponibilidade = 'disponivel' | 'encomenda' | 'unica'
 
 export type Tecnica =
@@ -7,19 +9,32 @@ export type Tecnica =
   | 'Couro Autoral'
   | 'Xilogravura'
 
+export type FotoPeca = {
+  id: string
+  nome: string
+  url: string
+  ordem: number
+}
+
 export type Peca = {
+  situacao?: 'publicada' | 'curadoria' | 'rascunho'
+  inativadoEm?: string | null
+  vendidaEmPedido?: string | null
   slug: string
   nome: string
   artesao: string
   territorio: string
   tecnica: Tecnica
   categoria: string
+  tipo: TipoPeca
   preco: number
   desconto?: number
   disponibilidade: Disponibilidade
   prazoProducaoDias?: number
   historia: string[]
   imagem: string
+  fotos?: FotoPeca[]
+  ordemFotos?: string[]
   avaliacao?: number
   totalAvaliacoes?: number
 }
@@ -35,9 +50,13 @@ export type Artesao = {
   avaliacaoMedia: number
   selo: boolean
   imagem: string
+  cepOrigem?: string
+  prazoPadraoDias?: number
+  aceitaEncomendas?: boolean
+  chavePix?: string
 }
 
-export type EstadoPedido = 'confirmado' | 'producao' | 'enviado' | 'entregue'
+export type EstadoPedido = 'confirmado' | 'producao' | 'enviado' | 'entregue' | 'recusado' | 'cancelado' | 'reembolsado'
 
 export type EtapaPedido = {
   estado: EstadoPedido
@@ -49,8 +68,12 @@ export type EtapaPedido = {
 }
 
 export type Pedido = {
+  itens?: { slug: string; quantidade: number }[]
+  simulado?: boolean
   id: string
   pecaSlug: string
+  compradorId?: string
+  usuarioId?: string
   compradorNome: string
   data: string
   total: number
@@ -60,6 +83,35 @@ export type Pedido = {
   previsaoEntrega?: string
   etapas: EtapaPedido[]
   avaliado: boolean
+  motivoEncerramento?: string
+}
+
+export type PedidoPendente = {
+  id: string
+  pecaSlug: string
+  comprador: string
+  quando: string
+  valor: number
+}
+
+export type ConversaArtesao = {
+  id: string
+  pessoa: string
+  assunto: string
+  previa: string
+  quando: string
+  naoLida: boolean
+  retrato: string
+}
+
+export type ItemCuradoria = {
+  id: string
+  pecaSlug?: string
+  peca: string
+  artesao: string
+  artesaoSlug?: string
+  enviadoEm: string
+  motivo: string
 }
 
 export type Mensagem = {
@@ -69,6 +121,7 @@ export type Mensagem = {
 }
 
 export type Mediacao = {
+  emAnalise?: boolean
   id: string
   pedido: string
   assunto: string

@@ -12,10 +12,11 @@ import {
   IconeUsuario,
 } from '@/components/ui/Icones'
 import { listarPedidos } from '@/services/api/pedidos.servico'
-import { usuarioAtual } from '@/mocks/usuario'
+import { exigirSessao } from '@/services/autenticacao'
 
 export default async function Conta() {
-  const { dados: pedidos } = await listarPedidos()
+  const { usuario: usuarioAtual, token } = await exigirSessao()
+  const { dados: pedidos } = await listarPedidos(token)
   const totalPedidos = (pedidos ?? []).length
   return (
     <Pagina>
@@ -28,8 +29,8 @@ export default async function Conta() {
         <header className="cartao conta-capa">
           <Retrato imagem={usuarioAtual.imagem} grande />
           <div className="encolhivel">
-            <p className="conta-capa-nome">Carlos de Olinda</p>
-            <p className="autoria">carlos@exemplo.com</p>
+            <p className="conta-capa-nome">{usuarioAtual.nome}</p>
+            <p className="autoria">{usuarioAtual.email}</p>
           </div>
         </header>
 
@@ -63,20 +64,31 @@ export default async function Conta() {
               <IconeSetaDireita />
             </span>
           </Link>
-          <Link href="/login/recover" className="menu-item">
+          <Link href="/account/details#seguranca" className="menu-item">
             <IconeCadeado />
             Alterar senha
             <span className="menu-item-seta">
               <IconeSetaDireita />
             </span>
           </Link>
-          <Link href="/dashboard" className="menu-item">
-            <IconePincel />
-            Painel do artesão
-            <span className="menu-item-seta">
-              <IconeSetaDireita />
-            </span>
-          </Link>
+          {usuarioAtual.papel === 'admin' && (
+            <Link href="/admin" className="menu-item">
+              <IconePincel />
+              Curadoria e mediações
+              <span className="menu-item-seta">
+                <IconeSetaDireita />
+              </span>
+            </Link>
+          )}
+          {usuarioAtual.papel === 'artesao' && (
+            <Link href="/dashboard" className="menu-item">
+              <IconePincel />
+              Painel do artesão
+              <span className="menu-item-seta">
+                <IconeSetaDireita />
+              </span>
+            </Link>
+          )}
           <BotaoSair />
         </nav>
       </div>

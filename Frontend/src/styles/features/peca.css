@@ -279,7 +279,7 @@
 @media (min-width: 1000px) {
   .coluna-compra {
     position: sticky;
-    top: 96px;
+    top: calc(var(--cabecalho-espaco) + 16px);
   }
 }
 
@@ -304,4 +304,63 @@
 .bloco-quem-fez {
   @apply bg-barro-fundo border-l-[3px] border-l-barro;
   background-image: var(--textura-trama);
+}
+
+.botao-favoritar-rotulado {
+  @apply text-vermelho-tinta;
+}
+
+.caixa-compra {
+  @apply mt-4 p-4 rounded-media border border-linha bg-superficie;
+}
+
+.caixa-compra-acoes {
+  @apply flex flex-wrap gap-2 items-stretch;
+}
+
+.caixa-compra-acoes .barra-fixa {
+  @apply flex-1;
+}
+
+.linha-classificacao {
+  @apply flex flex-wrap gap-x-2 gap-y-1 items-center text-pequeno;
+}
+
+.linha-classificacao a {
+  @apply font-semibold;
+}
+
+.tabela-detalhes {
+  @apply w-full border-collapse text-pequeno;
+}
+
+.tabela-detalhes th,
+.tabela-detalhes td {
+  @apply py-2.5 px-3 text-left align-top border-b border-linha;
+}
+
+.tabela-detalhes th {
+  @apply w-[42%] font-semibold text-tinta-suave bg-barro-fundo;
+}
+
+.tabela-detalhes tr:last-child th,
+.tabela-detalhes tr:last-child td {
+  @apply border-b-0;
+}
+
+.tabela-detalhes-moldura {
+  @apply rounded-media border border-linha overflow-hidden;
+}
+
+.sobre-artesao {
+  @apply grid gap-5 p-6 rounded-grande border border-linha md:grid-cols-[auto_1fr] md:items-start;
+  background: var(--textura-trama), linear-gradient(160deg, var(--barro-fundo), var(--superficie) 75%);
+}
+
+.sobre-artesao-metricas {
+  @apply flex flex-wrap gap-x-6 gap-y-2 my-3 text-pequeno;
+}
+
+.sobre-artesao-metricas strong {
+  @apply block text-grande font-titulo text-tinta;
 }

@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 import { IconeBusca, IconeCasa, IconeCoracao, IconePlay, IconeSacola, IconeUsuario } from '@/components/ui/Icones'
-import ContadorFavoritos from '@/components/favoritos/ContadorFavoritos'
+import { destinoInicial, type Sessao } from '@/services/sessao/cookie'
+
+const TEXTO_CONTA = { comprador: 'Conta', artesao: 'Painel', admin: 'Admin' } as const
 
 export type ItemNavegacao = {
   chave: string
@@ -11,7 +13,7 @@ export type ItemNavegacao = {
   mostraContadorFavoritos?: boolean
 }
 
-export function itensNavegacao(comoArtesao: boolean): ItemNavegacao[] {
+export function itensNavegacao(sessao: Sessao | null): ItemNavegacao[] {
   return [
     { chave: 'inicio', texto: 'Início', href: '/', icone: <IconeCasa tamanho={22} /> },
     { chave: 'busca', texto: 'Buscar', href: '/search', icone: <IconeBusca tamanho={22} /> },
@@ -30,8 +32,13 @@ export function itensNavegacao(comoArtesao: boolean): ItemNavegacao[] {
       icone: <IconeSacola tamanho={22} />,
       mostraContadorSacola: true,
     },
-    comoArtesao
-      ? { chave: 'conta', texto: 'Painel', href: '/dashboard', icone: <IconeUsuario tamanho={22} /> }
+    sessao
+      ? {
+          chave: 'conta',
+          texto: TEXTO_CONTA[sessao.papel],
+          href: destinoInicial(sessao),
+          icone: <IconeUsuario tamanho={22} />,
+        }
       : { chave: 'conta', texto: 'Entrar', href: '/login', icone: <IconeUsuario tamanho={22} /> },
   ]
 }

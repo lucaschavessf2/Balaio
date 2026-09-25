@@ -1,23 +1,41 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import Pagina from '@/components/layout/Pagina'
-import { Migalhas } from '@/components/ui/Basicos'
+import { EstadoVazio, Migalhas } from '@/components/ui/Basicos'
+import { IconeAviso } from '@/components/ui/Icones'
 import FormAvaliacao from '@/components/forms/FormAvaliacao'
-import { obterPedido, listarPedidos } from '@/services/api/pedidos.servico'
-import { obterPeca } from '@/services/api/pecas.servico'
+import { obterPedido } from '@/services/api/pedidos.servico'
+import { obterPecaHistorico } from '@/services/api/pecas.servico'
 import { obterArtesao } from '@/services/api/artesaos.servico'
+import { exigirSessao } from '@/services/autenticacao'
 
-export async function generateStaticParams() {
-  const { dados } = await listarPedidos()
-  return (dados ?? []).map((p) => ({ id: p.id }))
-}
+export const dynamic = 'force-dynamic'
 
 export default async function Avaliar({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const { dados: pedido } = await obterPedido(id)
-  if (!pedido) notFound()
+  const { usuario, token } = await exigirSessao()
+  const { dados: pedido, erro } = await obterPedido(id, token)
+  if (erro && erro.codigo !== 'RECURSO_NAO_ENCONTRADO') throw new Error(erro.mensagem)
+  if (!pedido || (pedido.compradorId ?? pedido.usuarioId) !== usuario.id) notFound()
 
-  const { dados: peca } = await obterPeca(pedido.pecaSlug)
+  if (pedido.estado !== 'entregue' || pedido.avaliado) {
+    return (
+      <Pagina>
+        <Migalhas trilha={[{ texto: 'Início', href: '/' }, { texto: 'Meus pedidos', href: '/orders' }, { texto: 'Avaliar compra' }]} />
+        <h1 className="titulo-pagina">Avaliar compra</h1>
+        <EstadoVazio
+          icone={<IconeAviso tamanho={34} />}
+          titulo={pedido.avaliado ? 'Este pedido já foi avaliado' : 'A avaliação ainda não está disponível'}
+          descricao={pedido.avaliado
+            ? 'Você já enviou sua avaliação para esta compra.'
+            : 'Você poderá avaliar a compra quando o pedido estiver marcado como entregue.'}
+          acao={<Link href={`/orders/${pedido.id}`} className="botao botao-primario">Ver pedido</Link>}
+        />
+      </Pagina>
+    )
+  }
+
+  const { dados: peca } = await obterPecaHistorico(pedido.pecaSlug)
   const artesao = peca ? (await obterArtesao(peca.artesao)).dados : null
 
   return (
@@ -33,7 +51,7 @@ export default async function Avaliar({ params }: { params: Promise<{ id: string
 
       <h1 className="titulo-pagina">Como foi sua compra?</h1>
       <p className="subtitulo-pagina">
-        Sua avaliação ajuda outros compradores e é o principal sinal de confiança que o artesão constrói na plataforma.
+        Conte como foi receber a peça. Sua nota, os critérios e o comentário ficam registrados neste pedido.
       </p>
 
       <div className="duas-colunas">

@@ -3,16 +3,21 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 4321",
+    "dev": "concurrently --kill-others -n api,web \"npm:api\" \"npm:dev:web\"",
     "build": "next build",
     "start": "next start -p 4321",
-    "lint": "next lint"
+    "lint": "eslint .",
+    "dev:web": "next dev -p 4321",
+    "api": "node --env-file-if-exists=.env.local fake-api/server.cjs",
+    "api:seed": "tsx fake-api/seed.ts",
+    "api:reset": "node fake-api/reset.cjs",
+    "test:api": "node --test fake-api/server.test.cjs"
   },
   "dependencies": {
     "@types/leaflet": "^1.9.22",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.33.0",
-    "next": "15.1.6",
+    "next": "16.3.5",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "recharts": "^3.10.1",
@@ -24,9 +29,12 @@
     "@types/node": "22.10.5",
     "@types/react": "19.0.7",
     "@types/react-dom": "19.0.3",
-    "eslint": "^9.39.5",
-    "eslint-config-next": "^15.1.6",
+    "concurrently": "9.2.1",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.3.5",
+    "json-server": "0.17.4",
     "tailwindcss": "^4.3.3",
+    "tsx": "4.20.6",
     "typescript": "5.7.3"
   }
 }

@@ -1,8 +1,9 @@
 import Link from 'next/link'
+import BotaoSair from '@/components/conta/BotaoSair'
 import { IconeSelo, IconeSetaDireita } from '@/components/ui/Icones'
-import { itensAdminPorGrupo, type ChaveAdmin } from '@/components/admin/itensAdmin'
+import { itensAdminPorGrupo, type ChaveAdmin, type ContagensAdmin } from '@/components/admin/itensAdmin'
 
-export default function MenuAdminLateral({ ativo }: { ativo: ChaveAdmin }) {
+export default function MenuAdminLateral({ ativo, contagens }: { ativo: ChaveAdmin; contagens: ContagensAdmin }) {
   return (
     <nav className="menu-lateral" aria-label="Menu da administração">
       <div className="menu-oficina">
@@ -15,7 +16,7 @@ export default function MenuAdminLateral({ ativo }: { ativo: ChaveAdmin }) {
         </div>
       </div>
 
-      {itensAdminPorGrupo().map((grupo) => (
+      {itensAdminPorGrupo(contagens).map((grupo) => (
         <div className="menu-grupo" key={grupo.grupo}>
           <p className="menu-grupo-rotulo">{grupo.rotulo}</p>
           {grupo.itens.map((item) => (
@@ -42,6 +43,10 @@ export default function MenuAdminLateral({ ativo }: { ativo: ChaveAdmin }) {
         Ver o catálogo
         <IconeSetaDireita tamanho={14} />
       </Link>
+
+      <div className="menu-sair">
+        <BotaoSair />
+      </div>
     </nav>
   )
 }

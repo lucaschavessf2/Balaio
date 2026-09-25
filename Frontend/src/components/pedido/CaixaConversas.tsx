@@ -5,6 +5,8 @@ import { Retrato } from '@/components/ui/Basicos'
 import { IconeEnviar, IconeSetaEsquerda } from '@/components/ui/Icones'
 import type { ConversaArtesao } from '@/mocks/pedidos'
 import { type Mensagem } from '@/types/dominio'
+import { conversaDoPedido, enviarMensagem } from '@/services/api/pedidos.servico'
+import { avisar } from '@/components/feedback/Avisos'
 
 type Props = { fios: ConversaArtesao[]; conversaInicial: Mensagem[] }
 
@@ -35,10 +37,14 @@ export default function CaixaConversas({ fios, conversaInicial }: Props) {
     return f.naoLida && !lidas.includes(f.id) && f.id !== fioAtivo
   }
 
-  function selecionar(id: string) {
+  async function selecionar(id: string) {
     definirFioAtivo(id)
     definirFioAberto(true)
     if (!lidas.includes(id)) definirLidas([...lidas, id])
+    if (!mensagens[id]) {
+      const resposta = await conversaDoPedido(id)
+      if (resposta.dados) definirMensagens((atuais) => ({ ...atuais, [id]: resposta.dados! }))
+    }
   }
 
   function voltar() {
@@ -51,14 +57,14 @@ export default function CaixaConversas({ fios, conversaInicial }: Props) {
     return dados ? [{ autor: 'comprador', texto: dados.previa, hora: dados.quando }] : []
   }
 
-  function enviar(evento: FormEvent<HTMLFormElement>) {
+  async function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
     const texto = rascunho.trim()
     if (!texto || !fioAtivo) return
-    definirMensagens({
-      ...mensagens,
-      [fioAtivo]: [...conversaDo(fioAtivo), { autor: 'artesao', texto, hora: 'agora' }],
-    })
+    const nova: Mensagem = { autor: 'artesao', texto, hora: 'agora' }
+    const resposta = await enviarMensagem(fioAtivo, nova)
+    if (!resposta.dados) return avisar.erro('Não foi possível enviar', resposta.erro?.mensagem)
+    definirMensagens({ ...mensagens, [fioAtivo]: [...conversaDo(fioAtivo), resposta.dados] })
     definirRascunho('')
   }
 
