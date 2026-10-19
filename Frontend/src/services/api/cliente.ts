@@ -4,9 +4,9 @@ const BASE = typeof window === 'undefined'
   ? (process.env.API_URL ?? 'http://127.0.0.1:3001/api/v1')
   : '/api/v1'
 
-export async function buscar<T>(caminho: string, opcoes?: RequestInit): Promise<RespostaApi<T>> {
+export async function buscar<T>(caminho: string, opcoes?: RequestInit, baseUrl = BASE): Promise<RespostaApi<T>> {
   try {
-    const resposta = await fetch(`${BASE}${caminho}`, {
+    const resposta = await fetch(`${baseUrl}${caminho}`, {
       cache: 'no-store',
       ...opcoes,
       headers: { 'Content-Type': 'application/json', ...opcoes?.headers },
