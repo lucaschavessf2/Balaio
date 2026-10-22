@@ -11,6 +11,8 @@ import { solicitarRecuperacao } from '@/services/api/conta.servico'
 export default function FormRecuperar() {
   const [erro, definirErro] = useState<string | null>(null)
   const [enviadoPara, definirEnviadoPara] = useState<string | null>(null)
+  const [enviando, definirEnviando] = useState(false)
+  const envioEmAndamento = useRef(false)
   const refCartaoSucesso = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -19,6 +21,7 @@ export default function FormRecuperar() {
 
   async function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
+    if (envioEmAndamento.current) return
     const email = String(new FormData(evento.currentTarget).get('email') ?? '')
     const problema = validarEmail(email)
     definirErro(problema)
@@ -26,10 +29,17 @@ export default function FormRecuperar() {
       document.getElementById('recuperar-email')?.focus()
       return
     }
-    const resposta = await solicitarRecuperacao(email)
-    if (!resposta.dados) return avisar.erro('Não foi possível solicitar', resposta.erro?.mensagem)
-    definirEnviadoPara(email)
-    avisar.sucesso('Link de recuperação enviado', 'Confira sua caixa de entrada e o spam.')
+    envioEmAndamento.current = true
+    definirEnviando(true)
+    try {
+      const resposta = await solicitarRecuperacao(email)
+      if (!resposta.dados) return avisar.erro('Não foi possível solicitar', resposta.erro?.mensagem)
+      definirEnviadoPara(email)
+      avisar.sucesso('Link de recuperação enviado', 'Confira sua caixa de entrada e o spam.')
+    } finally {
+      envioEmAndamento.current = false
+      definirEnviando(false)
+    }
   }
 
   if (enviadoPara) {
@@ -65,11 +75,12 @@ export default function FormRecuperar() {
           autoComplete="email"
           placeholder="voce@exemplo.com"
           enterKeyHint="send"
+          disabled={enviando}
         />
       </Campo>
 
-      <button type="submit" className="botao botao-primario botao-largo">
-        Enviar link de recuperação
+      <button type="submit" className="botao botao-primario botao-largo" disabled={enviando}>
+        {enviando ? 'Enviando…' : 'Enviar link de recuperação'}
       </button>
     </form>
   )

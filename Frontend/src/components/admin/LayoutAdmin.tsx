@@ -6,10 +6,12 @@ import type { ChaveAdmin } from '@/components/admin/itensAdmin'
 import { listarMediacoes } from '@/services/api/pedidos.servico'
 import { listarFilaCuradoria } from '@/services/api/curadoria.servico'
 import { tokenDaSessao } from '@/services/autenticacao'
+import { exigirAdmin } from '@/services/sessao/servidor'
 
 type Props = { ativo: ChaveAdmin; children: ReactNode }
 
 export default async function LayoutAdmin({ ativo, children }: Props) {
+  await exigirAdmin('/admin')
   const token = await tokenDaSessao()
   const [{ dados: fila }, { dados: mediacoes }] = await Promise.all([listarFilaCuradoria(token), listarMediacoes()])
   const contagens = { curadoria: fila?.length ?? 0, mediacoes: mediacoes?.length ?? 0 }

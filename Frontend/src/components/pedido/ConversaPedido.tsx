@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import { Retrato } from '@/components/ui/Basicos'
 import { IconeEnviar } from '@/components/ui/Icones'
 import { enviarMensagem } from '@/services/api/pedidos.servico'
@@ -20,23 +20,31 @@ export default function ConversaPedido({ iniciais, atelie, imagem, id, pedidoId 
   const [mensagens, definirMensagens] = useState(iniciais)
   const [rascunho, definirRascunho] = useState('')
   const [erroEnvio, definirErroEnvio] = useState<string | null>(null)
+  const envioEmAndamento = useRef(false)
 
   async function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
+    const rascunhoEnviado = rascunho
     const texto = rascunho.trim()
-    if (!texto || salvando) return
+    if (!texto || envioEmAndamento.current) return
+    envioEmAndamento.current = true
     definirSalvando(true)
     definirErroEnvio(null)
-    const resposta = await enviarMensagem(pedidoId, { autor: 'comprador', texto, hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) })
-    definirSalvando(false)
-    if (resposta.erro || !resposta.dados) {
-      const mensagem = resposta.erro?.mensagem ?? 'Tente novamente em instantes.'
-      definirErroEnvio(mensagem)
-      avisar.erro('Mensagem não enviada', mensagem)
-      return
+    try {
+      const resposta = await enviarMensagem(pedidoId, { autor: 'comprador', texto, hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) })
+      if (resposta.erro || !resposta.dados) {
+        const mensagem = resposta.erro?.mensagem ?? 'Tente novamente em instantes.'
+        definirErroEnvio(mensagem)
+        avisar.erro('Mensagem não enviada', mensagem)
+        return
+      }
+      const enviada = resposta.dados
+      definirMensagens((atuais) => [...atuais, enviada])
+      definirRascunho((atual) => atual === rascunhoEnviado ? '' : atual)
+    } finally {
+      envioEmAndamento.current = false
+      definirSalvando(false)
     }
-    definirMensagens((atuais) => [...atuais, resposta.dados!])
-    definirRascunho('')
   }
 
   return (

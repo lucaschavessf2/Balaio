@@ -11,6 +11,7 @@ import { numeroDoPreco, validarObrigatorio, validarPreco, validarPrazoDias } fro
 import { FORMATOS_FOTO } from '@/utils/foto'
 import { IconeAviso, IconePincel } from '@/components/ui/Icones'
 import EstadoCarregando from '@/components/feedback/EstadoCarregando'
+import EstadoErro from '@/components/feedback/EstadoErro'
 import ApoioPrecificacao from '@/components/painel/ApoioPrecificacao'
 import { useReferencias } from '@/hooks/useReferencias'
 import { emReais } from '@/utils/formato'
@@ -68,7 +69,7 @@ export default function FormPeca({ peca, modelo }: Props) {
   const editando = Boolean(peca)
   const publicada = editando && (peca?.situacao ?? 'publicada') === 'publicada'
   const [salvando, definirSalvando] = useState(false)
-  const { tecnicas, territorios, categorias, tipos, carregando } = useReferencias()
+  const { tecnicas, territorios, categorias, tipos, carregando, erro, recarregar } = useReferencias()
   const [disponibilidade, definirDisponibilidade] = useState<Disponibilidade>(base?.disponibilidade ?? 'disponivel')
   const [preco, definirPreco] = useState(() => base?.preco ? emReais(base.preco) : '')
   const [erros, definirErros] = useState<Record<string, string>>({})
@@ -116,6 +117,16 @@ export default function FormPeca({ peca, modelo }: Props) {
         {migalhas}
         <h1 className="titulo-pagina">{titulo}</h1>
         <EstadoCarregando rotulo="Carregando o formulário…" cartoes={0} />
+      </>
+    )
+  }
+
+  if (erro) {
+    return (
+      <>
+        {migalhas}
+        <h1 className="titulo-pagina">{titulo}</h1>
+        <EstadoErro mensagem={erro} aoTentarNovamente={recarregar} />
       </>
     )
   }

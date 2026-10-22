@@ -15,12 +15,13 @@ import { emReais, precoComDesconto } from '@/utils/formato'
 export default function ItensSacola() {
   const { mapaPecas, carregando, erro } = usePecas()
   const { artesaos, fretes, carregando: carregandoFretes, erro: erroFretes } = useDados()
-  const { itens, remover, repor, alterarQuantidade } = useSacola()
+  const { itens, pronto, erro: erroSacola, recarregar, remover, repor, alterarQuantidade } = useSacola()
 
   const detalhados = itens.flatMap((item) => {
     const peca = mapaPecas.get(item.slug)
     return peca ? [{ item, peca }] : []
   })
+  const indisponiveis = itens.filter((item) => !mapaPecas.has(item.slug))
 
   const subtotalCheio = detalhados.reduce((total, d) => total + d.peca.preco * d.item.quantidade, 0)
   const subtotal = detalhados.reduce((total, d) => total + precoComDesconto(d.peca) * d.item.quantidade, 0)
@@ -34,10 +35,11 @@ export default function ItensSacola() {
     avisar.desfazivel(`${nome} saiu da sacola`, () => repor(item, posicao))
   }
 
-  if (carregando || carregandoFretes) return <EstadoCarregando />
+  if (!pronto || carregando || carregandoFretes) return <EstadoCarregando />
+  if (erroSacola) return <EstadoErro mensagem={erroSacola} aoTentarNovamente={recarregar} />
   if (erro || erroFretes || !fretes.length) return <EstadoErro mensagem={erro ?? erroFretes ?? 'Nenhuma opção de entrega disponível.'} />
 
-  if (detalhados.length === 0) {
+  if (itens.length === 0) {
     return (
       <EstadoVazio
         icone={<IconeSacola tamanho={34} />}
@@ -55,12 +57,30 @@ export default function ItensSacola() {
   return (
     <>
       <p className="subtitulo-pagina">
-        {detalhados.length} {detalhados.length === 1 ? 'peça reservada' : 'peças reservadas'}. Peças únicas ficam
-        guardadas para você por 30 minutos.
+        {itens.length} {itens.length === 1 ? 'peça na sacola' : 'peças na sacola'}.
       </p>
 
       <div className="duas-colunas">
         <section className="cartao">
+          {indisponiveis.map((item) => (
+            <article className="item-sacola" key={item.slug}>
+              <div className="item-sacola-figura">
+                <Foto nome="Peça indisponível" decorativa />
+              </div>
+              <div className="encolhivel">
+                <p className="texto-forte">{item.slug.replace(/-/g, ' ')}</p>
+                <p className="autoria">Esta peça não está disponível no catálogo.</p>
+                <p className="campo-ajuda">Quantidade: {item.quantidade}</p>
+                <button
+                  type="button"
+                  className="botao-texto botao-texto-perigo acima-3"
+                  onClick={() => removerItem(item.slug, item.slug.replace(/-/g, ' '))}
+                >
+                  Remover
+                </button>
+              </div>
+            </article>
+          ))}
           {detalhados.map(({ peca, item }) => {
             const artesao = artesaos.find((a) => a.slug === peca.artesao)
             return (
@@ -128,8 +148,10 @@ export default function ItensSacola() {
           </p>
         </section>
 
-        <aside className="cartao coluna-compra">
+        {detalhados.length > 0 ? <aside className="cartao coluna-compra">
           <h2 className="secao-titulo">Resumo do pedido</h2>
+
+          {indisponiveis.length > 0 && <p className="aviso abaixo-4" role="status">Há peças indisponíveis na sacola. Remova-as para revisar os itens disponíveis.</p>}
 
           <p className="resumo">
             <span>Subtotal</span>
@@ -164,7 +186,11 @@ export default function ItensSacola() {
           <p className="campo-ajuda acima-3" style={{ textAlign: 'center' }}>
             O valor fica retido até a entrega ser confirmada.
           </p>
-        </aside>
+        </aside> : <aside className="cartao">
+          <h2 className="secao-titulo">Peças indisponíveis</h2>
+          <p className="texto-suave abaixo-4">As peças desta sacola não estão disponíveis no catálogo. Você pode removê-las e continuar explorando.</p>
+          <Link href="/" className="botao botao-primario">Explorar o catálogo</Link>
+        </aside>}
       </div>
     </>
   )

@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Campo, Retrato } from '@/components/ui/Basicos'
 import EstadoVazio from '@/components/feedback/EstadoVazio'
@@ -28,13 +28,28 @@ export default function FilaCuradoria({
   artesaosVerificados: number
 }) {
   const roteador = useRouter()
-  const [fila, definirFila] = useState(filaInicial)
+  const [concluidas, definirConcluidas] = useState<string[]>([])
   const [analisadas, definirAnalisadas] = useState(0)
   const [verificados, definirVerificados] = useState(artesaosVerificados)
   const [ajusteAberto, definirAjusteAberto] = useState<string | null>(null)
   const [motivo, definirMotivo] = useState('')
   const [erroMotivo, definirErroMotivo] = useState('')
-  const [processando, definirProcessando] = useState<string | null>(null)
+  const [processando, definirProcessando] = useState<string[]>([])
+  const emAndamento = useRef(new Set<string>())
+  const solicitacoesConcluidas = useRef(new Set<string>())
+  const fila = filaInicial.filter((item) => !concluidas.includes(item.id))
+
+  function iniciarAtualizacao(id: string) {
+    if (emAndamento.current.has(id) || solicitacoesConcluidas.current.has(id)) return false
+    emAndamento.current.add(id)
+    definirProcessando((atuais) => [...atuais, id])
+    return true
+  }
+
+  function finalizarAtualizacao(id: string) {
+    emAndamento.current.delete(id)
+    definirProcessando((atuais) => atuais.filter((atual) => atual !== id))
+  }
 
   const metricas = [
     { rotulo: 'Na fila', valor: String(fila.length), nota: 'Aguardando análise', classe: 'metrica-amarela' },
@@ -44,21 +59,26 @@ export default function FilaCuradoria({
   ]
 
   function tirarDaFila(item: SolicitacaoSeloNaFila) {
-    definirFila((atual) => atual.filter((f) => f.id !== item.id))
+    solicitacoesConcluidas.current.add(item.id)
+    definirConcluidas((atuais) => [...atuais, item.id])
     definirAnalisadas((n) => n + 1)
-    definirAjusteAberto(null)
-    definirMotivo('')
+    definirAjusteAberto((atual) => atual === item.id ? null : atual)
     roteador.refresh()
   }
 
   async function conceder(item: SolicitacaoSeloNaFila) {
-    definirProcessando(item.id)
-    const resposta = await decidirSolicitacaoSelo(item.id, 'aprovada')
-    definirProcessando(null)
-    if (resposta.erro) { avisar.erro('Não foi possível conceder o selo', resposta.erro.mensagem); return }
-    tirarDaFila(item)
-    definirVerificados((n) => n + 1)
-    avisar.sucesso('Selo de verificado concedido', `${item.atelie}, de ${item.artesao}.`)
+    if (!iniciarAtualizacao(item.id)) return
+    try {
+      const resposta = await decidirSolicitacaoSelo(item.id, 'aprovada')
+      if (resposta.erro || !resposta.dados) { avisar.erro('Não foi possível conceder o selo', resposta.erro?.mensagem); return }
+      tirarDaFila(item)
+      definirVerificados((n) => n + 1)
+      avisar.sucesso('Selo de verificado concedido', `${item.atelie}, de ${item.artesao}.`)
+    } catch {
+      avisar.erro('Não foi possível conceder o selo', 'Tente novamente.')
+    } finally {
+      finalizarAtualizacao(item.id)
+    }
   }
 
   async function pedirAjuste(item: SolicitacaoSeloNaFila) {
@@ -67,15 +87,21 @@ export default function FilaCuradoria({
       document.getElementById(`motivo-${item.id}`)?.focus()
       return
     }
-    definirProcessando(item.id)
-    const resposta = await decidirSolicitacaoSelo(item.id, 'ajuste', motivo)
-    definirProcessando(null)
-    if (resposta.erro) { avisar.erro('Não foi possível registrar', resposta.erro.mensagem); return }
-    tirarDaFila(item)
-    avisar.info('Pedido de ajuste enviado', `${item.artesao} vê o motivo no painel e continua vendendo normalmente.`)
+    if (!iniciarAtualizacao(item.id)) return
+    try {
+      const resposta = await decidirSolicitacaoSelo(item.id, 'ajuste', motivo)
+      if (resposta.erro || !resposta.dados) { avisar.erro('Não foi possível registrar', resposta.erro?.mensagem); return }
+      tirarDaFila(item)
+      avisar.info('Pedido de ajuste enviado', `${item.artesao} vê o motivo no painel e continua vendendo normalmente.`)
+    } catch {
+      avisar.erro('Não foi possível registrar', 'Seu motivo foi mantido. Tente novamente.')
+    } finally {
+      finalizarAtualizacao(item.id)
+    }
   }
 
   function abrirAjuste(id: string) {
+    if (emAndamento.current.has(id) || solicitacoesConcluidas.current.has(id)) return
     definirAjusteAberto(id)
     definirMotivo('')
     definirErroMotivo('')
@@ -105,7 +131,7 @@ export default function FilaCuradoria({
         ) : (
           <ul className="lista-curadoria">
             {fila.map((item) => {
-              const ocupado = processando === item.id
+              const ocupado = processando.includes(item.id)
               return (
                 <li className="cartao-curadoria" key={item.id}>
                   <header className="cartao-curadoria-topo">
@@ -149,6 +175,7 @@ export default function FilaCuradoria({
                           <textarea
                             id={`motivo-${item.id}`}
                             maxLength={LIMITE_MOTIVO}
+                            disabled={ocupado}
                             value={motivo}
                             onChange={(evento) => {
                               definirMotivo(evento.target.value)

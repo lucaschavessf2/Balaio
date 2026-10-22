@@ -9,12 +9,32 @@ export function usePecas() {
 
   useEffect(() => {
     let vivo = true
-    listarPecas().then((resposta) => {
-      if (!vivo) return
-      if (resposta.erro) definirErro(resposta.erro.mensagem)
-      else definirPecas(resposta.dados ?? [])
-      definirCarregando(false)
-    })
+
+    async function carregar() {
+      const todas: Peca[] = []
+      let pagina = 1
+      let totalPaginas = 1
+      try {
+        do {
+          const resposta = await listarPecas({ pagina, tamanho: 100 })
+          if (!vivo) return
+          if (resposta.erro) {
+            definirErro(resposta.erro.mensagem)
+            return
+          }
+          todas.push(...resposta.dados ?? [])
+          totalPaginas = resposta.paginacao?.totalPaginas ?? 1
+          pagina++
+        } while (pagina <= totalPaginas)
+        definirPecas([...new Map(todas.map((peca) => [peca.slug, peca])).values()])
+      } catch {
+        if (vivo) definirErro('Não foi possível carregar as peças. Tente novamente.')
+      } finally {
+        if (vivo) definirCarregando(false)
+      }
+    }
+
+    void carregar()
     return () => {
       vivo = false
     }

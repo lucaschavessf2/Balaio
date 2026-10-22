@@ -1,10 +1,10 @@
-import { cookies } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
-import { COOKIE_SESSAO, destinoInicial, lerSessaoDoCookie, rotaDeLogin, type Sessao } from './cookie'
+import { obterSessao } from '@/services/autenticacao'
+import { destinoInicial, rotaDeLogin, sessaoDoUsuario, type Sessao } from './cookie'
 
 export async function lerSessao(): Promise<Sessao | null> {
-  const armazenamento = await cookies()
-  return lerSessaoDoCookie(armazenamento.get(COOKIE_SESSAO)?.value)
+  const sessao = await obterSessao()
+  return sessao ? sessaoDoUsuario(sessao.usuario) : null
 }
 
 export async function exigirSessao(proximo: string): Promise<Sessao> {

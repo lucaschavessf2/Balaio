@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Campo, Foto, Migalhas } from '@/components/ui/Basicos'
 import EstadoVazio from '@/components/feedback/EstadoVazio'
 import { IconeCadeado, IconeCaminhao, IconeCheck, IconeSacola, IconeSetaDireita } from '@/components/ui/Icones'
@@ -30,7 +30,7 @@ const meios: { id: Meio; nome: string; nota: string }[] = [
 export default function CheckoutFormulario() {
   const { sessao } = useSessao()
   const roteador = useRouter()
-  const { itens, pronto, limpar } = useSacola()
+  const { itens, pronto, erro: erroSacola, recarregar, limpar } = useSacola()
   const { mapaPecas, carregando, erro } = usePecas()
   const [meio, definirMeio] = useState<Meio>('pix')
   const { fretes: opcoesFrete, carregando: carregandoFretes, erro: erroFretes } = useDados()
@@ -41,8 +41,10 @@ export default function CheckoutFormulario() {
   const [concluido, definirConcluido] = useState(false)
   const [erroConfirmacao, definirErroConfirmacao] = useState<string | null>(null)
   const [entrega, definirEntrega] = useState({ cep: '', endereco: '', cidade: '', estado: '' })
+  const entregaEditada = useRef(false)
 
   function atualizarEntrega(campo: keyof typeof entrega, valor: string) {
+    entregaEditada.current = true
     definirEntrega((atual) => ({ ...atual, [campo]: valor }))
     const id = campo === 'cep' ? 'cep-checkout' : campo
     definirErros((atuais) => {
@@ -61,13 +63,25 @@ export default function CheckoutFormulario() {
   }
 
   useEffect(() => {
+    let vivo = true
     obterUsuario().then(({ dados }) => {
+      if (!vivo || entregaEditada.current) return
       const principal = dados?.enderecos?.find((item) => item.principal) ?? dados?.enderecos?.[0]
       if (!principal) return
       const partes = principal.bairro.split(',').map((item) => item.trim())
-      const enderecoCarregado = { cep: principal.cep, endereco: principal.rua, cidade: partes.slice(0, -1).join(', '), estado: partes.at(-1) ?? '' }
-      definirEntrega(enderecoCarregado)
+      const estado = partes.at(-1) ?? ''
+      const cidade = partes.at(-2) ?? ''
+      const reconhecido = partes.length >= 2 && cidade !== '' && !validarEstado(estado)
+      const bairro = reconhecido ? partes.slice(0, -2).filter(Boolean).join(', ') : ''
+      const enderecoCarregado = {
+        cep: principal.cep,
+        endereco: [principal.rua, bairro].filter(Boolean).join(', '),
+        cidade: reconhecido ? cidade : '',
+        estado: reconhecido ? estado.toUpperCase() : '',
+      }
+      definirEntrega((atual) => entregaEditada.current ? atual : enderecoCarregado)
       definirErros((atuais) => {
+        if (entregaEditada.current) return atuais
         const proximos = { ...atuais }
         if (!validarCEP(enderecoCarregado.cep)) delete proximos['cep-checkout']
         if (!validarObrigatorio(enderecoCarregado.endereco)) delete proximos.endereco
@@ -76,12 +90,14 @@ export default function CheckoutFormulario() {
         return proximos
       })
     })
+    return () => { vivo = false }
   }, [])
 
   const detalhados = itens.flatMap((item) => {
     const peca = mapaPecas.get(item.slug)
     return peca ? [{ item, peca }] : []
   })
+  const indisponiveis = itens.filter((item) => !mapaPecas.has(item.slug))
 
   const subtotalCheio = detalhados.reduce((total, d) => total + d.peca.preco * d.item.quantidade, 0)
   const subtotal = detalhados.reduce((total, d) => total + precoComDesconto(d.peca) * d.item.quantidade, 0)
@@ -147,6 +163,7 @@ export default function CheckoutFormulario() {
 
   if (concluido) return <EstadoCarregando rotulo="Abrindo a confirmação do pedido…" cartoes={1} />
 
+  if (erroSacola) return <EstadoErro mensagem={erroSacola} aoTentarNovamente={recarregar} />
   if (erro || erroFretes || !frete) return <EstadoErro mensagem={erro ?? erroFretes ?? 'Nenhuma opção de entrega disponível.'} />
 
   if (pronto && detalhados.length === 0 && !concluido) {
@@ -158,11 +175,11 @@ export default function CheckoutFormulario() {
         <h1 className="titulo-pagina">Finalizar compra</h1>
         <EstadoVazio
           icone={<IconeSacola tamanho={34} />}
-          titulo="Sua sacola está vazia"
-          descricao="Adicione uma peça à sacola para revisar sua compra."
+          titulo={itens.length ? 'As peças da sacola estão indisponíveis' : 'Sua sacola está vazia'}
+          descricao={itens.length ? 'Volte à sacola para remover as peças indisponíveis e continuar explorando.' : 'Adicione uma peça à sacola para revisar sua compra.'}
           acao={
-            <Link href="/" className="botao botao-primario">
-              Explorar o catálogo
+            <Link href={itens.length ? '/cart' : '/'} className="botao botao-primario">
+              {itens.length ? 'Rever sacola' : 'Explorar o catálogo'}
             </Link>
           }
         />
@@ -292,6 +309,14 @@ export default function CheckoutFormulario() {
 
         <aside className="cartao coluna-compra">
           <h2 className="secao-titulo">Seu pedido</h2>
+
+          {indisponiveis.length > 0 && (
+            <div className="aviso abaixo-4" role="status">
+              <p>Estas peças não estão disponíveis no catálogo:</p>
+              <ul>{indisponiveis.map((item) => <li key={item.slug}>{item.slug.replace(/-/g, ' ')} · Quantidade: {item.quantidade}</li>)}</ul>
+              <Link href="/cart" className="botao-texto">Rever sacola e remover peças indisponíveis</Link>
+            </div>
+          )}
 
           {detalhados.map(({ peca, item }) => (
             <div className="item-sacola" key={peca.slug} style={{ gridTemplateColumns: '64px minmax(0, 1fr)' }}>

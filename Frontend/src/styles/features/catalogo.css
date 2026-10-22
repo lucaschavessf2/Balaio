@@ -84,24 +84,12 @@ details[open] > .filtros-titulo .seta-grupo {
   animation: surgir 300ms ease both;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .catalogo .grade-pecas {
-    animation: none;
-  }
-}
-
 .catalogo-topo {
   @apply flex justify-between items-center gap-3 flex-wrap mb-4 text-pequeno text-tinta-suave;
 }
 
 .catalogo-topo .campo-select {
   @apply w-auto min-w-40;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .filtros[open] {
-    animation: none;
-  }
 }
 
 .catalogo > * {
@@ -210,4 +198,11 @@ a.chip-filtro:hover {
 
 .ordenar-listagem {
   @apply flex items-center gap-2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .catalogo .grade-pecas,
+  .filtros[open] {
+    animation: none;
+  }
 }

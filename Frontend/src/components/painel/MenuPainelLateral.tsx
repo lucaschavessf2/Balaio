@@ -3,14 +3,13 @@
 import Link from 'next/link'
 import { Retrato } from '@/components/ui/Basicos'
 import { IconeSelo, IconeSetaDireita } from '@/components/ui/Icones'
-import { useArtesaoLogado, useContagensPainel } from '@/hooks/useArtesaoLogado'
 import BotaoSair from '@/components/conta/BotaoSair'
-import { itensPorGrupo, type ChavePainel } from '@/components/painel/itensPainel'
+import { itensPorGrupo, type ChavePainel, type ContagensPainel } from '@/components/painel/itensPainel'
+import type { Artesao } from '@/types/dominio'
 
-export default function MenuPainelLateral({ ativo }: { ativo: ChavePainel }) {
-  const artesao = useArtesaoLogado()
-  const contagens = useContagensPainel()
+type Props = { ativo: ChavePainel; artesao: Artesao | null; contagens: ContagensPainel }
 
+export default function MenuPainelLateral({ ativo, artesao, contagens }: Props) {
   return (
     <nav className="menu-lateral" aria-label="Menu do painel">
       {artesao && (

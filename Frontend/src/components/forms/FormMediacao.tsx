@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Campo, Foto } from '@/components/ui/Basicos'
 import { avisar } from '@/components/feedback/Avisos'
 import { criarMediacao, listarMediacoes } from '@/services/api/pedidos.servico'
@@ -37,20 +37,21 @@ export default function FormMediacao({ pedidoId, pecaNome, pecaImagem, atelie, u
   const [erroMotivo, definirErroMotivo] = useState<string | null>(null)
   const [erroRelato, definirErroRelato] = useState<string | null>(null)
   const [aberta, definirAberta] = useState<Mediacao | null>(null)
+  const envioEmAndamento = useRef(false)
 
   useEffect(() => {
     let vivo = true
     listarMediacoes().then((r) => {
       if (!vivo) return
       if (r.erro) avisar.erro('Não foi possível consultar mediações', r.erro.mensagem)
-      else definirAberta(r.dados?.find((m) => m.pedido === pedidoId) ?? null)
+      else definirAberta((atual) => atual?.pedido === pedidoId ? atual : r.dados?.find((m) => m.pedido === pedidoId) ?? null)
     })
     return () => { vivo = false }
   }, [pedidoId])
 
   async function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
-    if (salvando) return
+    if (envioEmAndamento.current) return
 
     const motivoEscolhido = motivos.find((m) => m.chave === motivo)
     const problemaMotivo = motivoEscolhido ? null : 'Escolha o que aconteceu com o pedido'
@@ -75,12 +76,17 @@ export default function FormMediacao({ pedidoId, pecaNome, pecaImagem, atelie, u
       partes: `${usuarioNome} × ${atelie ?? 'Ateliê do pedido'}`,
       aberta: 'agora mesmo',
     }
+    envioEmAndamento.current = true
     definirSalvando(true)
-    const resposta = await criarMediacao({ ...mediacao, relato, solucao })
-    definirSalvando(false)
-    if (resposta.erro) { avisar.erro('Não foi possível abrir mediação', resposta.erro.mensagem); return }
-    avisar.sucesso('Pedido de mediação registrado')
-    definirAberta(resposta.dados)
+    try {
+      const resposta = await criarMediacao({ ...mediacao, relato, solucao })
+      if (resposta.erro || !resposta.dados) { avisar.erro('Não foi possível abrir mediação', resposta.erro?.mensagem); return }
+      avisar.sucesso('Pedido de mediação registrado')
+      definirAberta(resposta.dados)
+    } finally {
+      envioEmAndamento.current = false
+      definirSalvando(false)
+    }
   }
 
   if (aberta) {

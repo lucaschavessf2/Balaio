@@ -4,9 +4,8 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { IconeBusca, IconeRelogio } from '@/components/ui/Icones'
-import { obterEstado, salvarHistoricoBusca } from '@/services/api/estado.servico'
+import { useHistoricoBusca } from '@/store/historicoBusca'
 
-const LIMITE_HISTORICO = 8
 const LIMITE_SUGESTOES = 8
 
 const normalizarTermo = (valor: string) =>
@@ -16,20 +15,12 @@ export default function BuscaCabecalho({ sugestoes }: { sugestoes: string[] }) {
   const raiz = useRef<HTMLDivElement>(null)
   const parametros = useSearchParams()
   const [consulta, definirConsulta] = useState('')
-  const [recentes, definirRecentes] = useState<string[]>([])
+  const { recentes, registrar, limpar } = useHistoricoBusca()
   const [aberto, definirAberto] = useState(false)
 
   useEffect(() => {
     definirConsulta(parametros.get('q') ?? '')
   }, [parametros])
-
-  useEffect(() => {
-    let vivo = true
-    obterEstado().then(({ dados }) => {
-      if (vivo) definirRecentes(dados?.historicoBusca ?? [])
-    })
-    return () => { vivo = false }
-  }, [])
 
   useEffect(() => {
     function fecharAoClicarFora(evento: PointerEvent) {
@@ -54,21 +45,16 @@ export default function BuscaCabecalho({ sugestoes }: { sugestoes: string[] }) {
   function registrarBusca() {
     const termo = consulta.trim().slice(0, 80)
     if (!termo) return
-    const proximos = [termo, ...recentes.filter((item) => item.toLowerCase() !== termo.toLowerCase())].slice(0, LIMITE_HISTORICO)
-    definirRecentes(proximos)
-    void salvarHistoricoBusca(proximos)
+    registrar(termo)
     definirAberto(false)
   }
 
   function limparHistorico() {
-    definirRecentes([])
-    void salvarHistoricoBusca([])
+    limpar()
   }
 
   function selecionarBusca(termo: string) {
-    const proximos = [termo, ...recentes.filter((item) => item.toLowerCase() !== termo.toLowerCase())].slice(0, LIMITE_HISTORICO)
-    definirRecentes(proximos)
-    void salvarHistoricoBusca(proximos)
+    registrar(termo)
     definirAberto(false)
   }
 

@@ -1,10 +1,11 @@
 import LayoutAdmin from '@/components/admin/LayoutAdmin'
 import { Migalhas } from '@/components/ui/Basicos'
 import ListaMediacoes from '@/components/admin/ListaMediacoes'
+import EstadoErro from '@/components/feedback/EstadoErro'
 import { listarMediacoes } from '@/services/api/pedidos.servico'
 
 export default async function Mediacoes() {
-  const { dados: mediacoes } = await listarMediacoes()
+  const { dados: mediacoes, erro } = await listarMediacoes()
 
   return (
     <LayoutAdmin ativo="mediacoes">
@@ -16,7 +17,7 @@ export default async function Mediacoes() {
         repasse.
       </p>
 
-      <ListaMediacoes iniciais={mediacoes ?? []} />
+      {erro || !mediacoes ? <EstadoErro mensagem={erro?.mensagem} /> : <ListaMediacoes iniciais={mediacoes} />}
     </LayoutAdmin>
   )
 }

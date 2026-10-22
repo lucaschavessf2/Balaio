@@ -4,45 +4,68 @@ import Link from 'next/link'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Retrato } from '@/components/ui/Basicos'
 import ImagemComFallback from '@/components/ui/ImagemComFallback'
-import { comentarVideo } from '@/services/api/videos.servico'
+import { comentarVideo, comentariosDe } from '@/services/api/videos.servico'
 import { avisar } from '@/components/feedback/Avisos'
 import { IconeConversa, IconeCoracao, IconeMarcador, IconeSelo, IconeSetaDireita } from '@/components/ui/Icones'
 import { emMilhares, emReais } from '@/utils/formato'
 import type { Comentario, Video } from '@/types/dominio'
 import { fallbackDe } from '@/utils/imagem'
 import { obterEstado, salvarVideosCurtidos, salvarVideosSalvos } from '@/services/api/estado.servico'
+import { useEstadoCliente } from '@/store/estadoCliente'
 
 type Autor = { slug: string; nome: string; imagem: string; territorio: string }
 type PecaVinculada = { slug: string; nome: string; preco: number; imagem: string }
+type LeituraComentarios = 'inicial' | 'carregando' | 'pronto' | 'erro'
+
+const atualizacoes = new Map<string, Promise<void>>()
+
+function serializarAtualizacao(chave: string, atualizar: () => Promise<void>): Promise<void> {
+  const anterior = atualizacoes.get(chave) ?? Promise.resolve()
+  const atual = anterior.catch(() => {}).then(atualizar)
+  atualizacoes.set(chave, atual)
+  const limpar = () => {
+    if (atualizacoes.get(chave) === atual) atualizacoes.delete(chave)
+  }
+  void atual.then(limpar, limpar)
+  return atual
+}
 
 type Props = {
   video: Video
   artesao?: Autor
   peca?: PecaVinculada
-  comentarios: Comentario[]
 }
 
-export default function CartaoVideo({ video, artesao, peca, comentarios }: Props) {
+export default function CartaoVideo({ video, artesao, peca }: Props) {
+  const { estado, pronto, erro, recarregar, atualizarEstado } = useEstadoCliente()
   const [salvando, definirSalvando] = useState(false)
-  const [curtido, definirCurtido] = useState(false)
-  const [salvo, definirSalvo] = useState(false)
+  const [curtidaLocal, definirCurtido] = useState<boolean | null>(null)
+  const [salvoLocal, definirSalvo] = useState<boolean | null>(null)
   const [aberto, definirAberto] = useState(false)
   const [visivel, definirVisivel] = useState(false)
-  const [lista, definirLista] = useState(comentarios)
+  const [lista, definirLista] = useState<Comentario[]>([])
+  const [totalLocal, definirTotalLocal] = useState<number | null>(null)
+  const [leituraComentarios, definirLeituraComentarios] = useState<LeituraComentarios>('inicial')
+  const [erroComentarios, definirErroComentarios] = useState<string | null>(null)
   const [rascunho, definirRascunho] = useState('')
   const campoComentario = useRef<HTMLInputElement>(null)
   const refArtigo = useRef<HTMLElement>(null)
   const refComentarios = useRef<HTMLDialogElement>(null)
+  const montado = useRef(true)
+  const leituraAtual = useRef<LeituraComentarios>('inicial')
+  const envioEmAndamento = useRef(false)
+  const curtidaEmAndamento = useRef(false)
+  const salvoEmAndamento = useRef(false)
 
   const painelId = `comentarios-${video.id}`
-  const totalComentarios = video.comentarios + (lista.length - comentarios.length)
+  const totalComentarios = Math.max(video.comentarios, totalLocal ?? video.comentarios)
+  const curtido = curtidaLocal ?? (estado?.videosCurtidos.includes(video.id) ?? false)
+  const salvo = salvoLocal ?? (estado?.videosSalvos.includes(video.id) ?? false)
 
   useEffect(() => {
-    obterEstado().then(({ dados }) => {
-      definirCurtido(dados?.videosCurtidos.includes(video.id) ?? false)
-      definirSalvo(dados?.videosSalvos.includes(video.id) ?? false)
-    })
-  }, [video.id])
+    montado.current = true
+    return () => { montado.current = false }
+  }, [])
 
   useEffect(() => {
     const artigo = refArtigo.current
@@ -84,6 +107,31 @@ export default function CartaoVideo({ video, artesao, peca, comentarios }: Props
     definirAberto(false)
   }
 
+  async function carregarComentarios() {
+    if (!montado.current || leituraAtual.current === 'carregando' || leituraAtual.current === 'pronto') return
+    leituraAtual.current = 'carregando'
+    definirLeituraComentarios('carregando')
+    definirErroComentarios(null)
+    try {
+      const resposta = await comentariosDe(video.id)
+      if (!montado.current) return
+      if (resposta.erro || !resposta.dados) {
+        leituraAtual.current = 'erro'
+        definirLeituraComentarios('erro')
+        definirErroComentarios(resposta.erro?.mensagem ?? 'Não foi possível carregar os comentários.')
+        return
+      }
+      definirLista(resposta.dados)
+      leituraAtual.current = 'pronto'
+      definirLeituraComentarios('pronto')
+    } catch {
+      if (!montado.current) return
+      leituraAtual.current = 'erro'
+      definirLeituraComentarios('erro')
+      definirErroComentarios('Não foi possível carregar os comentários. Tente novamente.')
+    }
+  }
+
   function alternarComentarios() {
     const dialogo = refComentarios.current
     if (!dialogo) return
@@ -94,36 +142,83 @@ export default function CartaoVideo({ video, artesao, peca, comentarios }: Props
     if (window.matchMedia('(min-width: 900px)').matches) dialogo.show()
     else dialogo.showModal()
     definirAberto(true)
+    void carregarComentarios()
   }
 
   async function alternarSalvo() {
+    if (!montado.current || !pronto || !estado || salvoEmAndamento.current) return
+    salvoEmAndamento.current = true
     const proximoSalvo = !salvo
     definirSalvo(proximoSalvo)
-    const { dados } = await obterEstado()
-    if (!dados) return definirSalvo(!proximoSalvo)
-    const lista = proximoSalvo
-      ? [...new Set([...dados.videosSalvos, video.id])]
-      : dados.videosSalvos.filter((id) => id !== video.id)
-    const resposta = await salvarVideosSalvos(lista)
-    if (resposta.erro) {
-      definirSalvo(!proximoSalvo)
-      return avisar.erro('Não foi possível atualizar os vídeos salvos', resposta.erro.mensagem)
+    try {
+      await serializarAtualizacao(`${estado.id}:videosSalvos`, async () => {
+        if (!montado.current) return
+        const { dados, erro } = await obterEstado()
+        if (!montado.current) return
+        if (!dados) {
+          definirSalvo(!proximoSalvo)
+          avisar.erro('Não foi possível atualizar os vídeos salvos', erro?.mensagem)
+          return
+        }
+        const lista = proximoSalvo
+          ? [...new Set([...dados.videosSalvos, video.id])]
+          : dados.videosSalvos.filter((id) => id !== video.id)
+        const resposta = await salvarVideosSalvos(lista)
+        if (!resposta.erro && resposta.dados) atualizarEstado({ videosSalvos: resposta.dados })
+        if (!montado.current) return
+        if (resposta.erro || !resposta.dados) {
+          definirSalvo(!proximoSalvo)
+          avisar.erro('Não foi possível atualizar os vídeos salvos', resposta.erro?.mensagem)
+          return
+        }
+        definirSalvo(null)
+        if (proximoSalvo) avisar.sucesso('Vídeo salvo para ver depois')
+      })
+    } catch {
+      if (montado.current) {
+        definirSalvo(!proximoSalvo)
+        avisar.erro('Não foi possível atualizar os vídeos salvos', 'Tente novamente.')
+      }
+    } finally {
+      salvoEmAndamento.current = false
     }
-    if (proximoSalvo) avisar.sucesso('Vídeo salvo para ver depois')
   }
 
   async function alternarCurtida() {
+    if (!montado.current || !pronto || !estado || curtidaEmAndamento.current) return
+    curtidaEmAndamento.current = true
     const proximo = !curtido
     definirCurtido(proximo)
-    const { dados } = await obterEstado()
-    if (!dados) return definirCurtido(!proximo)
-    const lista = proximo
-      ? [...new Set([...dados.videosCurtidos, video.id])]
-      : dados.videosCurtidos.filter((id) => id !== video.id)
-    const resposta = await salvarVideosCurtidos(lista)
-    if (resposta.erro) {
-      definirCurtido(!proximo)
-      avisar.erro('Não foi possível registrar a curtida', resposta.erro.mensagem)
+    try {
+      await serializarAtualizacao(`${estado.id}:videosCurtidos`, async () => {
+        if (!montado.current) return
+        const { dados, erro } = await obterEstado()
+        if (!montado.current) return
+        if (!dados) {
+          definirCurtido(!proximo)
+          avisar.erro('Não foi possível registrar a curtida', erro?.mensagem)
+          return
+        }
+        const lista = proximo
+          ? [...new Set([...dados.videosCurtidos, video.id])]
+          : dados.videosCurtidos.filter((id) => id !== video.id)
+        const resposta = await salvarVideosCurtidos(lista)
+        if (!resposta.erro && resposta.dados) atualizarEstado({ videosCurtidos: resposta.dados })
+        if (!montado.current) return
+        if (resposta.erro || !resposta.dados) {
+          definirCurtido(!proximo)
+          avisar.erro('Não foi possível registrar a curtida', resposta.erro?.mensagem)
+          return
+        }
+        definirCurtido(null)
+      })
+    } catch {
+      if (montado.current) {
+        definirCurtido(!proximo)
+        avisar.erro('Não foi possível registrar a curtida', 'Tente novamente.')
+      }
+    } finally {
+      curtidaEmAndamento.current = false
     }
   }
 
@@ -135,13 +230,22 @@ export default function CartaoVideo({ video, artesao, peca, comentarios }: Props
   async function enviarComentario(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
     const texto = rascunho.trim()
-    if (!texto || salvando) return
+    if (!montado.current || !texto || envioEmAndamento.current || leituraAtual.current !== 'pronto') return
+    envioEmAndamento.current = true
     definirSalvando(true)
-    const resposta = await comentarVideo(video.id, { autor: 'Você', texto, quando: 'agora', curtidas: 0 })
-    definirSalvando(false)
-    if (resposta.erro || !resposta.dados) { avisar.erro('Não foi possível comentar', resposta.erro?.mensagem); return }
-    definirLista((atuais) => [...atuais, resposta.dados!])
-    definirRascunho('')
+    try {
+      const resposta = await comentarVideo(video.id, { autor: 'Você', texto, quando: 'agora', curtidas: 0 })
+      if (!montado.current) return
+      if (resposta.erro || !resposta.dados) { avisar.erro('Não foi possível comentar', resposta.erro?.mensagem); return }
+      definirLista((atuais) => [...atuais, resposta.dados!])
+      definirTotalLocal((atual) => Math.max(atual ?? video.comentarios, video.comentarios) + 1)
+      definirRascunho((atual) => atual.trim() === texto ? '' : atual)
+    } catch {
+      if (montado.current) avisar.erro('Não foi possível comentar', 'Seu texto foi mantido. Tente novamente.')
+    } finally {
+      envioEmAndamento.current = false
+      if (montado.current) definirSalvando(false)
+    }
   }
 
   return (
@@ -202,6 +306,7 @@ export default function CartaoVideo({ video, artesao, peca, comentarios }: Props
               className={`acao-video${curtido ? ' acao-video-ativa' : ''}`}
               onClick={alternarCurtida}
               aria-pressed={curtido}
+              disabled={!pronto || !estado}
             >
               <span className="acao-video-bolha">
                 <IconeCoracao tamanho={22} preenchido={curtido} />
@@ -229,6 +334,7 @@ export default function CartaoVideo({ video, artesao, peca, comentarios }: Props
               className={`acao-video${salvo ? ' acao-video-ativa' : ''}`}
               onClick={alternarSalvo}
               aria-pressed={salvo}
+              disabled={!pronto || !estado}
             >
               <span className="acao-video-bolha">
                 <IconeMarcador tamanho={22} preenchido={salvo} />
@@ -237,6 +343,15 @@ export default function CartaoVideo({ video, artesao, peca, comentarios }: Props
             </button>
           </div>
       </div>
+
+      {pronto && !estado && (
+        <div className="acima-3">
+          <p className="campo-erro" role="alert">{erro ?? 'Não foi possível carregar suas interações.'}</p>
+          <button type="button" className="botao botao-secundario acima-2" onClick={recarregar}>
+            Tentar novamente
+          </button>
+        </div>
+      )}
 
       <dialog
         className="comentarios"
@@ -261,7 +376,19 @@ export default function CartaoVideo({ video, artesao, peca, comentarios }: Props
             </button>
           </div>
 
-          <ul className="lista-comentarios">
+          {leituraComentarios === 'carregando' && <p className="campo-ajuda acima-3" role="status">Carregando comentários…</p>}
+          {leituraComentarios === 'erro' && (
+            <div className="acima-3">
+              <p className="campo-erro" role="alert">{erroComentarios}</p>
+              <button type="button" className="botao botao-secundario acima-2" onClick={() => void carregarComentarios()}>
+                Tentar novamente
+              </button>
+            </div>
+          )}
+          {leituraComentarios === 'pronto' && lista.length === 0 && (
+            <p className="campo-ajuda acima-3">Nenhum comentário ainda. Comece a conversa.</p>
+          )}
+          <ul className="lista-comentarios" aria-busy={leituraComentarios === 'carregando'}>
             {lista.map((c) => (
               <li className="comentario" key={c.autor + c.quando + c.texto}>
                 <span className="comentario-inicial" aria-hidden>
@@ -315,7 +442,7 @@ export default function CartaoVideo({ video, artesao, peca, comentarios }: Props
               value={rascunho}
               onChange={(evento) => definirRascunho(evento.target.value)}
             />
-            <button disabled={salvando} type="submit" className="botao botao-primario" style={{ padding: '0 18px' }}>
+            <button disabled={salvando || leituraComentarios !== 'pronto'} type="submit" className="botao botao-primario" style={{ padding: '0 18px' }}>
               Enviar
             </button>
           </form>

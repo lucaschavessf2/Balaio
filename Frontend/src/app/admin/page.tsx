@@ -1,6 +1,7 @@
 import LayoutAdmin from '@/components/admin/LayoutAdmin'
 import { Migalhas } from '@/components/ui/Basicos'
 import FilaCuradoria from '@/components/admin/FilaCuradoria'
+import EstadoErro from '@/components/feedback/EstadoErro'
 import { listarMediacoes } from '@/services/api/pedidos.servico'
 import { listarFilaCuradoria } from '@/services/api/curadoria.servico'
 import { listarArtesaos } from '@/services/api/artesaos.servico'
@@ -8,7 +9,7 @@ import { tokenDaSessao } from '@/services/autenticacao'
 
 export default async function Admin() {
   const token = await tokenDaSessao()
-  const [{ dados: fila }, { dados: mediacoes }, { dados: artesaos }] = await Promise.all([
+  const [fila, mediacoes, artesaos] = await Promise.all([
     listarFilaCuradoria(token),
     listarMediacoes(),
     listarArtesaos(),
@@ -24,11 +25,15 @@ export default async function Admin() {
         reconhecimento; o artesão vende normalmente enquanto aguarda a análise.
       </p>
 
-      <FilaCuradoria
-        filaInicial={fila ?? []}
-        mediacoesAbertas={(mediacoes ?? []).length}
-        artesaosVerificados={(artesaos ?? []).filter((artesao) => artesao.selo).length}
-      />
+      {fila.erro || mediacoes.erro || artesaos.erro || !fila.dados || !mediacoes.dados || !artesaos.dados ? (
+        <EstadoErro mensagem={fila.erro?.mensagem ?? mediacoes.erro?.mensagem ?? artesaos.erro?.mensagem} />
+      ) : (
+        <FilaCuradoria
+          filaInicial={fila.dados}
+          mediacoesAbertas={mediacoes.dados.length}
+          artesaosVerificados={artesaos.dados.filter((artesao) => artesao.selo).length}
+        />
+      )}
     </LayoutAdmin>
   )
 }

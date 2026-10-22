@@ -8,11 +8,12 @@ import { IconeCoracao } from '@/components/ui/Icones'
 type Props = { slug: string; nome: string; variante?: 'flutuante' | 'rotulado' }
 
 export default function BotaoFavoritar({ slug, nome, variante = 'flutuante' }: Props) {
-  const { ehFavorito, alternar } = useFavoritos()
+  const { ehFavorito, alternar, pronto, erro } = useFavoritos()
   const roteador = useRouter()
   const salvo = ehFavorito(slug)
 
   function clicar() {
+    if (erro) { avisar.erro('Não foi possível carregar os favoritos', erro); return }
     const guardou = alternar(slug)
     if (guardou) {
       avisar.comAcao('Peça guardada em Peças salvas', 'Ver salvas', () => roteador.push('/favorites'))
@@ -26,6 +27,7 @@ export default function BotaoFavoritar({ slug, nome, variante = 'flutuante' }: P
       type="button"
       className={variante === 'rotulado' ? 'botao botao-secundario botao-favoritar-rotulado' : 'botao-favoritar'}
       onClick={clicar}
+      disabled={!pronto}
       aria-pressed={salvo}
       aria-label={salvo ? `Remover ${nome} das peças salvas` : `Guardar ${nome} nas peças salvas`}
     >
