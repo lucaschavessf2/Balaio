@@ -5,7 +5,7 @@
 - **Next.js 16** (App Router) + **React 19** + **TypeScript**
 - **Tailwind CSS v4** com CSS organizado em camadas (`src/styles/`)
 - **React Context** para estado global
-- **Fake API** com json-server (`fake-api/`), persistida em `db.json`
+- **Fake API** com json-server (`fake-api/`), persistida em `db.json`, coexistindo com o API Gateway na migração gradual
 - Leaflet + OpenStreetMap (mapa de eventos) e Recharts (gráfico do painel)
 
 ## Estrutura de pastas
@@ -47,7 +47,9 @@ Frontend/
 Página ou componente
    └─ service       (ex.: obterPeca)          src/services/api/pecas.servico.ts
        └─ cliente   (buscar / enviar)         src/services/api/cliente.ts
-           └─ API   /api/v1/...                Fake API hoje, backend real depois
+           ├─ Fake API /api/v1/...             origem padrão das operações existentes
+           └─ API Gateway GET /api/v1/pecas    leituras públicas disponíveis no servidor
+               └─ Catalog Service → PostgreSQL
 ```
 
 - As páginas são renderizadas no servidor e buscam os dados antes de montar o HTML.
@@ -55,7 +57,45 @@ Página ou componente
   no navegador.
 - O cliente HTTP aplica timeout de 10 s e devolve sempre `{ dados, erro }`. As telas
   nunca fazem `fetch` direto.
-- Para trocar a Fake API pelo backend real, basta mudar a variável `API_URL`.
+- A origem padrão do cliente continua sendo `fake`. O tipo `OrigemApi` permite
+  selecionar `gateway` por chamada, reutilizando a lógica HTTP existente.
+- `listarPecasPublicas(filtros)` centraliza a seleção das leituras públicas de
+  catálogo: Homepage, busca/filtros/ordenação/paginação, nomes de peças sugeridos no
+  Cabeçalho e peças por tipo. Escolhe Gateway no servidor quando configurado e Fake
+  explicitamente quando ausente, sem variáveis ou URLs nas páginas.
+- `listarPecas(filtros, origem = 'fake')` preserva a origem dos consumidores anteriores.
+  `usePecas` continua Fake no navegador para sacola, checkout e favoritos; o
+  enriquecimento de peças dos vídeos também permanece Fake. Detalhe principal,
+  histórico, relacionadas, peças por artesão, referências, mutações e demais domínios
+  continuam na Fake API.
+- `API_URL` mantém a origem Fake no servidor e no rewrite `/api/v1` do navegador.
+  `GATEWAY_API_URL` é privada e lida em tempo de execução pelo servidor: no Compose,
+  `http://api-gateway:8080/api/v1`; com Next.js direto no WSL,
+  `http://127.0.0.1:8080/api/v1`. Não use `NEXT_PUBLIC` nem variáveis por microsserviço.
+- Sem `GATEWAY_API_URL`, o service público escolhe explicitamente a Fake API no
+  servidor. Configurada a
+  origem real, uma falha é exibida pelo estado de erro existente, sem fallback. Uma
+  chamada explícita de Gateway sem configuração retorna `GATEWAY_NAO_CONFIGURADO`.
+  Gateway no navegador retorna `ORIGEM_INDISPONIVEL`, sem requisição; esta etapa não
+  cria um rewrite para o Gateway nem expõe endereços internos.
+
+A Homepage busca a primeira página de até 100 peças, cobrindo os 24 registros atuais
+para montar destaques editoriais, ofertas, as 12 mais avaliadas e contagens de
+artesãos. Com mais de 100 registros, essas seleções e contagens ficam limitadas à
+primeira página e exigem evolução específica. As sugestões de nomes de peças no
+Cabeçalho também são limitadas a 100; a busca usa 12 por página. Peças por tipo usam
+`limite + 1` registros (13 no padrão de 12), excluem o slug atual localmente e retornam
+até `limite`. Artesãos, referências, eventos e vídeos continuam na Fake API.
+
+O Gateway oferece apenas `GET /api/v1/pecas` do catálogo atual. Não foram criados
+endpoints de backend, route handlers do Next.js, proxies ou rewrites adicionais.
+Busca por nome de artesão depende do `texto_busca` carregado no seed, sem sincronizar
+perfis; `recentes` corresponde a `ordem_catalogo DESC`. Parâmetros da interface são
+normalizados antes da consulta; erros de tipo em requisições diretas podem retornar
+HTTP 400 do Spring sem envelope, convertido pelo cliente em `HTTP_400`.
+
+A navegação para detalhes, perfis, sacola e favoritos ainda depende da compatibilidade
+dos slugs entre as duas bases; não há sincronização de dados nesta etapa.
 
 ## Estado global
 
@@ -94,3 +134,6 @@ Montado no `app/layout.tsx`:
 
 - **Desenvolvimento:** `npm run dev` sobe a Fake API (porta 3001) e o frontend (porta 4321).
 - **Produção:** o `Dockerfile` gera uma imagem com o frontend (porta 7879) e a Fake API.
+  O Compose de `platform/` configura a origem privada do Gateway no frontend em tempo
+  de execução. A Fake API e o rewrite `/api/v1` permanecem ativos. Após alterar essa
+  configuração, recrie somente o frontend, preservando os volumes existentes.

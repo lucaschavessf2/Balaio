@@ -9,7 +9,7 @@
 | **Vídeo de demonstração** | `PREENCHER: link do vídeo` |
 | **Repositório** | https://github.com/lucaschavessf2/marketplace-artesanato |
 | **Branch principal** | Hoje o desenvolvimento acontece em `develop`, por pull request, e `main` é a branch padrão |
-| **Entrega atual** | Avaliação 1: frontend responsivo + Fake API estruturada |
+| **Entrega atual** | Migração gradual: leituras públicas de catálogo já disponíveis via Gateway; demais endpoints e estado na Fake API |
 | **Contas de teste** | `carlos@exemplo.com` (comprador), `nuca@exemplo.com` (artesão), `admin@exemplo.com` (admin). Senha: `balaio123` |
 
 ## 👥 Membros da Equipe
@@ -145,6 +145,7 @@ Rodar dentro de `Frontend/`:
 | `npm run dev:web` / `npm run api` | Sobe só o frontend / só a Fake API |
 | `npm run build` e `npm start` | Build de produção e servidor na porta 4321 (a API precisa estar no ar) |
 | `npm run test:api` | Testes de integração da Fake API (banco temporário, não altera `db.json`) |
+| `npm run test:services` | Testes do cliente HTTP, seleção de origem, leituras públicas de catálogo e renderização de cards |
 | `npm run lint` | ESLint |
 | `npm run api:reset` | **Apaga os dados criados** e volta o banco ao seed (rode com a API parada) |
 | `npm run api:seed` | Regenera o `seed.json` a partir de `src/mocks/` |
@@ -157,7 +158,20 @@ docker build -t balaio-frontend .
 docker run -p 7879:7879 balaio-frontend
 ```
 
-Acesse http://localhost:7879. A imagem sobe o Next.js e a Fake API juntos.
+Acesse http://localhost:7879. A imagem sobe o Next.js e a Fake API juntos. Sem
+`GATEWAY_API_URL`, as leituras públicas de catálogo também continuam na Fake API.
+
+Para executar a integração pela rede Docker, use o Compose de `../../platform/`, que
+configura `GATEWAY_API_URL=http://api-gateway:8080/api/v1` no frontend. Essa variável é
+lida pelo servidor Next.js em tempo de execução; não precisa entrar no build. O
+`API_URL` e o rewrite `/api/v1` continuam apontando para a Fake API do contêiner.
+Após alterar a configuração, recrie somente o frontend, sem remover volumes:
+
+```sh
+cd ../../platform
+docker compose config --quiet
+docker compose up --build -d frontend
+```
 
 ## Variáveis de ambiente
 
@@ -166,8 +180,14 @@ Nenhuma é obrigatória no ambiente local. Para mudar o padrão, copie
 
 | Variável | Padrão | Para quê |
 |---|---|---|
-| `API_URL` | `http://127.0.0.1:3001/api/v1` | URL da API usada no servidor (SSR) e no encaminhamento de `/api/v1` do navegador. **Na Avaliação 2, recebe a URL do backend real** |
+| `API_URL` | `http://127.0.0.1:3001/api/v1` | Origem da Fake API no servidor (SSR) e no encaminhamento de `/api/v1` do navegador. Deve ser preservada nesta etapa |
+| `GATEWAY_API_URL` | vazia | Origem privada do Gateway usada somente no servidor pelas leituras públicas de catálogo já integradas |
 | `FAKE_API_PORT` | `3001` | Porta da Fake API (se mudar, ajuste `API_URL`) |
+
+Para o Next.js iniciado diretamente no WSL, use
+`GATEWAY_API_URL=http://127.0.0.1:8080/api/v1`. No Docker Compose, use
+`http://api-gateway:8080/api/v1`. O endereço interno do Docker não é enviado ao
+navegador, e a variável não deve receber o prefixo `NEXT_PUBLIC`.
 
 O `.env.example` não contém credenciais.
 
@@ -254,24 +274,58 @@ Resumo dos recursos (prefixo `/api/v1`):
 | Administração | `GET /admin/curadoria`, `POST /admin/curadoria/:id/decisao`, `/admin/mediacoes` |
 | Apoio | `GET /referencias`, `/fretes`, `/eventos`, `/videos` |
 
-## Integração futura com o backend real (Avaliação 2)
+## Integração gradual com o backend real
 
-O frontend já está preparado para trocar a Fake API pelo backend real **sem reescrever
-telas**:
+As duas origens coexistem. O Gateway expõe somente `GET /api/v1/pecas` no catálogo
+atual, com busca, filtros, ordenação e paginação no envelope
+`{ dados, erro, paginacao? }`. Nenhum endpoint novo de backend ou Next.js foi criado.
 
-1. **Toda chamada passa por `src/services/api/`.** As telas usam funções como
-   `listarPecas()` e `finalizarCompra()`, nunca `fetch` direto nem dados fixos. O único
-   ponto que sabe a URL da API é `src/services/api/cliente.ts`.
-2. **O contrato já é o de uma API real:** HTTP, prefixo versionado `/api/v1`, envelope
-   `{ dados, erro, paginacao }`, status HTTP corretos, sessão por cookie `HttpOnly` e
-   regras de negócio no servidor (total do checkout, permissões, estados do pedido).
-3. **A troca é de configuração:** o backend implementa as rotas documentadas e a
-   variável `API_URL` passa a apontar para ele. O rewrite do Next.js e o SSR seguem a
-   nova URL automaticamente.
-4. **O que entra de novo:** services para recomendação (módulo de IA), indicadores do
-   admin e vendas do artesão. A Fake API sai do deploy, mas continua útil para
-   desenvolvimento e testes.
+- **Leituras públicas de peças no servidor:** Homepage, `/search` com seus filtros,
+  ordenação e paginação, nomes de peças nas sugestões do Cabeçalho e a prateleira
+  auxiliar de peças por tipo usam `listarPecasPublicas(filtros)`. Com
+  `GATEWAY_API_URL` configurada, o fluxo é services → API Gateway → Catalog Service →
+  PostgreSQL.
+- **Operações que continuam na Fake API:** detalhe principal, histórico, relacionadas,
+  peças por artesão, referências, cadastro/edição/exclusão e demais mutações, perfis,
+  autenticação, estado, sacola, favoritos, checkout, pedidos, eventos e vídeos.
+  Artesãos, referências e demais domínios usados no Cabeçalho e na Homepage também
+  permanecem Fake. O enriquecimento de peças em `/videos` continua Fake por depender
+  dos vídeos Fake e de seus slugs.
 
+A escolha da origem pública fica em `src/services/api/pecas.servico.ts`, sem variáveis
+de ambiente ou URLs nas páginas. `listarPecasPublicas(filtros)` escolhe Gateway no
+servidor quando configurado e Fake explicitamente quando ausente.
+`listarPecas(filtros, origem = 'fake')` preserva o contrato anterior e a origem dos
+consumidores de estado: `usePecas` continua consultando a Fake API no navegador para
+sacola, checkout e favoritos. `pecasPorTipo` reutiliza a listagem pública disponível,
+mas não migra o detalhe principal nem os demais endpoints da página da peça.
+
+O cliente HTTP compartilhado preserva o timeout de 10 segundos, os sinais, os erros
+e o envelope. Gateway configurado e indisponível não dispara uma segunda consulta à
+Fake API. Uma seleção explícita sem configuração retorna `GATEWAY_NAO_CONFIGURADO`;
+Gateway no navegador retorna `ORIGEM_INDISPONIVEL`, sem requisição. O rewrite global
+`/api/v1` continua na Fake API; não foi criado proxy ou route handler para Gateway.
+
+A Homepage e os nomes de peças sugeridos no Cabeçalho carregam no máximo a primeira
+página de 100 peças. Isso cobre os 24 registros atuais e preserva os quatro destaques
+editoriais, as sete ofertas, as 12 mais avaliadas e as contagens dos sete artesãos.
+Acima de 100 registros, essas seleções, contagens e sugestões ficam limitadas à
+primeira página. A busca usa 12 peças por página. Peças por tipo solicitam
+`limite + 1` registros (13 no padrão de 12), excluem o slug atual localmente e
+retornam até `limite` peças.
+
+A busca por nome de artesão funciona para os nomes incorporados ao `texto_busca` do
+seed do catálogo; alterações nos perfis Fake não atualizam esse índice. A ordenação
+`recentes` usa `ordem_catalogo DESC`, sem timestamp de criação. O frontend normaliza
+os parâmetros da interface; requisições diretas com tipos inválidos podem receber
+HTTP 400 do Spring sem o envelope público, convertido pelo cliente em `HTTP_400`.
+
+Slugs de peças e artesãos precisam permanecer compatíveis com a Fake API enquanto
+detalhes, perfis, sacola e favoritos dependem dela. Uma peça somente no PostgreSQL
+pode aparecer na descoberta pública e não ser resolvida nesses fluxos. Esta etapa
+não sincroniza bases nem implementa endpoints ausentes, que hoje retornam 404 no
+backend real. Futuras migrações devem validar o contrato executável antes de
+selecionar Gateway para a operação, preservando as demais origens.
 ## Arquitetura
 
 Tecnologias, pastas, fluxo dos dados, autenticação e tratamento de erros:
@@ -311,5 +365,6 @@ A aplicação é publicada com o `Frontend/Dockerfile`. A imagem sobe o frontend
 |---|---|
 | [`docs/api.md`](docs/api.md) | Contrato da API, endpoints e exemplos |
 | [`docs/arquitetura.md`](docs/arquitetura.md) | Organização do frontend |
+| [`docs/integracao-catalogo-existente.md`](docs/integracao-catalogo-existente.md) | Matriz atual de integração, endpoints existentes, testes e limitações |
 | [`docs/uso-de-ia.md`](docs/uso-de-ia.md) | Declaração de uso de IA |
 | [`fake-api/README.md`](fake-api/README.md) | Execução, persistência e limites da Fake API |

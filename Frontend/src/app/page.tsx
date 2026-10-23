@@ -16,12 +16,12 @@ import { iconePorTipo } from '@/constants/vitrine'
 import { listarArtesaos } from '@/services/api/artesaos.servico'
 import { listarEventos } from '@/services/api/eventos.servico'
 import { listarVideos } from '@/services/api/videos.servico'
-import { listarPecas } from '@/services/api/pecas.servico'
+import { listarPecasPublicas } from '@/services/api/pecas.servico'
 import { hrefListagem } from '@/utils/filtrosUrl'
 
 export default async function Home() {
   const [pecasResposta, artesaosResposta, eventosResposta, videosResposta] = await Promise.all([
-    listarPecas(),
+    listarPecasPublicas({ pagina: 1, tamanho: 100 }),
     listarArtesaos(),
     listarEventos(),
     listarVideos(),

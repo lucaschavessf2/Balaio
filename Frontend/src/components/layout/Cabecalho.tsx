@@ -7,11 +7,11 @@ import AlternadorTema from '@/components/layout/AlternadorTema'
 import ContadorSacola from '@/components/carrinho/ContadorSacola'
 import MenuPerfil from '@/components/perfil/MenuPerfil'
 import { listarArtesaos } from '@/services/api/artesaos.servico'
-import { listarPecas } from '@/services/api/pecas.servico'
+import { listarPecasPublicas } from '@/services/api/pecas.servico'
 import { obterReferencias } from '@/services/api/referencias.servico'
 
 export default async function Cabecalho() {
-  const [pecasResp, refs, autores] = await Promise.all([listarPecas(), obterReferencias(), listarArtesaos()])
+  const [pecasResp, refs, autores] = await Promise.all([listarPecasPublicas({ pagina: 1, tamanho: 100 }), obterReferencias(), listarArtesaos()])
   const base = refs.dados ? [...refs.dados.tipos, ...refs.dados.tecnicas, ...refs.dados.territorios, ...refs.dados.categorias] : []
   const sugestoes = Array.from(new Set([
     ...(pecasResp.dados ?? []).map((peca) => peca.nome),

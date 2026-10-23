@@ -11,7 +11,7 @@ import EstadoErro from '@/components/feedback/EstadoErro'
 import { IconeBusca } from '@/components/ui/Icones'
 import { tecnicas } from '@/constants/referencias'
 import { rotuloDisponibilidade } from '@/constants/rotulos'
-import { listarPecas } from '@/services/api/pecas.servico'
+import { listarPecasPublicas } from '@/services/api/pecas.servico'
 import { filtrosAtivos, hrefListagem, lerFiltros, type FiltrosListagem as Filtros } from '@/utils/filtrosUrl'
 
 const POR_PAGINA = 12
@@ -28,7 +28,7 @@ function tituloDaListagem(filtros: Filtros): string {
 
 export default async function Busca({ searchParams }: Props) {
   const filtros = lerFiltros(await searchParams)
-  const { dados, erro, paginacao } = await listarPecas({ ...filtros, tamanho: POR_PAGINA })
+  const { dados, erro, paginacao } = await listarPecasPublicas({ ...filtros, tamanho: POR_PAGINA })
   const resultados = dados ?? []
   const total = paginacao?.total ?? resultados.length
   const titulo = tituloDaListagem(filtros)

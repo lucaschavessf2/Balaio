@@ -1,5 +1,5 @@
 import type { FotoPeca, Peca } from '@/types/dominio'
-import { buscar, montarQuery, enviar } from './cliente'
+import { buscar, montarQuery, enviar, type OrigemApi } from './cliente'
 import type { RespostaApi } from './tipos'
 
 export type Ordenacao = 'recentes' | 'preco-asc' | 'preco-desc' | 'avaliacao'
@@ -10,8 +10,13 @@ export type FiltrosPeca = {
   ordenar?: Ordenacao
   pagina?: number; tamanho?: number
 }
-export function listarPecas(filtros: FiltrosPeca = {}): Promise<RespostaApi<Peca[]>> {
-  return buscar('/pecas' + montarQuery({ ...filtros, desconto: filtros.desconto ? 'true' : undefined }))
+export function listarPecas(filtros: FiltrosPeca = {}, origem: OrigemApi = 'fake'): Promise<RespostaApi<Peca[]>> {
+  return buscar('/pecas' + montarQuery({ ...filtros, desconto: filtros.desconto ? 'true' : undefined }), { origem })
+}
+// Leitura pública no servidor; o cliente bloqueia Gateway no navegador.
+export function listarPecasPublicas(filtros: FiltrosPeca = {}): Promise<RespostaApi<Peca[]>> {
+  const origem = typeof window === 'undefined' && !process.env.GATEWAY_API_URL?.trim() ? 'fake' : 'gateway'
+  return listarPecas(filtros, origem)
 }
 export function obterPeca(slug: string): Promise<RespostaApi<Peca>> {
   return buscar('/pecas/' + encodeURIComponent(slug))
@@ -26,7 +31,7 @@ export async function pecasPorTipo(
   tipo: string,
   { excluir, limite = 12 }: { excluir?: string; limite?: number } = {},
 ): Promise<RespostaApi<Peca[]>> {
-  const resposta = await listarPecas({ tipo, tamanho: limite + 1 })
+  const resposta = await listarPecasPublicas({ tipo, tamanho: limite + 1 })
   if (!resposta.dados) return resposta
   return { ...resposta, dados: resposta.dados.filter((peca) => peca.slug !== excluir).slice(0, limite) }
 }

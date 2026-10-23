@@ -1,11 +1,16 @@
 # API do Balaio
 
-Nesta entrega, o frontend consome uma **Fake API** (`fake-api/server.cjs`, json-server
-com rotas próprias). Os dados ficam em `fake-api/db.json` e persistem entre reinícios.
-Na próxima entrega, o backend real implementa **as mesmas rotas e o mesmo formato de
-resposta**, e o frontend continua igual.
+O frontend está em migração gradual, com duas origens. A **Fake API**
+(`fake-api/server.cjs`, json-server com rotas próprias) continua atendendo as operações
+existentes, com dados em `fake-api/db.json` persistidos entre reinícios. As leituras
+públicas já disponíveis de `GET /pecas` usam o Catalog Service pelo Gateway quando
+`GATEWAY_API_URL` está configurada: Homepage, busca/filtros/ordenação/paginação,
+nomes de peças nas sugestões do Cabeçalho e peças por tipo. Detalhes principais,
+estado, vídeos, perfis e endpoints ainda ausentes permanecem na Fake API.
 
-- **URL base:** `http://127.0.0.1:3001/api/v1` (configurável por `API_URL`)
+- **Origem Fake:** `http://127.0.0.1:3001/api/v1` (configurável por `API_URL`)
+- **Origem Gateway no Compose:** `http://api-gateway:8080/api/v1` (por `GATEWAY_API_URL`, somente servidor)
+- **Origem Gateway com Next.js direto no WSL:** `http://127.0.0.1:8080/api/v1`
 - **Formato:** JSON
 - **Acesso no frontend:** todas as chamadas passam por `src/services/api/`
 
@@ -13,7 +18,9 @@ resposta**, e o frontend continua igual.
 
 ## Formato das respostas
 
-Toda resposta segue o mesmo envelope:
+As respostas do contrato da aplicação seguem o mesmo envelope. Erros de conversão
+de parâmetros gerados pelo Spring podem retornar HTTP 400 sem esse envelope,
+tratados pelo cliente como `HTTP_400`:
 
 ```json
 { "dados": { }, "erro": null, "paginacao": { "pagina": 1, "tamanho": 9, "total": 24, "totalPaginas": 3 } }
@@ -207,9 +214,46 @@ Sem login, a mesma chamada retorna **401** com `NAO_AUTENTICADO`.
 | GET | `/admin/indicadores` | Indicadores do painel administrativo |
 | GET | `/artesao/vendas` | Faturamento do gráfico do painel do artesão |
 
-## Troca da Fake API pelo backend real
+## Seleção de origem durante a migração
 
-1. O backend implementa as rotas deste documento com o mesmo prefixo e o mesmo formato
-   de resposta.
-2. A variável `API_URL` passa a apontar para o backend.
-3. Nenhuma tela muda: todas as chamadas já passam por `src/services/api/`.
+`API_URL` continua na Fake API, usada no servidor e pelo rewrite `/api/v1` do
+navegador. `GATEWAY_API_URL` é privada e lida em runtime pelo servidor; não use
+`NEXT_PUBLIC` nem substitua a origem Fake. O cliente mantém `buscar(caminho,
+{ origem: 'gateway' })`, o quarto argumento opcional de `enviar` e timeout de 10 s.
+
+`listarPecasPublicas(filtros)`, no service de peças, seleciona Gateway para leituras
+públicas no servidor quando configurado e Fake explicitamente quando ausente. Seus
+consumidores são Homepage, `/search` com busca/filtros/ordenação/paginação, nomes de
+peças nas sugestões do Cabeçalho e `pecasPorTipo`, que reutiliza a listagem existente.
+Páginas não conhecem URLs nem a configuração de ambiente.
+
+`listarPecas(filtros, origem = 'fake')` mantém a origem padrão anterior. `usePecas`
+continua Fake no navegador para sacola, checkout e favoritos; `/videos` também mantém
+seu enriquecimento de peças na Fake API. Detalhe principal, histórico, relacionadas,
+peças por artesão, referências, mutações e demais domínios não foram migrados.
+
+O único endpoint de catálogo disponível no Gateway é `GET /api/v1/pecas`, conforme
+o OpenAPI e o comportamento executável; detalhe e demais GETs ausentes retornam
+404. A tabela de rotas deste documento descreve as funcionalidades da Fake API e não
+indica implementação de todas elas no backend real. Não foram criados endpoints de
+backend, route handlers do Next.js, proxies ou rewrites para ampliar o contrato.
+
+Homepage e sugestões de nomes de peças no Cabeçalho solicitam a primeira página de
+até 100 registros, cobrindo os 24 atuais. Acima disso, suas seleções e contagens ficam
+limitadas à página carregada. A busca solicita 12 registros por página.
+`pecasPorTipo` pede `limite + 1` (13 no padrão de 12), remove o slug excluído
+localmente e limita a resposta; os demais dados da página da peça continuam Fake.
+
+A busca textual ignora maiúsculas/minúsculas e acentos. Nomes de artesãos constam no
+`texto_busca` do seed, sem sincronização com perfis Fake; alterações posteriores nos
+nomes não são refletidas automaticamente. `recentes` ordena por `ordem_catalogo DESC`,
+sem data de criação. Preços são ordenados pelo valor final com desconto. A interface
+normaliza filtros, ordenação e página antes do service; tipos inválidos enviados
+diretamente podem receber HTTP 400 do Spring sem envelope, tratado pelo cliente
+como `HTTP_400`. Não foi criado outro contrato de erros no backend.
+
+Gateway configurado e indisponível não aciona fallback para a Fake API. Selecioná-lo
+explicitamente sem URL retorna `GATEWAY_NAO_CONFIGURADO`; no navegador, retorna
+`ORIGEM_INDISPONIVEL` sem requisição. Ambas as origens continuam usando o mesmo
+cliente e tratamento de envelope. As bases não são sincronizadas: detalhes, perfis,
+sacola, favoritos e vídeos ainda dependem de slugs e dados existentes na Fake API.

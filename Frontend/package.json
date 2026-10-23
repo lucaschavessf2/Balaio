@@ -11,7 +11,8 @@
     "api": "node --env-file-if-exists=.env.local fake-api/server.cjs",
     "api:seed": "tsx fake-api/seed.ts",
     "api:reset": "node fake-api/reset.cjs",
-    "test:api": "node --test fake-api/server.test.cjs"
+    "test:api": "node --test fake-api/server.test.cjs",
+    "test:services": "tsx --test src/services/api/cliente.test.ts src/components/produto/CartaoPeca.test.tsx"
   },
   "dependencies": {
     "@types/leaflet": "^1.9.22",
