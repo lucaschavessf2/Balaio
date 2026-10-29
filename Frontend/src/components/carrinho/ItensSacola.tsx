@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { Foto, SeloDisponibilidade } from '@/components/ui/Basicos'
 import EstadoVazio from '@/components/feedback/EstadoVazio'
-import { IconeSacola, IconeSetaDireita } from '@/components/ui/Icones'
+import { IconeSacola } from '@/components/ui/Icones'
 import { useSacola } from '@/store/sacola'
 import { avisar } from '@/components/feedback/Avisos'
 import { usePecas } from '@/hooks/usePecas'
@@ -42,7 +42,7 @@ export default function ItensSacola() {
       <EstadoVazio
         icone={<IconeSacola tamanho={34} />}
         titulo="Sua sacola está vazia"
-        descricao="As peças que você adicionar aparecem aqui, prontas para finalizar a compra."
+        descricao="As peças que você adicionar aparecem aqui."
         acao={
           <Link href="/" className="botao botao-primario">
             Explorar o catálogo
@@ -55,8 +55,7 @@ export default function ItensSacola() {
   return (
     <>
       <p className="subtitulo-pagina">
-        {detalhados.length} {detalhados.length === 1 ? 'peça reservada' : 'peças reservadas'}. Peças únicas ficam
-        guardadas para você por 30 minutos.
+        {detalhados.length} {detalhados.length === 1 ? 'peça na sua sacola' : 'peças na sua sacola'}.
       </p>
 
       <div className="duas-colunas">
@@ -150,20 +149,6 @@ export default function ItensSacola() {
             <span className="preco-destaque">{emReais(subtotal + frete)}</span>
           </p>
 
-          <div className="barra-fixa barra-fixa-total">
-            <p className="barra-fixa-info">
-              <span className="barra-fixa-rotulo">Total</span>
-              <span className="barra-fixa-valor">{emReais(subtotal + frete)}</span>
-            </p>
-            <Link href="/checkout" className="botao botao-primario botao-largo">
-              Ir para o pagamento
-              <IconeSetaDireita />
-            </Link>
-          </div>
-
-          <p className="campo-ajuda acima-3" style={{ textAlign: 'center' }}>
-            O valor fica retido até a entrega ser confirmada.
-          </p>
         </aside>
       </div>
     </>

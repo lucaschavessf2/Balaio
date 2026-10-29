@@ -1,8 +1,10 @@
+'use client'
+
 import Link from 'next/link'
-import { Suspense } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import BarraDepartamentos from '@/components/layout/BarraDepartamentos'
 import BuscaCabecalho from '@/components/layout/BuscaCabecalho'
-import { IconeSacola } from '@/components/ui/Icones'
+import { IconeBusca, IconeSacola } from '@/components/ui/Icones'
 import AlternadorTema from '@/components/layout/AlternadorTema'
 import ContadorSacola from '@/components/carrinho/ContadorSacola'
 import MenuPerfil from '@/components/perfil/MenuPerfil'
@@ -10,14 +12,34 @@ import { listarArtesaos } from '@/services/api/artesaos.servico'
 import { listarPecas } from '@/services/api/pecas.servico'
 import { obterReferencias } from '@/services/api/referencias.servico'
 
-export default async function Cabecalho() {
-  const [pecasResp, refs, autores] = await Promise.all([listarPecas(), obterReferencias(), listarArtesaos()])
-  const base = refs.dados ? [...refs.dados.tipos, ...refs.dados.tecnicas, ...refs.dados.territorios, ...refs.dados.categorias] : []
-  const sugestoes = Array.from(new Set([
-    ...(pecasResp.dados ?? []).map((peca) => peca.nome),
-    ...base,
-    ...(autores.dados ?? []).map((artesao) => artesao.nome),
-  ]))
+function BuscaInicial() {
+  return (
+    <div className="cabecalho-busca">
+      <form action="/search" role="search">
+        <button type="submit" className="cabecalho-busca-botao" aria-label="Buscar"><IconeBusca /></button>
+        <label className="so-leitor" htmlFor="busca-topo">Buscar peças</label>
+        <input id="busca-topo" name="q" type="search" placeholder="Buscar técnica, artesão, território..." autoComplete="off" />
+      </form>
+    </div>
+  )
+}
+
+export default function Cabecalho() {
+  const [sugestoes, definirSugestoes] = useState<string[]>([])
+
+  useEffect(() => {
+    let ativo = true
+    void Promise.all([listarPecas(), obterReferencias(), listarArtesaos()]).then(([pecasResp, refs, autores]) => {
+      if (!ativo) return
+      const base = refs.dados ? [...refs.dados.tipos, ...refs.dados.tecnicas, ...refs.dados.territorios, ...refs.dados.categorias] : []
+      definirSugestoes(Array.from(new Set([
+        ...(pecasResp.dados ?? []).map((peca) => peca.nome),
+        ...base,
+        ...(autores.dados ?? []).map((artesao) => artesao.nome),
+      ])))
+    })
+    return () => { ativo = false }
+  }, [])
 
   return (
     <header className="cabecalho">
@@ -30,7 +52,9 @@ export default async function Cabecalho() {
           </span>
         </Link>
 
-        <BuscaCabecalho sugestoes={sugestoes} />
+        <Suspense fallback={<BuscaInicial />}>
+          <BuscaCabecalho sugestoes={sugestoes} />
+        </Suspense>
 
         <div className="cabecalho-acoes">
           <AlternadorTema />

@@ -2,7 +2,6 @@ import Link from 'next/link'
 import Pagina from '@/components/layout/Pagina'
 import CartaoVideo from '@/components/produto/CartaoVideo'
 import { Migalhas } from '@/components/ui/Basicos'
-import { IconePincel } from '@/components/ui/Icones'
 import { listarVideos, comentariosDe } from '@/services/api/videos.servico'
 import { listarArtesaos } from '@/services/api/artesaos.servico'
 import { listarPecas } from '@/services/api/pecas.servico'
@@ -58,10 +57,6 @@ export default async function Videos() {
         <div className="video-fim">
           <p className="texto-forte">Você chegou ao fim por enquanto</p>
           <p>Novos vídeos entram toda semana.</p>
-          <Link href="/dashboard/videos" className="botao botao-primario">
-            <IconePincel />
-            Publicar vídeo
-          </Link>
           {listaVideos[0] && (
             <Link href={`#${listaVideos[0].id}`} className="botao botao-fantasma">
               Voltar ao início

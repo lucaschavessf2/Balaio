@@ -4,15 +4,20 @@ import type { ReactNode } from 'react'
 import { SacolaProvider } from '@/store/sacola'
 import { FavoritosProvider } from '@/store/favoritos'
 import { DadosProvider } from '@/store/dados'
-import { SessaoProvider } from '@/store/sessao'
-import type { Sessao } from '@/services/sessao/cookie'
+import { SessaoProvider, useSessao } from '@/store/sessao'
+import ProtecaoRotas from '@/components/auth/ProtecaoRotas'
 
-export default function Provedores({ sessao, children }: { sessao: Sessao | null; children: ReactNode }) {
+function EstadoDaVisita({ children }: { children: ReactNode }) {
+  const { versao } = useSessao()
+  return <SacolaProvider key={`sacola-${versao}`}>
+    <FavoritosProvider key={`favoritos-${versao}`}><DadosProvider><ProtecaoRotas>{children}</ProtecaoRotas></DadosProvider></FavoritosProvider>
+  </SacolaProvider>
+}
+
+export default function Provedores({ children }: { children: ReactNode }) {
   return (
-    <SessaoProvider inicial={sessao}>
-      <SacolaProvider>
-        <FavoritosProvider><DadosProvider>{children}</DadosProvider></FavoritosProvider>
-      </SacolaProvider>
+    <SessaoProvider>
+      <EstadoDaVisita>{children}</EstadoDaVisita>
     </SessaoProvider>
   )
 }

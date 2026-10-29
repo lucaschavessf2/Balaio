@@ -9,3 +9,5 @@ fake-api/arquivos/
 .env.local
 .env
 .claude
+playwright-report/
+test-results/

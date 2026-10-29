@@ -1,18 +1,14 @@
+'use client'
+
 import type { ReactNode } from 'react'
 import Pagina from '@/components/layout/Pagina'
 import MenuDrawer from '@/components/navegacao/MenuDrawer'
 import MenuAdminLateral from '@/components/admin/MenuAdminLateral'
-import type { ChaveAdmin } from '@/components/admin/itensAdmin'
-import { listarMediacoes } from '@/services/api/pedidos.servico'
-import { listarFilaCuradoria } from '@/services/api/curadoria.servico'
-import { tokenDaSessao } from '@/services/autenticacao'
+import type { ChaveAdmin, ContagensAdmin } from '@/components/admin/itensAdmin'
 
-type Props = { ativo: ChaveAdmin; children: ReactNode }
+type Props = { ativo: ChaveAdmin; children: ReactNode; contagens: ContagensAdmin }
 
-export default async function LayoutAdmin({ ativo, children }: Props) {
-  const token = await tokenDaSessao()
-  const [{ dados: fila }, { dados: mediacoes }] = await Promise.all([listarFilaCuradoria(token), listarMediacoes()])
-  const contagens = { curadoria: fila?.length ?? 0, mediacoes: mediacoes?.length ?? 0 }
+export default function LayoutAdmin({ ativo, children, contagens }: Props) {
   return (
     <Pagina>
       <MenuDrawer titulo="Curadoria" rotulo="Menu da curadoria">

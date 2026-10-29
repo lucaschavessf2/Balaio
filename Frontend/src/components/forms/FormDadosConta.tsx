@@ -1,14 +1,12 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
-import { useRouter } from 'next/navigation'
 import { avisar } from '@/components/feedback/Avisos'
 import { Campo } from '@/components/ui/Basicos'
 import { atualizarUsuario } from '@/services/api/conta.servico'
 import type { Usuario } from '@/types/dominio'
 
-export default function FormDadosConta({ usuario }: { usuario: Usuario }) {
-  const roteador = useRouter()
+export default function FormDadosConta({ usuario, aoSalvar }: { usuario: Usuario; aoSalvar: () => void }) {
   const [enviando, definirEnviando] = useState(false)
 
   async function salvar(evento: FormEvent<HTMLFormElement>) {
@@ -29,7 +27,7 @@ export default function FormDadosConta({ usuario }: { usuario: Usuario }) {
       return
     }
     avisar.sucesso('Dados da conta salvos')
-    roteador.refresh()
+    aoSalvar()
   }
 
   return (

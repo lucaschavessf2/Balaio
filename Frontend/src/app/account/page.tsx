@@ -1,3 +1,5 @@
+'use client'
+
 import Link from 'next/link'
 import Pagina from '@/components/layout/Pagina'
 import { Migalhas, Retrato } from '@/components/ui/Basicos'
@@ -7,17 +9,16 @@ import {
   IconeCoracao,
   IconeMapa,
   IconePacote,
-  IconePincel,
   IconeSetaDireita,
   IconeUsuario,
 } from '@/components/ui/Icones'
-import { listarPedidos } from '@/services/api/pedidos.servico'
-import { exigirSessao } from '@/services/autenticacao'
+import { usePedidosConta } from '@/hooks/usePedidosConta'
+import { useSessao } from '@/store/sessao'
 
-export default async function Conta() {
-  const { usuario: usuarioAtual, token } = await exigirSessao()
-  const { dados: pedidos } = await listarPedidos(token)
-  const totalPedidos = (pedidos ?? []).length
+export default function Conta() {
+  const { sessao: usuarioAtual, estado } = useSessao()
+  const { pedidos } = usePedidosConta()
+  if (!usuarioAtual || estado !== 'autenticada') return null
   return (
     <Pagina>
       <Migalhas trilha={[{ texto: 'Início', href: '/' }, { texto: 'Minha conta' }]} />
@@ -38,10 +39,8 @@ export default async function Conta() {
           <Link href="/orders" className="menu-item">
             <IconePacote />
             Meus pedidos
-            <span className="menu-marcador">{totalPedidos}</span>
-            <span className="menu-item-seta">
-              <IconeSetaDireita />
-            </span>
+            {pedidos && <span className="menu-marcador">{pedidos.length}</span>}
+            <span className="menu-item-seta"><IconeSetaDireita /></span>
           </Link>
           <Link href="/favorites" className="menu-item">
             <IconeCoracao />
@@ -53,42 +52,18 @@ export default async function Conta() {
           <Link href="/account/addresses" className="menu-item">
             <IconeMapa />
             Endereços de entrega
-            <span className="menu-item-seta">
-              <IconeSetaDireita />
-            </span>
+            <span className="menu-item-seta"><IconeSetaDireita /></span>
           </Link>
           <Link href="/account/details" className="menu-item">
             <IconeUsuario />
             Meus dados
-            <span className="menu-item-seta">
-              <IconeSetaDireita />
-            </span>
+            <span className="menu-item-seta"><IconeSetaDireita /></span>
           </Link>
           <Link href="/account/details#seguranca" className="menu-item">
             <IconeCadeado />
             Alterar senha
-            <span className="menu-item-seta">
-              <IconeSetaDireita />
-            </span>
+            <span className="menu-item-seta"><IconeSetaDireita /></span>
           </Link>
-          {usuarioAtual.papel === 'admin' && (
-            <Link href="/admin" className="menu-item">
-              <IconePincel />
-              Curadoria e mediações
-              <span className="menu-item-seta">
-                <IconeSetaDireita />
-              </span>
-            </Link>
-          )}
-          {usuarioAtual.papel === 'artesao' && (
-            <Link href="/dashboard" className="menu-item">
-              <IconePincel />
-              Painel do artesão
-              <span className="menu-item-seta">
-                <IconeSetaDireita />
-              </span>
-            </Link>
-          )}
           <BotaoSair />
         </nav>
       </div>

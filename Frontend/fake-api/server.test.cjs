@@ -3,7 +3,150 @@ const assert = require('node:assert/strict')
 const { mkdtempSync, readFileSync, rmSync, writeFileSync } = require('node:fs')
 const { tmpdir } = require('node:os')
 const path = require('node:path')
+const { createHmac, randomBytes, randomUUID } = require('node:crypto')
 const { criarServidor } = require('./server.cjs')
+
+test('contexto interno assinado isola perfis reais sem credenciais ou sessões Fake', async (t) => {
+  process.env.NODE_ENV = 'test'
+  const chaveAnterior = process.env.BALAIO_FAKE_INTERNAL_KEY
+  const chave = randomBytes(32).toString('base64url')
+  process.env.BALAIO_FAKE_INTERNAL_KEY = chave
+  const pasta = mkdtempSync(path.join(tmpdir(), 'balaio-contexto-'))
+  const arquivo = path.join(pasta, 'db.json')
+  const a = { sub: randomUUID(), nome: 'Pessoa A', email: 'carlos@exemplo.com', papel: 'comprador' }
+  const b = { sub: randomUUID(), nome: 'Pessoa B', email: 'b@exemplo.com', papel: 'artesao' }
+  const seed = JSON.parse(readFileSync(path.join(__dirname, 'seed.json'), 'utf8'))
+  seed.pedidos.push(
+    { id: 'REAL-A', compradorId: a.sub, usuarioId: a.sub, compradorNome: a.nome, total: 10 },
+    { id: 'REAL-B', compradorId: b.sub, usuarioId: b.sub, compradorNome: b.nome, total: 20 },
+    { id: 'SEM-DONO', compradorId: '', usuarioId: 'fixture', compradorNome: 'Sem pessoa associada', total: 30 },
+  )
+  writeFileSync(arquivo, JSON.stringify(seed))
+  let servidor
+  const abrir = async () => {
+    servidor = criarServidor(arquivo).listen(0, '127.0.0.1')
+    await new Promise((resolve) => servidor.once('listening', resolve))
+  }
+  await abrir()
+  t.after(async () => {
+    await new Promise((resolve) => servidor.close(resolve))
+    rmSync(pasta, { recursive: true, force: true })
+    if (chaveAnterior === undefined) delete process.env.BALAIO_FAKE_INTERNAL_KEY
+    else process.env.BALAIO_FAKE_INTERNAL_KEY = chaveAnterior
+  })
+  const assinar = (url, metodo = 'GET', pessoa = a, alteracoes = {}, segredo = chave) => {
+    const contexto = Buffer.from(JSON.stringify({ ...pessoa, metodo, caminho: '/api/v1' + url, exp: Math.floor(Date.now() / 1000) + 30, ...alteracoes })).toString('base64url')
+    return { 'x-balaio-contexto': contexto, 'x-balaio-assinatura': createHmac('sha256', segredo).update(contexto).digest('hex') }
+  }
+  const request = async (url, metodo = 'GET', body, headers = assinar(url, metodo)) => {
+    const res = await fetch(`http://127.0.0.1:${servidor.address().port}/api/v1${url}`, {
+      method: metodo,
+      headers: { 'Content-Type': 'application/json', ...headers },
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    })
+    return { status: res.status, cookie: res.headers.get('set-cookie'), headers: res.headers, ...await res.json() }
+  }
+  const antes = JSON.parse(readFileSync(arquivo, 'utf8'))
+  const perfilA = await request('/usuario')
+  assert.equal(perfilA.status, 200)
+  assert.equal(perfilA.dados.id, a.sub, 'o e-mail da fixture não apropria a conta da fixture')
+  assert.equal(perfilA.dados.email, a.email)
+  assert.deepEqual(perfilA.dados.enderecos, [])
+  assert.equal(perfilA.cookie, null)
+  assert.equal(perfilA.headers.get('x-balaio-contexto'), null)
+  assert.equal(perfilA.headers.get('x-balaio-assinatura'), null)
+  assert.equal((await request('/usuario', 'GET', undefined, assinar('/usuario', 'GET', b))).dados.id, b.sub)
+
+  const casosInvalidos = [
+    assinar('/usuario', 'GET', a, {}, randomBytes(32).toString('hex')),
+    assinar('/usuario', 'GET', a, { exp: Math.floor(Date.now() / 1000) - 1 }),
+    assinar('/usuario', 'GET', a, { exp: Math.floor(Date.now() / 1000) + 60 }),
+    assinar('/outro-destino'),
+    assinar('/usuario?origem=diferente'),
+    assinar('/usuario', 'PATCH'),
+    assinar('/usuario', 'GET', a, { sub: 'u-carlos' }),
+    assinar('/usuario', 'GET', a, { sub: '' }),
+    assinar('/usuario', 'GET', a, { papel: 'superadmin' }),
+    assinar('/usuario', 'GET', a, { nome: null }),
+    { 'x-balaio-contexto': 'JSON-invalido', 'x-balaio-assinatura': '0'.repeat(64) },
+    { 'x-balaio-contexto': assinar('/usuario')['x-balaio-contexto'] },
+    { 'x-balaio-assinatura': '0'.repeat(64) },
+  ]
+  for (const headers of casosInvalidos) assert.equal((await request('/usuario', 'GET', undefined, headers)).status, 401)
+  const jsonInvalido = Buffer.from('{').toString('base64url')
+  assert.equal((await request('/usuario', 'GET', undefined, {
+    'x-balaio-contexto': jsonInvalido,
+    'x-balaio-assinatura': createHmac('sha256', chave).update(jsonInvalido).digest('hex'),
+  })).status, 401)
+  for (const url of ['/estado', '/artesao/me', '/perfisExternos', '/auth/login', '/pedidos/REAL-A/conversa']) {
+    assert.equal((await request(url, 'GET', undefined, assinar(url))).status, 401, url)
+  }
+  for (const headers of [
+    {}, { Authorization: 'Bearer jwt-real-nao-validado' },
+    { 'x-balaio-usuario-id': a.sub, 'x-user-id': a.sub, 'x-user-role': 'admin' },
+  ]) assert.equal((await request('/usuario', 'GET', undefined, headers)).status, 401)
+
+  const patch = await request('/usuario', 'PATCH', {
+    nome: 'Nome editado na Fake', email: 'editado@exemplo.com', telefone: '81999990000', tipoComprador: 'colecionador',
+    id: b.sub, papel: 'admin', senha: 'senha-real-nao-armazenar', senhaHash: 'hash-nao-armazenar',
+  }, { ...assinar('/usuario', 'PATCH'), Cookie: 'balaio_sessao=%INVALIDO', Authorization: 'Bearer jwt-real-nao-armazenar' })
+  assert.equal(patch.status, 200, 'cookie e Authorization não são lidos quando há contexto válido')
+  assert.equal(patch.dados.id, a.sub)
+  assert.equal(patch.dados.papel, 'comprador')
+  assert.equal(patch.cookie, null)
+  const endereco = await request('/usuario/enderecos', 'POST', {
+    apelido: 'Casa', rua: 'Rua A, 10', bairro: 'Centro', cep: '50000-000', senha: 'nao-armazenar-no-endereco',
+  })
+  assert.equal(endereco.status, 201)
+  assert.equal(endereco.cookie, null)
+  assert.equal(endereco.dados.senha, undefined)
+  const caminhoEndereco = `/usuario/enderecos/${endereco.dados.id}`
+  assert.equal((await request(caminhoEndereco, 'PATCH', { rua: 'Rua A, 20' })).dados.rua, 'Rua A, 20')
+  assert.equal((await request('/usuario/enderecos', 'GET', undefined, assinar('/usuario/enderecos', 'GET', b))).dados.length, 0)
+  assert.equal((await request(caminhoEndereco, 'PATCH', { rua: 'Tentativa B' }, assinar(caminhoEndereco, 'PATCH', b))).status, 404)
+  assert.equal((await request(caminhoEndereco, 'DELETE', undefined, assinar(caminhoEndereco, 'DELETE', b))).status, 404)
+
+  assert.deepEqual((await request('/pedidos')).dados.map((pedido) => pedido.id), ['REAL-A'])
+  assert.deepEqual((await request('/pedidos', 'GET', undefined, assinar('/pedidos', 'GET', b))).dados.map((pedido) => pedido.id), ['REAL-B'])
+  assert.equal((await request('/pedidos/REAL-A')).status, 200)
+  assert.equal((await request('/pedidos/REAL-B')).status, 404)
+  assert.equal((await request('/pedidos/SEM-DONO')).status, 404)
+  const filtro = `/pedidos?compradorId=${b.sub}`
+  assert.deepEqual((await request(filtro)).dados, [], 'query do cliente não troca a identidade autenticada')
+  const legado = await request('/auth/login', 'POST', { email: 'carlos@exemplo.com', senha: 'balaio123' }, {})
+  assert.equal(legado.status, 200)
+  assert.notEqual(legado.dados.id, a.sub)
+  assert.equal((await request('/usuario', 'GET', undefined, { ...assinar('/usuario'), Cookie: legado.cookie.split(';')[0] })).dados.id, a.sub)
+  assert.equal((await request('/usuario', 'GET', undefined, { ...casosInvalidos[0], Cookie: legado.cookie.split(';')[0] })).status, 401, 'assinatura inválida não recua para sessão Fake')
+  for (const url of ['/perfisExternos', '/perfisExternos/' + a.sub, '/perfis%45xternos', '/perfisExternos%2f' + a.sub, '/PERFISEXTERNOS/', '/db', '/%64b', '/pedidos/REAL-A/perfisExternos']) {
+    assert.equal((await request(url, 'GET', undefined, {})).status, 404)
+  }
+  for (const url of ['/perfisExternos', '/db']) {
+    const res = await fetch(`http://127.0.0.1:${servidor.address().port}${url}`)
+    assert.equal(res.status, 404)
+  }
+
+  const disco = JSON.parse(readFileSync(arquivo, 'utf8'))
+  assert.equal(disco.perfisExternos.length, 2)
+  assert.ok(disco.perfisExternos.every((perfil) => !('senha' in perfil) && !('senhaHash' in perfil) && !('senhaSal' in perfil)))
+  assert.ok(!disco.usuarios.some((usuario) => [a.sub, b.sub].includes(usuario.id)))
+  assert.ok(!disco.sessoes.some((sessao) => [a.sub, b.sub].includes(sessao.usuarioId)))
+  assert.equal(disco.sessoes.length, antes.sessoes.length + 1, 'somente o login legado cria sessão Fake')
+  assert.ok(!JSON.stringify(disco).includes('nao-armazenar'))
+  assert.deepEqual(disco.usuario, antes.usuario, 'edição externa não muda a identidade de demonstração legada')
+
+  await new Promise((resolve) => servidor.close(resolve))
+  await abrir()
+  const persistido = (await request('/usuario', 'GET', undefined, assinar('/usuario', 'GET', { ...a, nome: 'Nome do gateway', papel: 'admin' }))).dados
+  assert.equal(persistido.id, a.sub)
+  assert.equal(persistido.nome, 'Nome editado na Fake', 'o gateway não sobrescreve edições persistidas')
+  assert.equal(persistido.email, 'editado@exemplo.com')
+  assert.equal(persistido.telefone, '81999990000')
+  assert.equal(persistido.papel, 'admin', 'papel sempre vem do contexto atual')
+  assert.equal(persistido.enderecos[0].rua, 'Rua A, 20')
+  assert.equal((await request(caminhoEndereco, 'DELETE')).status, 200)
+  assert.deepEqual((await request('/usuario/enderecos')).dados, [])
+})
 
 test('contrato HTTP, filtros, relações, CRUD e persistência', async (t) => {
   process.env.NODE_ENV = 'test'

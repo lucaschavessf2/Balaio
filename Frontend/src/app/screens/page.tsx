@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import Pagina from '@/components/layout/Pagina'
 import { IconeSetaDireita } from '@/components/ui/Icones'
-import { fluxos, telas, telasDoFluxo } from '@/constants/telas'
+import { fluxos, telas } from '@/constants/telas'
+import { rotaProtegida, rotaContaDisponivel } from '@/services/sessao/rotas'
 
 export const metadata = {
   title: 'Mapa de telas do Balaio',
@@ -9,6 +10,7 @@ export const metadata = {
 }
 
 export default function MapaDeTelas() {
+  const disponiveis = telas.filter((tela) => rotaContaDisponivel(tela.rota) || !rotaProtegida(tela.rota))
   return (
     <Pagina>
       <header className="capa-mapa">
@@ -17,13 +19,13 @@ export default function MapaDeTelas() {
           Mapa de telas
         </h1>
         <p className="subtitulo-pagina" style={{ marginBottom: 0 }}>
-          As <strong>{telas.length} telas</strong> do Balaio, agrupadas por quem usa cada uma. Clique para
-          abrir. As ações usam uma API local de demonstração; nenhum pagamento real é processado.
+          As <strong>{disponiveis.length} telas</strong> do Balaio, agrupadas por quem usa cada uma. Clique para abrir.
         </p>
       </header>
 
       {fluxos.map((fluxo) => {
-        const doFluxo = telasDoFluxo(fluxo.chave)
+        const doFluxo = disponiveis.filter((tela) => tela.fluxo === fluxo.chave)
+        if (!doFluxo.length) return null
         return (
           <section className="secao" key={fluxo.chave}>
             <div className="cabecalho-fluxo">
