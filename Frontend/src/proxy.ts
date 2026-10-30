@@ -1,14 +1,15 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { COOKIE_SESSAO, destinoInicial, destinoSeguro, lerSessaoDoCookie, rotaDeLogin } from '@/services/sessao/cookie'
+import { destinoInicial, destinoSeguro, rotaDeLogin } from '@/services/sessao/cookie'
+import { validarSessaoBackend } from '@/services/sessao/validacao'
 
 const ROTAS_DE_CONTA = ['/account', '/orders', '/checkout', '/confirmation', '/dashboard', '/admin']
 const ROTAS_SO_DE_VISITANTE = ['/login', '/login/register']
 
 const comecaCom = (caminho: string, rota: string) => caminho === rota || caminho.startsWith(`${rota}/`)
 
-export function proxy(requisicao: NextRequest) {
+export async function proxy(requisicao: NextRequest) {
   const { pathname, search, searchParams } = requisicao.nextUrl
-  const sessao = lerSessaoDoCookie(requisicao.cookies.get(COOKIE_SESSAO)?.value)
+  const sessao = await validarSessaoBackend(requisicao.cookies.get('balaio_sessao')?.value)
   const irPara = (destino: string) => NextResponse.redirect(new URL(destino, requisicao.url))
 
   if (ROTAS_SO_DE_VISITANTE.includes(pathname)) {

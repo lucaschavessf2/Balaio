@@ -1,7 +1,7 @@
 const { spawn } = require('node:child_process')
 
 const servicos = [
-  { nome: 'fake-api', script: 'fake-api/server.cjs' },
+  ...(process.env.FAKE_API_ENABLED === 'true' ? [{ nome: 'fake-api', script: 'fake-api/server.cjs' }] : []),
   { nome: 'next', script: 'server.js' },
 ]
 

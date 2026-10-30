@@ -13,7 +13,7 @@ export default function Recuperar() {
     <LayoutAuth
       trilha={[{ texto: 'Início', href: '/' }, { texto: 'Entrar', href: '/login' }, { texto: 'Recuperar senha' }]}
       titulo="Recuperar sua senha"
-      apoio="Informe o e-mail da sua conta. Enviamos um link para você criar uma senha nova."
+      apoio="Informe o e-mail da sua conta. Se ela existir, você receberá um link para criar uma senha nova."
       frase="Acontece com todo mundo. Em um minuto você volta para o seu ateliê."
       destaques={ajudas}
       rodape={

@@ -1,7 +1,7 @@
 'use client'
 
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
-import { COOKIE_SESSAO, DURACAO_SESSAO_SEGUNDOS, type Sessao } from '@/services/sessao/cookie'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import type { Sessao } from '@/services/sessao/cookie'
 
 type ContextoSessao = {
   sessao: Sessao | null
@@ -11,22 +11,30 @@ type ContextoSessao = {
 
 const Contexto = createContext<ContextoSessao>({ sessao: null, iniciarSessao: () => {}, encerrarSessao: () => {} })
 
-function gravarCookie(valor: string, duracaoSegundos: number) {
-  document.cookie = `${COOKIE_SESSAO}=${valor}; path=/; max-age=${duracaoSegundos}; samesite=lax`
-}
-
 export function SessaoProvider({ inicial, children }: { inicial: Sessao | null; children: ReactNode }) {
   const [sessao, definirSessao] = useState<Sessao | null>(inicial)
 
   const iniciarSessao = useCallback((nova: Sessao) => {
-    gravarCookie(encodeURIComponent(JSON.stringify(nova)), DURACAO_SESSAO_SEGUNDOS)
     definirSessao(nova)
   }, [])
 
   const encerrarSessao = useCallback(() => {
-    gravarCookie('', 0)
+    document.cookie = 'balaio-sessao=; path=/; max-age=0; samesite=lax'
     definirSessao(null)
   }, [])
+
+  useEffect(() => {
+    if (!sessao) return
+    const conferir = async () => {
+      try {
+        const resposta = await fetch('/api/v1/usuario', { cache: 'no-store' })
+        if (resposta.status === 401) encerrarSessao()
+      } catch { /* A próxima navegação tenta novamente. */ }
+    }
+    void conferir()
+    window.addEventListener('focus', conferir)
+    return () => window.removeEventListener('focus', conferir)
+  }, [sessao, encerrarSessao])
 
   const valor = useMemo(() => ({ sessao, iniciarSessao, encerrarSessao }), [sessao, iniciarSessao, encerrarSessao])
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>

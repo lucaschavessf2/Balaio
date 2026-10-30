@@ -29,7 +29,7 @@ export default function FormRecuperar() {
     const resposta = await solicitarRecuperacao(email)
     if (!resposta.dados) return avisar.erro('Não foi possível solicitar', resposta.erro?.mensagem)
     definirEnviadoPara(email)
-    avisar.sucesso('Link de recuperação enviado', 'Confira sua caixa de entrada e o spam.')
+    avisar.sucesso('Solicitação recebida', 'Se houver uma conta para este e-mail, confira sua caixa de entrada e o spam.')
   }
 
   if (enviadoPara) {
@@ -38,9 +38,9 @@ export default function FormRecuperar() {
         <span className="cabeca-auth-icone cabeca-auth-icone-sucesso">
           <IconeCheck tamanho={26} />
         </span>
-        <p className="texto-forte">Link enviado</p>
+        <p className="texto-forte">Solicitação recebida</p>
         <p className="autoria">
-          Enviamos o link de recuperação para <strong>{enviadoPara}</strong>. Ele vale por 1 hora.
+          Se existir uma conta para <strong>{enviadoPara}</strong>, você receberá um link de recuperação válido por 1 hora.
         </p>
         <p className="campo-ajuda">Não chegou? Confira a caixa de spam antes de pedir outro.</p>
         <Link href="/login" className="botao botao-secundario botao-largo acima-2">
