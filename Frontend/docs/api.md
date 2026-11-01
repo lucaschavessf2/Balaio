@@ -62,7 +62,8 @@ Todas com o prefixo `/api/v1`.
 | POST | `/auth/cadastro` | 🌐 | Cria a conta `{ nome, email, senha, perfil }` e já faz login |
 | POST | `/auth/login` | 🌐 | `{ email, senha }` |
 | POST | `/auth/logout` | 🌐 | Encerra a sessão |
-| POST | `/auth/recuperacao` | 🌐 | `{ email }`: registra o pedido de recuperação de senha |
+| POST | `/auth/recuperacao` | 🌐 | `{ email }`: solicita link, sempre `201` e `{ dados: { recebida: true }, erro: null }` para endereço válido, cadastrado ou não |
+| POST | `/auth/redefinicao` | 🌐 | `{ token, novaSenha }`: redefine senha com link de uso único; `200` ou `400 TOKEN_INVALIDO` |
 | GET / PATCH | `/usuario` | 🔑 | Consulta ou altera o usuário logado |
 | POST | `/conta/:id/senha` | 🔑 | `{ senhaAtual, novaSenha }` |
 | GET / POST / PATCH / DELETE | `/usuario/enderecos` | 🔑 | Endereços de entrega |
@@ -135,6 +136,12 @@ Estados do pedido: `confirmado → producao → enviado → entregue`, ou `recus
 ---
 
 ## Exemplos
+
+### Recuperação de senha
+
+`POST /api/v1/auth/recuperacao` recebe `{ "email": "ana@exemplo.com" }`. O resultado é igual para conta existente ou ausente. Para conta existente, o e-mail contém `/login/reset?token=...`; o link expira em 1 hora. `POST /api/v1/auth/redefinicao` recebe `{ "token": "...", "novaSenha": "senha-com-8-ou-mais-caracteres" }` e devolve `{ "dados": { "redefinida": true }, "erro": null }`. Token desconhecido, vencido ou usado devolve `400` com `TOKEN_INVALIDO`. E-mail inválido ou senha curta devolve `400 REQUISICAO_INVALIDA`.
+
+O backend real implementa estas rotas. A Fake API atual só simula a solicitação; a conclusão exige apontar `API_URL` ao backend real. No Compose, use `platform/docker-compose.recovery.yml` para isso. Esse modo é limitado a cadastro, login e recuperação de senha; as demais telas ainda usam a Fake API no Compose padrão.
 
 ### Login
 

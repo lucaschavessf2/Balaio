@@ -16,4 +16,5 @@ export const criarEndereco = (endereco: Omit<EnderecoUsuario, 'id' | 'principal'
 export const atualizarEndereco = (id: string, endereco: Partial<EnderecoUsuario>) => enviar<EnderecoUsuario>(`/usuario/enderecos/${encodeURIComponent(id)}`, endereco, 'PATCH')
 export const excluirEndereco = (id: string) => buscar<EnderecoUsuario>(`/usuario/enderecos/${encodeURIComponent(id)}`, { method: 'DELETE' })
 export const solicitarRecuperacao = (email: string) => enviar<{ recebida: boolean }>('/auth/recuperacao', { email })
+export const redefinirSenha = (token: string, novaSenha: string) => enviar<{ redefinida: boolean }>('/auth/redefinicao', { token, novaSenha })
 export const listarFretes = () => buscar<OpcaoFrete[]>('/fretes')
