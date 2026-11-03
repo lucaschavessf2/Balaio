@@ -25,3 +25,19 @@ test('permissão usa papel retornado pelo backend', async () => {
   assert.equal(resposta.status, 307)
   assert.equal(new URL(resposta.headers.get('location')!).pathname, '/account')
 })
+
+test('escrita de peças encaminha cookie de sessão como Bearer ao gateway', async () => {
+  const requisicao = new NextRequest('http://localhost:4321/api/v1/pecas', {
+    method: 'POST', headers: { cookie: 'balaio_sessao=jwt-assinado' },
+  })
+  const resposta = await proxy(requisicao)
+  assert.equal(resposta.headers.get('x-middleware-request-authorization'), 'Bearer jwt-assinado')
+})
+
+test('consulta de usuário encaminha JWT ao profile-service', async () => {
+  const requisicao = new NextRequest('http://localhost:4321/api/v1/usuario', {
+    headers: { cookie: 'balaio_sessao=jwt-assinado' },
+  })
+  const resposta = await proxy(requisicao)
+  assert.equal(resposta.headers.get('x-middleware-request-authorization'), 'Bearer jwt-assinado')
+})

@@ -6,7 +6,7 @@ export async function validarSessaoBackend(token: string | undefined): Promise<S
   const base = (process.env.API_URL ?? 'http://127.0.0.1:3001/api/v1').replace(/\/$/, '')
   try {
     const resposta = await fetch(`${base}/usuario`, {
-      headers: { Cookie: `balaio_sessao=${encodeURIComponent(token)}` },
+      headers: { Authorization: `Bearer ${token}` },
       cache: 'no-store',
       signal: AbortSignal.timeout(5000),
     })

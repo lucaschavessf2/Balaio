@@ -9,6 +9,24 @@ const comecaCom = (caminho: string, rota: string) => caminho === rota || caminho
 
 export async function proxy(requisicao: NextRequest) {
   const { pathname, search, searchParams } = requisicao.nextUrl
+  if ((pathname === '/api/v1/pecas' && requisicao.method === 'POST')
+      || (/^\/api\/v1\/pecas\/[^/]+$/.test(pathname) && requisicao.method === 'PATCH')) {
+    const token = requisicao.cookies.get('balaio_sessao')?.value
+    if (token) {
+      const headers = new Headers(requisicao.headers)
+      headers.set('Authorization', `Bearer ${token}`)
+      return NextResponse.next({ request: { headers } })
+    }
+    return NextResponse.next()
+  }
+  if (pathname === '/api/v1/pecas' || pathname.startsWith('/api/v1/pecas/')) return NextResponse.next()
+  if (pathname === '/api/v1/usuario' && requisicao.method === 'GET') {
+    const token = requisicao.cookies.get('balaio_sessao')?.value
+    if (!token) return NextResponse.next()
+    const headers = new Headers(requisicao.headers)
+    headers.set('Authorization', `Bearer ${token}`)
+    return NextResponse.next({ request: { headers } })
+  }
   const sessao = await validarSessaoBackend(requisicao.cookies.get('balaio_sessao')?.value)
   const irPara = (destino: string) => NextResponse.redirect(new URL(destino, requisicao.url))
 
@@ -24,5 +42,5 @@ export async function proxy(requisicao: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/account/:path*', '/orders/:path*', '/checkout', '/confirmation/:path*', '/dashboard/:path*', '/admin/:path*', '/login', '/login/register'],
+  matcher: ['/account/:path*', '/orders/:path*', '/checkout', '/confirmation/:path*', '/dashboard/:path*', '/admin/:path*', '/login', '/login/register', '/api/v1/pecas/:path*', '/api/v1/usuario'],
 }

@@ -15,9 +15,9 @@ const situacoes: Record<string, { texto: string; classe: string }> = {
 
 
 export default async function MinhasPecas() {
-  const { artesao } = await exigirArtesao()
+  const { artesao, token } = await exigirArtesao()
   const [{ dados: pecas }, { dados: pedidos }] = await Promise.all([
-    pecasPorArtesao(artesao.slug),
+    pecasPorArtesao(artesao.slug, token),
     listarPedidos(),
   ])
   const pecasLista = pecas ?? []

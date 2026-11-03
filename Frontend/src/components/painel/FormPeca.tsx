@@ -51,7 +51,9 @@ function lerImagem(arquivo: File): Promise<string> {
 function fotosDaPeca(peca?: Peca): FotoSelecionada[] {
   if (!peca) return []
   if (peca.fotos?.length) return peca.fotos.map(({ id, nome, url }) => ({ id, nome, url }))
-  return [{ id: `${peca.slug}-capa`, nome: peca.nome, url: peca.imagem }]
+  return peca.imagem && peca.imagem !== '/fotos/ImagemBase.webp'
+    ? [{ id: `${peca.slug}-capa`, nome: peca.nome, url: peca.imagem }]
+    : []
 }
 
 function paragrafosDaHistoria(texto: string): string[] {
@@ -68,7 +70,7 @@ export default function FormPeca({ peca, modelo }: Props) {
   const editando = Boolean(peca)
   const publicada = editando && (peca?.situacao ?? 'publicada') === 'publicada'
   const [salvando, definirSalvando] = useState(false)
-  const { tecnicas, territorios, categorias, tipos, carregando } = useReferencias()
+  const { tecnicas, territorios, categorias, tipos, carregando, erro: erroReferencias } = useReferencias()
   const [disponibilidade, definirDisponibilidade] = useState<Disponibilidade>(base?.disponibilidade ?? 'disponivel')
   const [preco, definirPreco] = useState(() => base?.preco ? emReais(base.preco) : '')
   const [erros, definirErros] = useState<Record<string, string>>({})
@@ -116,6 +118,22 @@ export default function FormPeca({ peca, modelo }: Props) {
         {migalhas}
         <h1 className="titulo-pagina">{titulo}</h1>
         <EstadoCarregando rotulo="Carregando o formulário…" cartoes={0} />
+      </>
+    )
+  }
+
+  if (erroReferencias || !tecnicas.length || !territorios.length || !categorias.length || !tipos.length) {
+    return (
+      <>
+        {migalhas}
+        <h1 className="titulo-pagina">{titulo}</h1>
+        <div className="cartao" role="alert">
+          <p>Não foi possível carregar as opções de técnica, tipo, categoria e território. O cadastro está indisponível.</p>
+          <p>{erroReferencias}</p>
+          <button type="button" className="botao botao-fantasma" onClick={() => window.location.reload()}>
+            Tentar novamente
+          </button>
+        </div>
       </>
     )
   }
@@ -258,6 +276,11 @@ export default function FormPeca({ peca, modelo }: Props) {
       }
       const resposta = peca ? await atualizarPeca(peca.slug, dadosPeca) : await criarPeca(dadosPeca)
       if (resposta.erro) {
+        const campo = ({ nome: 'peca-nome', preco: 'peca-preco', prazoProducaoDias: 'peca-prazo' } as Record<string, string>)[resposta.erro.campo ?? '']
+        if (campo) {
+          definirErros({ [campo]: resposta.erro.mensagem })
+          document.getElementById(campo)?.focus()
+        }
         avisar.erro('Não foi possível salvar', resposta.erro.mensagem)
         return
       }

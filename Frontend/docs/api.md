@@ -116,6 +116,10 @@ Estados do pedido: `confirmado → producao → enviado → entregue`, ou `recus
 | PATCH | `/pedidos/:id/recusar` | 🧑‍🎨 | `{ motivo }` |
 | GET / POST | `/artesao/selo` | 🧑‍🎨 | Consulta ou pede o selo de verificado |
 
+No `catalog-service` real, `POST /pecas` e `PATCH /pecas/:slug` exigem Bearer JWT de artesão e usam o UUID autenticado para determinar a titularidade. O slug público provisório vem de `GET /artesao/me` do profile-service (`artesao-<UUID>`). `POST` retorna 201; `PATCH` retorna 200 e recusa outro dono com 404. Erro de validação pode trazer `erro.campo` além de `codigo` e `mensagem`; o formulário destaca `nome`, `preco` e `prazoProducaoDias`. Fotos novas são data URIs JPG/PNG/WebP de até 5 MB, persistidas no catálogo e devolvidas com URL pública. A Fake API ainda oferece DELETE e inativação pelo PATCH; essas operações não fazem parte desta entrega no catálogo real.
+
+O formulário consulta `GET /referencias` no catálogo real. Se as listas não carregarem, ele exibe o erro e bloqueia o cadastro até uma nova tentativa bem sucedida.
+
 ### Administração
 
 | Método | Rota | Acesso | Descrição |
