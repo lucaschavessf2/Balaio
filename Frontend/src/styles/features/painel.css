@@ -11,7 +11,7 @@
 }
 
 .grafico-dica-valor {
-  @apply font-titulo font-bold text-medio text-tinta;
+  @apply font-corpo font-bold text-medio text-tinta;
 }
 
 .grafico {
@@ -40,18 +40,6 @@
   background-image: var(--textura-trama);
 }
 
-.linha-video {
-  @apply grid grid-cols-[54px_minmax(0,1fr)_auto] gap-3 items-center py-3 border-b border-linha;
-}
-
-.linha-video:last-child {
-  @apply border-b-0;
-}
-
-.linha-video img {
-  @apply w-[54px] h-[54px] rounded-caixa object-cover;
-}
-
 .rotulo-acao {
   @apply inline;
 }
@@ -68,4 +56,236 @@
 
 .confirmacao-salvo-neutra {
   @apply text-tinta-suave border-linha bg-fundo;
+}
+
+.lista-pecas-painel {
+  @apply grid gap-3;
+}
+
+.peca-painel {
+  @apply grid gap-3 bg-superficie border border-linha rounded-media p-4 shadow-(--sombra) min-w-0;
+}
+
+.peca-painel-topo {
+  @apply grid items-center gap-x-3 gap-y-2 grid-cols-[72px_minmax(0,1fr)];
+}
+
+.peca-painel-figura {
+  @apply w-[72px] h-[72px] rounded-caixa overflow-hidden;
+}
+
+.peca-painel[data-inativada] .peca-painel-figura {
+  @apply opacity-55;
+}
+
+.peca-painel-nome {
+  @apply font-corpo text-corpo font-semibold leading-snug;
+}
+
+.peca-painel-nome a {
+  @apply text-tinta;
+}
+
+.peca-painel-valores {
+  @apply col-span-full flex items-center justify-between gap-3 flex-wrap;
+}
+
+.peca-painel-preco {
+  @apply font-semibold text-destaque whitespace-nowrap;
+}
+
+.peca-painel-rodape {
+  @apply grid gap-3 pt-3 border-t border-linha;
+}
+
+.peca-painel-disponibilidade {
+  @apply grid gap-1 min-w-0;
+}
+
+.peca-painel-acoes {
+  @apply grid grid-cols-2 gap-2;
+}
+
+.peca-painel-acoes .botao {
+  @apply min-h-11 px-3 text-pequeno;
+}
+
+@media (min-width: 700px) {
+  .peca-painel-topo {
+    grid-template-columns: 72px minmax(0, 1fr) auto;
+  }
+
+  .peca-painel-valores {
+    @apply col-span-1 justify-end;
+  }
+
+  .peca-painel-rodape {
+    @apply flex items-end justify-between flex-wrap;
+  }
+
+  .peca-painel-disponibilidade {
+    @apply w-[220px];
+  }
+
+  .peca-painel-acoes {
+    @apply flex flex-wrap justify-end;
+  }
+
+  .peca-painel-acoes .botao {
+    @apply min-h-10 px-4;
+  }
+}
+
+.painel-layout,
+.menu-lateral {
+  --font-titulo: var(--fonte), system-ui, sans-serif;
+  --tinta-suave: light-dark(#434b5c, #c2cad9);
+  --color-tinta-suave: var(--tinta-suave);
+  --text-mini: 13px;
+  --text-pequeno: 15px;
+  --text-medio: 18px;
+  --text-grande: 20px;
+  --text-titulo: clamp(26px, 3vw, 32px);
+}
+
+.conteudo:has(.painel-layout) {
+  padding-top: 16px;
+}
+
+.painel-layout h1,
+.painel-layout h2,
+.painel-layout .titulo-pagina,
+.painel-layout .secao-titulo {
+  @apply font-bold;
+  letter-spacing: normal;
+}
+
+.painel-layout .metrica-valor {
+  font-size: clamp(26px, 2.4vw, 30px);
+}
+
+.painel-layout h1,
+.painel-layout .titulo-pagina {
+  color: var(--tinta);
+}
+
+.menu-lateral .menu-marcador {
+  @apply flex-none whitespace-nowrap;
+}
+
+.painel-layout .secao-titulo.linha-flex::after {
+  content: none;
+}
+
+.videos-painel {
+  @apply grid gap-6 items-start;
+  grid-template-areas:
+    "lista"
+    "formulario"
+    "dicas";
+}
+
+.videos-painel > * {
+  min-width: 0;
+}
+
+.videos-painel-lista {
+  grid-area: lista;
+}
+
+.videos-painel-formulario {
+  grid-area: formulario;
+  scroll-margin-top: calc(var(--cabecalho-espaco) + 12px);
+}
+
+.videos-painel-dicas {
+  grid-area: dicas;
+}
+
+.videos-painel-cabeca {
+  @apply flex justify-between items-start gap-3 flex-wrap;
+}
+
+.lista-videos-painel {
+  @apply list-none m-0 p-0 grid gap-3;
+}
+
+.video-painel {
+  @apply grid gap-3 grid-cols-[96px_minmax(0,1fr)] bg-superficie border border-linha rounded-media p-3 shadow-(--sombra);
+}
+
+.video-painel-capa {
+  @apply relative w-24 h-24 rounded-caixa overflow-hidden bg-fundo;
+}
+
+.video-painel-capa img {
+  @apply w-full h-full object-cover;
+}
+
+.video-painel-duracao {
+  @apply absolute right-1 bottom-1 rounded-[6px] px-1.5 py-0.5 text-mini font-semibold text-branco bg-[rgba(17,22,37,0.72)];
+}
+
+.video-painel-info {
+  @apply grid gap-1.5 content-start min-w-0;
+}
+
+.video-painel-topo {
+  @apply flex items-center gap-2 flex-wrap;
+}
+
+.video-painel-legenda {
+  @apply font-semibold text-tinta line-clamp-2;
+}
+
+.video-painel-rodape {
+  @apply flex justify-between items-center gap-x-3 gap-y-1 flex-wrap;
+}
+
+@media (min-width: 1000px) {
+  .videos-painel {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "formulario lista"
+      "formulario dicas";
+  }
+
+  .videos-painel-novo {
+    display: none;
+  }
+}
+
+.video-painel-acoes {
+  @apply flex items-center gap-2 flex-wrap;
+}
+
+.video-painel-acoes .botao {
+  @apply min-h-10 px-3.5 text-pequeno;
+}
+
+.video-painel-pergunta {
+  @apply basis-full text-pequeno font-semibold text-tinta;
+}
+
+.editar-video-capa {
+  @apply flex items-center gap-3 mb-5;
+}
+
+.editar-video-capa .video-painel-capa {
+  @apply flex-none;
+}
+
+@media (max-width: 559px) {
+  .video-painel {
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+
+  .video-painel-capa {
+    @apply w-[72px] h-[72px];
+  }
+
+  .video-painel-acoes {
+    grid-column: 1 / -1;
+  }
 }

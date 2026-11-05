@@ -5,6 +5,7 @@ import Pagina from '@/components/layout/Pagina'
 import CartaoPeca from '@/components/produto/CartaoPeca'
 import EstadoErro from '@/components/feedback/EstadoErro'
 import { Migalhas, Retrato } from '@/components/ui/Basicos'
+import ListaEscalonada from '@/components/ui/ListaEscalonada'
 import EstadoVazio from '@/components/feedback/EstadoVazio'
 import { IconeConversa, IconeMapa, IconePacote, IconeSelo } from '@/components/ui/Icones'
 import { obterArtesao } from '@/services/api/artesaos.servico'
@@ -112,9 +113,9 @@ export default async function PerfilArtesao({ params }: { params: Promise<{ slug
       <section className="secao">
         <h2 className="secao-titulo">Coleção viva do atelier</h2>
         {pecas.length ? (
-          <div className="grade-pecas">
+          <ListaEscalonada className="grade-pecas">
             {pecas.map((p) => <CartaoPeca key={p.slug} peca={p} />)}
-          </div>
+          </ListaEscalonada>
         ) : (
           <EstadoVazio
             icone={<IconePacote tamanho={34} />}

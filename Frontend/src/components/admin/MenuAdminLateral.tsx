@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import BotaoSair from '@/components/conta/BotaoSair'
-import { IconeSelo, IconeSetaDireita } from '@/components/ui/Icones'
+import { IconeEtiqueta, IconeSelo, IconeSetaDireita } from '@/components/ui/Icones'
 import { itensAdminPorGrupo, type ChaveAdmin, type ContagensAdmin } from '@/components/admin/itensAdmin'
 
 export default function MenuAdminLateral({ ativo, contagens }: { ativo: ChaveAdmin; contagens: ContagensAdmin }) {
@@ -39,7 +39,7 @@ export default function MenuAdminLateral({ ativo, contagens }: { ativo: ChaveAdm
       ))}
 
       <Link href="/" className="menu-ver-loja">
-        <IconeSetaDireita tamanho={14} />
+        <IconeEtiqueta tamanho={16} />
         Ver o catálogo
         <IconeSetaDireita tamanho={14} />
       </Link>

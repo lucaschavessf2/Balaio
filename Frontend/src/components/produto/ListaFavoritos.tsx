@@ -34,7 +34,7 @@ export default function ListaFavoritos() {
   }
 
   return (
-    <div className="grade-pecas grade-pecas-compacta">
+    <div className="grade-pecas grade-pecas-compacta escalonado">
       {pecas.map((p) => (
         <CartaoPeca key={p.slug} peca={p} />
       ))}

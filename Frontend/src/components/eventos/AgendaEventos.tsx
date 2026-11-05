@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { Migalhas } from '@/components/ui/Basicos'
 import { IconeCalendario, IconeMapa } from '@/components/ui/Icones'
+import ListaEscalonada from '@/components/ui/ListaEscalonada'
 import EstadoErro from '@/components/feedback/EstadoErro'
 import EstadoCarregando from '@/components/feedback/EstadoCarregando'
 import MapaEventosCliente from '@/components/eventos/MapaEventosCliente'
@@ -46,7 +47,7 @@ export default function AgendaEventos() {
       </div>
 
       <h2 className="secao-titulo">Todos os eventos, do mais perto ao mais longe</h2>
-      <ol className="grade-eventos">
+      <ListaEscalonada como="ol" className="grade-eventos">
         {ordenados.map(({ evento, distancia }) => (
           <li key={evento.slug}>
             <Link href={`/events/${evento.slug}`} className="cartao-evento cartao-evento-agenda">
@@ -70,7 +71,7 @@ export default function AgendaEventos() {
             </Link>
           </li>
         ))}
-      </ol>
+      </ListaEscalonada>
     </>
   )
 }

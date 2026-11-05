@@ -21,7 +21,7 @@
 }
 
 .painel-alertas h2 {
-  @apply font-titulo font-bold text-medio mb-1;
+  @apply font-corpo font-bold text-medio mb-1;
 }
 
 .painel-alertas ul {
@@ -32,8 +32,12 @@
   @apply grid gap-2 min-w-[180px];
 }
 
-.disponibilidade-rapida select {
-  @apply min-h-10 py-2 px-3 text-pequeno;
+.disponibilidade-rapida .selo {
+  @apply justify-self-start;
+}
+
+.seletor-quantidade {
+  @apply w-[84px];
 }
 
 .disponibilidade-prazo {
@@ -58,7 +62,7 @@
 }
 
 .pedido-encerrado h2 {
-  @apply font-titulo text-maior font-bold text-vermelho-tinta mb-1;
+  @apply font-corpo text-maior font-bold text-vermelho-tinta mb-1;
 }
 
 .cancelamento-confirmacao {
@@ -72,7 +76,7 @@
 }
 
 .cancelamento-confirmacao h3 {
-  @apply font-titulo text-medio font-bold text-vermelho-tinta mb-1;
+  @apply font-corpo text-medio font-bold text-vermelho-tinta mb-1;
 }
 
 .cancelamento-confirmacao p {
@@ -355,7 +359,7 @@
 }
 
 .barra-fixa-valor {
-  @apply font-titulo text-maior font-bold leading-[1.15] text-destaque;
+  @apply font-corpo text-maior font-bold leading-[1.15] text-destaque;
 }
 
 .barra-fixa .botao {

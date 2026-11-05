@@ -4,6 +4,7 @@ import Pagina from '@/components/layout/Pagina'
 import CartaoPeca from '@/components/produto/CartaoPeca'
 import { Migalhas, Retrato } from '@/components/ui/Basicos'
 import { IconeSelo, IconeSetaDireita } from '@/components/ui/Icones'
+import ListaEscalonada from '@/components/ui/ListaEscalonada'
 import { obterColetivo } from '@/services/api/coletivos.servico'
 import { obterArtesao } from '@/services/api/artesaos.servico'
 import { pecasPorArtesao } from '@/services/api/pecas.servico'
@@ -90,11 +91,11 @@ export default async function PerfilColetivo({ params }: { params: Promise<{ slu
 
       <section className="secao">
         <h2 className="secao-titulo">Peças do coletivo</h2>
-        <div className="grade-pecas">
+        <ListaEscalonada className="grade-pecas">
           {pecas.map((p) => (
             <CartaoPeca key={p.slug} peca={p} />
           ))}
-        </div>
+        </ListaEscalonada>
       </section>
 
       <section className="secao">

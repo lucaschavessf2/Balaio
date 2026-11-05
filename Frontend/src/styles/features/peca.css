@@ -18,6 +18,11 @@
 
 .autoria-com-retrato {
   @apply inline-flex items-center gap-1.5;
+  transition: opacity var(--transicao-rapida);
+}
+
+.autoria-com-retrato[data-carregando] {
+  opacity: 0;
 }
 
 .cartao-peca:hover {
@@ -105,7 +110,7 @@
 }
 
 .preco-pagina {
-  @apply block text-[32px] font-bold font-titulo text-destaque my-4;
+  @apply block text-[32px] font-bold font-corpo text-destaque my-4;
 }
 
 .nota-artesao {
@@ -206,7 +211,10 @@
     transition: none;
   }
 
-  .cartao-peca:hover,
+  .cartao-peca:hover {
+    translate: none;
+  }
+
   .cartao-peca:hover .foto img {
     transform: none;
   }
@@ -256,7 +264,7 @@
 }
 
 .nota-geral-rotulo {
-  @apply font-titulo text-grande font-bold text-tinta;
+  @apply font-corpo text-grande font-bold text-tinta;
 }
 
 .elogios-chips {
@@ -362,5 +370,5 @@
 }
 
 .sobre-artesao-metricas strong {
-  @apply block text-grande font-titulo text-tinta;
+  @apply block text-grande font-corpo font-bold text-tinta;
 }

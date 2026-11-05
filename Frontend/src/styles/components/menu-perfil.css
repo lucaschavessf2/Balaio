@@ -33,7 +33,7 @@
 }
 
 .menu-perfil-nome {
-  @apply font-titulo font-bold text-medio leading-tight text-tinta;
+  @apply font-corpo font-bold text-medio leading-tight text-tinta;
 }
 
 .menu-perfil-detalhe {
@@ -90,7 +90,7 @@ button.nav-inferior-item {
   inset: auto 0 0 0;
   display: flex;
   flex-direction: column;
-  animation: folha-perfil-entra 220ms ease;
+  animation: folha-perfil-entra var(--mola-duracao-folha) var(--mola-suave);
 }
 
 .folha-perfil::backdrop {

@@ -130,7 +130,7 @@
 }
 
 .hero-carrossel .hero-texto > * {
-  animation: surgir-linha 560ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation: surgir-linha var(--mola-duracao) var(--mola) backwards;
 }
 
 .hero-carrossel .hero-texto > *:nth-child(1) {
@@ -203,5 +203,9 @@
 
   .hero-video-play {
     transition: none;
+  }
+
+  .hero-figura-video:hover .hero-video-play {
+    transform: none;
   }
 }

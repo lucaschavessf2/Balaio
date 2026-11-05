@@ -1,18 +1,7 @@
 import LayoutAdmin from '@/components/admin/LayoutAdmin'
 import { Migalhas } from '@/components/ui/Basicos'
 import { IconeAviso, IconeCheck, IconeSelo } from '@/components/ui/Icones'
-
-const aprovamos = [
-  'Trabalho feito à mão, com técnica e território identificáveis.',
-  'Peças publicadas com fotos próprias, que mostrem o acabamento.',
-  'Vínculo com a associação ou comunidade do território.',
-]
-
-const devolvemos = [
-  'Loja com produto industrializado ou revenda de terceiros.',
-  'Fotos de banco de imagens ou de outro artesão.',
-  'Origem não confirmada junto à associação do território.',
-]
+import { criteriosDoSelo, motivosDeAjuste } from '@/constants/curadoria'
 
 export default function Criterios() {
   return (
@@ -31,7 +20,7 @@ export default function Criterios() {
             O que garante o selo
           </p>
           <ul className="lista-criterios">
-            {aprovamos.map((criterio) => (
+            {criteriosDoSelo.map((criterio) => (
               <li key={criterio}>
                 <IconeCheck tamanho={15} />
                 <span>{criterio}</span>
@@ -45,7 +34,7 @@ export default function Criterios() {
             <IconeAviso />O que pede ajuste antes do selo
           </p>
           <ul className="lista-criterios lista-criterios-atencao">
-            {devolvemos.map((criterio) => (
+            {motivosDeAjuste.map((criterio) => (
               <li key={criterio}>
                 <IconeAviso tamanho={15} />
                 <span>{criterio}</span>

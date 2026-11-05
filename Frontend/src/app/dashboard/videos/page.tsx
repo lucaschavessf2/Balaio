@@ -1,10 +1,8 @@
-import Link from 'next/link'
 import { Migalhas } from '@/components/ui/Basicos'
+import EstadoErro from '@/components/feedback/EstadoErro'
 import FormPublicarVideo from '@/components/forms/FormPublicarVideo'
-import { IconeAviso, IconeGrafico, IconeSetaDireita } from '@/components/ui/Icones'
-import ImagemComFallback from '@/components/ui/ImagemComFallback'
-import { emMilhares } from '@/utils/formato'
-import { fallbackDe } from '@/utils/imagem'
+import ListaVideosPainel from '@/components/painel/ListaVideosPainel'
+import { IconeAviso, IconeGrafico } from '@/components/ui/Icones'
 import { listarVideos } from '@/services/api/videos.servico'
 import { pecasPorArtesao } from '@/services/api/pecas.servico'
 import { exigirArtesao } from '@/services/autenticacao'
@@ -16,61 +14,50 @@ const dicas = [
   'Vídeos de até um minuto são assistidos até o fim com mais frequência.',
 ]
 
-function resumirLegenda(legenda: string): string {
-  return legenda.length > 60 ? `${legenda.slice(0, 60)}…` : legenda
-}
-
-export default async function PublicarVideo() {
+export default async function VideosDoAtelie() {
   const { artesao } = await exigirArtesao()
-  const [{ dados: todosVideos }, { dados: pecasArtesao }] = await Promise.all([
+  const [{ dados: todosVideos, erro: erroVideos }, { dados: pecasArtesao }] = await Promise.all([
     listarVideos(true),
     pecasPorArtesao(artesao.slug),
   ])
-  const meus = (todosVideos ?? []).filter((v) => v.artesao === artesao.slug)
-  const pecas = (pecasArtesao ?? []).map((p) => ({ slug: p.slug, nome: p.nome }))
+  const meus = (todosVideos ?? []).filter((video) => video.artesao === artesao.slug).reverse()
+  const pecas = (pecasArtesao ?? []).map((peca) => ({ slug: peca.slug, nome: peca.nome }))
 
   return (
     <>
       <Migalhas trilha={[{ texto: 'Painel do artesão', href: '/dashboard' }, { texto: 'Vídeos' }]} />
-      <h1 className="titulo-pagina">Publicar um vídeo</h1>
+      <h1 className="titulo-pagina">Vídeos do ateliê</h1>
       <p className="subtitulo-pagina">
         Mostrar o processo é o que mais aproxima quem compra. Um minuto da sua bancada vale mais que dez fotos.
       </p>
 
-      <div className="duas-colunas">
-        <div>
+      <div className="videos-painel">
+        <section className="videos-painel-lista" aria-labelledby="seus-videos-titulo">
+          <div className="videos-painel-cabeca">
+            <h2 className="secao-titulo" id="seus-videos-titulo">Seus vídeos</h2>
+            <a href="#novo-video" className="prateleira-ver-todos videos-painel-novo">Publicar um vídeo</a>
+          </div>
+          {erroVideos ? (
+            <EstadoErro mensagem={erroVideos.mensagem} />
+          ) : (
+            <ListaVideosPainel videos={meus} nomesDasPecas={new Map(pecas.map((peca) => [peca.slug, peca.nome]))} />
+          )}
+        </section>
+
+        <section className="videos-painel-formulario" aria-labelledby="novo-video">
+          <h2 className="secao-titulo" id="novo-video">Publicar um vídeo</h2>
           <FormPublicarVideo pecas={pecas} />
+        </section>
 
-          <section className="cartao">
-            <h2 className="secao-titulo">Seus vídeos</h2>
-
-            {meus.map((v) => (
-              <div className="linha-video" key={v.id}>
-                <ImagemComFallback src={v.capa} reserva={fallbackDe(v.capa)} alt="" loading="lazy" width={54} height={54} />
-                <div className="encolhivel">
-                  <p className="dado-valor">{resumirLegenda(v.legenda)}</p>
-                  <p className="autoria">
-                    {emMilhares(v.visualizacoes)} visualizações · {emMilhares(v.curtidas)} curtidas ·{' '}
-                    {v.publicadoEm}
-                  </p>
-                </div>
-                <Link href={`/videos#${v.id}`} className="ver-peca">
-                  Ver <IconeSetaDireita tamanho={14} />
-                </Link>
-              </div>
-            ))}
-          </section>
-        </div>
-
-        <aside>
+        <aside className="videos-painel-dicas">
           <div className="cartao abaixo-4">
             <h2 className="secao-titulo linha-flex" style={{ gap: 10 }}>
               <IconeGrafico tamanho={20} />
               Como gravar
             </h2>
             <ul style={{ paddingLeft: 18, color: 'var(--tinta-suave)', display: 'grid', gap: 10, margin: 0 }}>
-              {dicas.map((d) => (
-                <li key={d}>{d}</li>
+              {dicas.map((dica) => (
+                <li key={dica}>{dica}</li>
               ))}
             </ul>
           </div>

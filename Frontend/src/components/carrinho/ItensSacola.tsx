@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { Foto, SeloDisponibilidade } from '@/components/ui/Basicos'
+import Seletor from '@/components/ui/Seletor'
 import EstadoVazio from '@/components/feedback/EstadoVazio'
 import { IconeSacola, IconeSetaDireita } from '@/components/ui/Icones'
 import { useSacola } from '@/store/sacola'
@@ -11,6 +12,8 @@ import EstadoErro from '@/components/feedback/EstadoErro'
 import EstadoCarregando from '@/components/feedback/EstadoCarregando'
 import { useDados } from '@/store/dados'
 import { emReais, precoComDesconto } from '@/utils/formato'
+
+const QUANTIDADES = ['1', '2', '3']
 
 export default function ItensSacola() {
   const { mapaPecas, carregando, erro } = usePecas()
@@ -114,19 +117,17 @@ export default function ItensSacola() {
                       </span>
                     )}
                     {peca.disponibilidade !== 'unica' && (
-                      <label className="linha-flex" style={{ gap: 8, fontSize: 14 }}>
-                        Quantidade
-                        <select
-                          className="campo-select"
-                          style={{ width: 76 }}
-                          value={item.quantidade}
-                          onChange={(evento) => alterarQuantidade(peca.slug, Number(evento.target.value))}
-                        >
-                          <option value={1}>1</option>
-                          <option value={2}>2</option>
-                          <option value={3}>3</option>
-                        </select>
-                      </label>
+                      <div className="linha-flex" style={{ gap: 8, fontSize: 14 }}>
+                        <span id={`quantidade-${peca.slug}`}>Quantidade</span>
+                        <Seletor
+                          compacto
+                          className="seletor-quantidade"
+                          aria-labelledby={`quantidade-${peca.slug}`}
+                          opcoes={QUANTIDADES}
+                          value={String(item.quantidade)}
+                          onChange={(valor) => alterarQuantidade(peca.slug, Number(valor))}
+                        />
+                      </div>
                     )}
                     <button
                       type="button"

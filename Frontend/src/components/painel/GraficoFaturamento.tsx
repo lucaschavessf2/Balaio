@@ -5,12 +5,8 @@ import { emReais } from '@/utils/formato'
 
 export type MesFaturamento = { mes: string; valor: number }
 
-function emMilhares(valor: number) {
-  return `${(valor / 1000).toFixed(1)}k`
-}
-
-function tickMilhares(valor: number) {
-  if (valor === 0) return '0'
+function valorCompacto(valor: number) {
+  if (valor < 1000) return String(Math.round(valor))
   const milhares = valor / 1000
   return `${Number.isInteger(milhares) ? milhares : milhares.toFixed(1)}k`
 }
@@ -41,7 +37,7 @@ export default function GraficoFaturamento({ meses }: { meses: MesFaturamento[] 
             dy={6}
           />
           <YAxis
-            tickFormatter={tickMilhares}
+            tickFormatter={valorCompacto}
             tickLine={false}
             axisLine={false}
             width={44}
@@ -59,7 +55,7 @@ export default function GraficoFaturamento({ meses }: { meses: MesFaturamento[] 
               fill="var(--tinta)"
               fontSize={13}
               fontWeight={700}
-              formatter={(valor) => (Number(valor) === maior ? emMilhares(Number(valor)) : '')}
+              formatter={(valor) => (Number(valor) === maior ? valorCompacto(Number(valor)) : '')}
             />
           </Bar>
         </BarChart>
