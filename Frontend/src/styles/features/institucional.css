@@ -120,6 +120,6 @@
   }
 
   .cartao-tela:hover {
-    transform: none;
+    translate: none;
   }
 }

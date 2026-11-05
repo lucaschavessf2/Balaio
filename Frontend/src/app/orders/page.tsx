@@ -48,76 +48,78 @@ export default async function MeusPedidos() {
           }
         />
       ) : (
-        listaPedidos.map((pedido) => {
-          const peca = acharPeca(pedido.pecaSlug)
-          const artesao = peca ? acharArtesao(peca.artesao) : undefined
-          const estado = rotuloEstadoPedido[pedido.estado]
-          const entregue = pedido.estado === 'entregue'
-          const encerrado = ['recusado', 'cancelado', 'reembolsado'].includes(pedido.estado)
+        <div className="escalonado">
+          {listaPedidos.map((pedido) => {
+            const peca = acharPeca(pedido.pecaSlug)
+            const artesao = peca ? acharArtesao(peca.artesao) : undefined
+            const estado = rotuloEstadoPedido[pedido.estado]
+            const entregue = pedido.estado === 'entregue'
+            const encerrado = ['recusado', 'cancelado', 'reembolsado'].includes(pedido.estado)
 
-          return (
-            <article className="cartao-pedido" key={pedido.id}>
-              <header className="cartao-pedido-topo">
-                <span className={`selo ${estado.classe}`}>
-                  <span className="selo-ponto" />
-                  {estado.texto}
-                </span>
-                <span className="dado-rotulo">{pedido.data}</span>
-              </header>
+            return (
+              <article className="cartao-pedido" key={pedido.id}>
+                <header className="cartao-pedido-topo">
+                  <span className={`selo ${estado.classe}`}>
+                    <span className="selo-ponto" />
+                    {estado.texto}
+                  </span>
+                  <span className="dado-rotulo">{pedido.data}</span>
+                </header>
 
-              <Link href={`/orders/${pedido.id}`} className="cartao-pedido-corpo">
-                <div className="cartao-pedido-figura">
-                  {peca && <Foto nome={peca.nome} imagem={peca.imagem} decorativa />}
-                </div>
-                <div className="encolhivel">
-                  <p className="texto-forte">{peca?.nome}{(pedido.itens?.length ?? 0) > 1 ? ` e mais ${pedido.itens!.length - 1} peça(s)` : ''}</p>
-                  <p className="autoria">
-                    por {artesao?.nome} · Pedido #{pedido.id}
-                  </p>
-                  <p className={`cartao-pedido-status${entregue ? ' status-bom' : ''}`}>
-                    {encerrado
-                      ? pedido.motivoEncerramento ?? 'Este pedido foi encerrado.'
-                      : entregue
-                        ? 'Entregue no seu endereço'
-                        : (pedido.previsaoEntrega ? `Previsão de entrega: ${pedido.previsaoEntrega}` : 'Aguardando previsão de entrega')}
-                  </p>
-                  <p className="preco-destaque">{emReais(pedido.total)}</p>
-                </div>
-              </Link>
+                <Link href={`/orders/${pedido.id}`} className="cartao-pedido-corpo">
+                  <div className="cartao-pedido-figura">
+                    {peca && <Foto nome={peca.nome} imagem={peca.imagem} decorativa />}
+                  </div>
+                  <div className="encolhivel">
+                    <p className="texto-forte">{peca?.nome}{(pedido.itens?.length ?? 0) > 1 ? ` e mais ${pedido.itens!.length - 1} peça(s)` : ''}</p>
+                    <p className="autoria">
+                      por {artesao?.nome} · Pedido #{pedido.id}
+                    </p>
+                    <p className={`cartao-pedido-status${entregue ? ' status-bom' : ''}`}>
+                      {encerrado
+                        ? pedido.motivoEncerramento ?? 'Este pedido foi encerrado.'
+                        : entregue
+                          ? 'Entregue no seu endereço'
+                          : (pedido.previsaoEntrega ? `Previsão de entrega: ${pedido.previsaoEntrega}` : 'Aguardando previsão de entrega')}
+                    </p>
+                    <p className="preco-destaque">{emReais(pedido.total)}</p>
+                  </div>
+                </Link>
 
-              <footer className="acoes-linha acoes-empilhaveis cartao-pedido-acoes">
-                {!entregue && !encerrado && (
-                  <Link href={`/orders/${pedido.id}`} className="botao botao-primario">
-                    Acompanhar pedido
-                  </Link>
-                )}
-                {entregue && !pedido.avaliado && (
-                  <Link href={`/orders/${pedido.id}/review`} className="botao botao-sucesso">
-                    Avaliar
-                  </Link>
-                )}
-                {entregue && peca && !peca.inativadoEm && (
-                  <BotaoAdicionarSacola
-                    slug={peca.slug}
-                    disponibilidade={peca.disponibilidade}
-                    texto="Comprar de novo"
-                    className="botao botao-secundario"
-                  />
-                )}
-                {entregue && (
-                  <Link href={`/orders/${pedido.id}`} className="botao botao-fantasma">
-                    Ver detalhes
-                  </Link>
-                )}
-                {encerrado ? (
-                  <Link href={`/orders/${pedido.id}`} className="botao botao-fantasma">Ver detalhes</Link>
-                ) : (
-                  <Link href={`/orders/${pedido.id}/mediation`} className="botao botao-fantasma">Preciso de ajuda</Link>
-                )}
-              </footer>
-            </article>
-          )
-        })
+                <footer className="acoes-linha acoes-empilhaveis cartao-pedido-acoes">
+                  {!entregue && !encerrado && (
+                    <Link href={`/orders/${pedido.id}`} className="botao botao-primario">
+                      Acompanhar pedido
+                    </Link>
+                  )}
+                  {entregue && !pedido.avaliado && (
+                    <Link href={`/orders/${pedido.id}/review`} className="botao botao-sucesso">
+                      Avaliar
+                    </Link>
+                  )}
+                  {entregue && peca && !peca.inativadoEm && (
+                    <BotaoAdicionarSacola
+                      slug={peca.slug}
+                      disponibilidade={peca.disponibilidade}
+                      texto="Comprar de novo"
+                      className="botao botao-secundario"
+                    />
+                  )}
+                  {entregue && (
+                    <Link href={`/orders/${pedido.id}`} className="botao botao-fantasma">
+                      Ver detalhes
+                    </Link>
+                  )}
+                  {encerrado ? (
+                    <Link href={`/orders/${pedido.id}`} className="botao botao-fantasma">Ver detalhes</Link>
+                  ) : (
+                    <Link href={`/orders/${pedido.id}/mediation`} className="botao botao-fantasma">Preciso de ajuda</Link>
+                  )}
+                </footer>
+              </article>
+            )
+          })}
+        </div>
       )}
     </Pagina>
   )

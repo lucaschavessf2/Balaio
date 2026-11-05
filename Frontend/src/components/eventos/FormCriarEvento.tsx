@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState, type FormEvent } from 'react'
 import { Campo, Retrato } from '@/components/ui/Basicos'
+import Seletor from '@/components/ui/Seletor'
 import { avisar } from '@/components/feedback/Avisos'
 import { validarObrigatorio } from '@/utils/validacao'
 import MapaEventosCliente from '@/components/eventos/MapaEventosCliente'
@@ -21,6 +22,16 @@ const idPorCampo: Record<string, string> = {
   descricao: 'evento-descricao',
   participantes: 'participantes',
 }
+
+const opcoesTipoEvento = (Object.keys(rotuloTipoEvento) as TipoEvento[]).map((chave) => ({
+  valor: chave,
+  rotulo: rotuloTipoEvento[chave],
+}))
+
+const opcoesMunicipio = [
+  { valor: '', rotulo: 'Escolha o município' },
+  ...municipiosPE.map((municipio) => ({ valor: municipio.nome, rotulo: municipio.nome })),
+]
 
 export default function FormCriarEvento() {
   const { artesaos, coletivos, erro: erroParticipantes } = useDados()
@@ -196,13 +207,12 @@ export default function FormCriarEvento() {
 
       <div className="grade-dois">
         <Campo rotulo="Tipo de evento" id="evento-tipo">
-          <select id="evento-tipo" value={tipo} onChange={(e) => definirTipo(e.target.value as TipoEvento)}>
-            {(Object.keys(rotuloTipoEvento) as TipoEvento[]).map((chave) => (
-              <option key={chave} value={chave}>
-                {rotuloTipoEvento[chave]}
-              </option>
-            ))}
-          </select>
+          <Seletor
+            id="evento-tipo"
+            opcoes={opcoesTipoEvento}
+            value={tipo}
+            onChange={(valor) => definirTipo(valor as TipoEvento)}
+          />
         </Campo>
         <Campo
           rotulo="Quem organiza"
@@ -249,14 +259,7 @@ export default function FormCriarEvento() {
 
       <div className="grade-dois">
         <Campo rotulo="Município" id="evento-cidade" erro={erros.cidade}>
-          <select id="evento-cidade" value={cidade} onChange={(e) => escolherCidade(e.target.value)}>
-            <option value="">Escolha o município</option>
-            {municipiosPE.map((m) => (
-              <option key={m.nome} value={m.nome}>
-                {m.nome}
-              </option>
-            ))}
-          </select>
+          <Seletor id="evento-cidade" opcoes={opcoesMunicipio} value={cidade} onChange={escolherCidade} />
         </Campo>
         <Campo rotulo="Entrada" id="evento-entrada" ajuda="Deixe 'Gratuita' se não houver cobrança">
           <input

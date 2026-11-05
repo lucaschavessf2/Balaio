@@ -97,7 +97,8 @@
 
   .botao:hover,
   .botao:active {
-    transform: none;
+    translate: none;
+    scale: none;
   }
 }
 

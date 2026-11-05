@@ -1,8 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import { Children, useCallback, useEffect, useId, useRef, useState, type ReactNode } from 'react'
+import { Children, useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { IconeAnterior, IconeProximo, IconeSetaDireita } from '@/components/ui/Icones'
+import { revelarAoRolar } from '@/utils/revelarAoRolar'
 
 export type VariantePrateleira = 'pecas' | 'cartoes' | 'atalhos'
 
@@ -54,6 +55,8 @@ export default function Prateleira({
     }
   }, [atualizarLimites])
 
+  useLayoutEffect(() => revelarAoRolar(trilho.current), [])
+
   function rolar(direcao: 1 | -1) {
     const alvo = trilho.current
     if (!alvo) return
@@ -94,7 +97,7 @@ export default function Prateleira({
           </button>
         )}
 
-        <ul className="prateleira-trilho" ref={trilho} tabIndex={0} aria-labelledby={idTitulo}>
+        <ul className="prateleira-trilho escalonado" ref={trilho} tabIndex={0} aria-labelledby={idTitulo}>
           {Children.toArray(children).map((filho, indice) => (
             <li className="prateleira-item" key={indice}>
               {filho}

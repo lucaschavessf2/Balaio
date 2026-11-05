@@ -364,7 +364,7 @@ export default function CartaoVideo({ video, artesao, peca }: Props) {
       >
         <div className="comentarios-topo">
             <div className="encolhivel">
-              <h3 className="secao-titulo" style={{ fontSize: 17, margin: 0 }}>
+              <h3 className="secao-titulo" style={{ fontFamily: 'var(--fonte)', fontSize: 17, fontWeight: 700, margin: 0 }}>
                 {emMilhares(totalComentarios)} comentários
               </h3>
               <p className="video-metricas">
