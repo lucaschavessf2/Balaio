@@ -87,6 +87,11 @@ export default function PedidosPendentes({
     const resposta = await recusarPedido(pedidoRecusado.id, texto)
     definirSalvando(false)
     if (!resposta.dados) return avisar.erro('Não foi possível recusar', resposta.erro?.mensagem)
+    if (resposta.dados.estado === 'encerramento_pendente') {
+      dialogoRecusa.current?.close()
+      roteador.refresh()
+      return avisar.info('Recusa em processamento', 'A peça única ficará indisponível até a liberação confirmada pelo catálogo.')
+    }
     definirPendentes((atuais) => atuais.filter((pedido) => pedido.id !== pedidoRecusado.id))
     dialogoRecusa.current?.close()
     avisarPainelAtualizado()

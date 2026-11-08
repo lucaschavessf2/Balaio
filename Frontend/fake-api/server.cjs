@@ -698,6 +698,14 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
     const novos = ler('pedidos').filter((pedido) => pedido.estado === 'confirmado' && (!artesao || (pedido.itens ?? [{ slug: pedido.pecaSlug }]).some((item) => slugs.has(item.slug))) && !iniciais.some((item) => item.id === pedido.id)).map((pedido) => ({ id: pedido.id, pecaSlug: pedido.pecaSlug, comprador: pedido.compradorNome, quando: pedido.data, valor: pedido.total }))
     res.json(ok([...iniciais, ...novos]))
   })
+  server.get('/api/v1/artesao/vendas', (req, res) => {
+    const artesao = String(req.query.artesao || '')
+    const slugs = new Set(ler('pecas').filter((peca) => peca.artesao === artesao).map((peca) => peca.slug))
+    const vendas = ler('pedidos').filter((pedido) =>
+      ['confirmado', 'producao', 'enviado', 'entregue'].includes(pedido.estado)
+      && (!artesao || (pedido.itens ?? [{ slug: pedido.pecaSlug }]).some((item) => slugs.has(item.slug))))
+    res.json(ok(vendas))
+  })
   server.get('/api/v1/artesao/conversas', (req, res) => {
     const artesao = String(req.query.artesao || '')
     const slugs = new Set(ler('pecas').filter((peca) => peca.artesao === artesao).map((peca) => peca.slug))

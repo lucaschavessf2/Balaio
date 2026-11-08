@@ -14,7 +14,7 @@ import { emReais, precoComDesconto } from '@/utils/formato'
 
 export default function ItensSacola() {
   const { mapaPecas, carregando, erro } = usePecas()
-  const { artesaos, fretes, carregando: carregandoFretes, erro: erroFretes } = useDados()
+  const { artesaos, fretes, carregando: carregandoFretes, erroFretes } = useDados()
   const { itens, remover, repor, alterarQuantidade } = useSacola()
 
   const detalhados = itens.flatMap((item) => {

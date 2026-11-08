@@ -12,7 +12,8 @@
     "api:seed": "tsx fake-api/seed.ts",
     "api:reset": "node fake-api/reset.cjs",
     "test:api": "node --test fake-api/server.test.cjs",
-    "test:session": "tsx --test src/proxy.test.ts"
+    "test:session": "tsx --test src/proxy.test.ts",
+    "test:orders": "tsx --test src/components/pedido/acaoCancelamentoPedido.test.ts"
   },
   "dependencies": {
     "@types/leaflet": "^1.9.22",

@@ -20,6 +20,9 @@ export default function CancelarPedido({ pedidoId }: { pedidoId: string }) {
       definirErro(resposta.erro?.mensagem ?? 'Não foi possível cancelar o pedido. Tente novamente.')
       return
     }
+    if (resposta.dados.estado === 'encerramento_pendente') {
+      definirErro('Cancelamento em processamento. A peça única só voltará à vitrine após confirmação do catálogo.')
+    }
     roteador.refresh()
   }
 
@@ -31,7 +34,7 @@ export default function CancelarPedido({ pedidoId }: { pedidoId: string }) {
         </span>
         <div>
           <h3 id="titulo-confirmar-cancelamento">Tem certeza que deseja cancelar?</h3>
-          <p>Essa ação não poderá ser desfeita. Se houver uma peça única, ela voltará para a vitrine.</p>
+          <p>Essa ação não poderá ser desfeita. Se houver uma peça única, ela voltará à vitrine após a liberação confirmada pelo catálogo.</p>
           {erro && <p className="cancelamento-erro" role="alert">{erro}</p>}
           <div className="cancelamento-acoes">
             <button

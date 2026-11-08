@@ -33,7 +33,7 @@ export default function CheckoutFormulario() {
   const { itens, pronto, limpar } = useSacola()
   const { mapaPecas, carregando, erro } = usePecas()
   const [meio, definirMeio] = useState<Meio>('pix')
-  const { fretes: opcoesFrete, carregando: carregandoFretes, erro: erroFretes } = useDados()
+  const { fretes: opcoesFrete, carregando: carregandoFretes, erroFretes } = useDados()
   const [freteId, definirFrete] = useState('padrao')
   const frete = opcoesFrete.find((f) => f.id === freteId) ?? opcoesFrete[0]
   const [erros, definirErros] = useState<Record<string, string>>({})
@@ -128,7 +128,9 @@ export default function CheckoutFormulario() {
       return
     }
     definirConcluido(true)
-    avisar.sucesso('Compra de demonstração registrada', 'Nenhum pagamento real foi realizado.')
+    avisar.sucesso('Pedido registrado', resposta.dados.estado === 'aguardando_pagamento'
+      ? 'Aguardando confirmação do pagamento simulado.'
+      : 'Acompanhe a confirmação da disponibilidade. Nenhum pagamento real foi realizado.')
     roteador.push('/confirmation/' + resposta.dados.id)
     limpar()
   }

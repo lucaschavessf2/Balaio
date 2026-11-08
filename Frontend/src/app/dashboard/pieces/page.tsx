@@ -5,7 +5,7 @@ import InativarPeca from '@/components/painel/InativarPeca'
 import { pecasPorArtesao } from '@/services/api/pecas.servico'
 import { emReais } from '@/utils/formato'
 import { exigirArtesao } from '@/services/autenticacao'
-import { listarPedidos } from '@/services/api/pedidos.servico'
+import { listarVendasArtesao } from '@/services/api/pedidos.servico'
 import DisponibilidadeRapida from '@/components/painel/DisponibilidadeRapida'
 
 const situacoes: Record<string, { texto: string; classe: string }> = {
@@ -18,7 +18,7 @@ export default async function MinhasPecas() {
   const { artesao, token } = await exigirArtesao()
   const [{ dados: pecas }, { dados: pedidos }] = await Promise.all([
     pecasPorArtesao(artesao.slug, token),
-    listarPedidos(),
+    listarVendasArtesao(artesao.slug, token),
   ])
   const pecasLista = pecas ?? []
   const mapaPecas = new Map(pecasLista.map((peca) => [peca.slug, peca]))

@@ -3,19 +3,21 @@ import { Migalhas } from '@/components/ui/Basicos'
 import { IconeGrafico } from '@/components/ui/Icones'
 import { emReais } from '@/utils/formato'
 import { exigirArtesao } from '@/services/autenticacao'
-import { listarPedidos } from '@/services/api/pedidos.servico'
+import { listarVendasArtesao } from '@/services/api/pedidos.servico'
 import { pecasPorArtesao } from '@/services/api/pecas.servico'
 
 export default async function Vendas() {
-  const { artesao } = await exigirArtesao()
-  const [{ dados: pedidos }, { dados: pecas }] = await Promise.all([listarPedidos(), pecasPorArtesao(artesao.slug)])
+  const { artesao, token } = await exigirArtesao()
+  const [{ dados: pedidos }, { dados: pecas }] = await Promise.all([
+    listarVendasArtesao(artesao.slug, token), pecasPorArtesao(artesao.slug, token),
+  ])
   const minhas = new Map((pecas ?? []).map((peca) => [peca.slug, peca]))
   const vendas = (pedidos ?? []).flatMap((pedido) => (pedido.itens ?? [{ slug: pedido.pecaSlug, quantidade: 1 }]).filter((item) => minhas.has(item.slug)).map((item) => ({ pedido, item, peca: minhas.get(item.slug)! })))
   const porPeca = new Map<string, { nome: string; unidades: number; receita: number }>()
   for (const venda of vendas) {
     const atual = porPeca.get(venda.item.slug) ?? { nome: venda.peca.nome, unidades: 0, receita: 0 }
     atual.unidades += venda.item.quantidade
-    atual.receita += venda.peca.preco * venda.item.quantidade
+    atual.receita += (venda.item.preco ?? venda.peca.preco) * venda.item.quantidade
     porPeca.set(venda.item.slug, atual)
   }
   const maisVendidas = [...porPeca.values()].sort((a, b) => b.receita - a.receita)
@@ -29,7 +31,7 @@ export default async function Vendas() {
     const valor = vendas.filter(({ pedido }) => {
       const partes = pedido.data.split('/').map(Number)
       return partes.length === 3 && partes[1] === data.getMonth() + 1 && partes[2] === data.getFullYear()
-    }).reduce((soma, venda) => soma + venda.peca.preco * venda.item.quantidade, 0)
+    }).reduce((soma, venda) => soma + (venda.item.preco ?? venda.peca.preco) * venda.item.quantidade, 0)
     return { mes: rotulo, valor }
   })
   return (

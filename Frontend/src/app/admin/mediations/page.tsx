@@ -2,9 +2,11 @@ import LayoutAdmin from '@/components/admin/LayoutAdmin'
 import { Migalhas } from '@/components/ui/Basicos'
 import ListaMediacoes from '@/components/admin/ListaMediacoes'
 import { listarMediacoes } from '@/services/api/pedidos.servico'
+import { exigirSessao } from '@/services/autenticacao'
 
 export default async function Mediacoes() {
-  const { dados: mediacoes } = await listarMediacoes()
+  const { token } = await exigirSessao()
+  const { dados: mediacoes } = await listarMediacoes(token)
 
   return (
     <LayoutAdmin ativo="mediacoes">

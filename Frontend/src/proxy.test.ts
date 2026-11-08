@@ -41,3 +41,19 @@ test('consulta de usuário encaminha JWT ao profile-service', async () => {
   const resposta = await proxy(requisicao)
   assert.equal(resposta.headers.get('x-middleware-request-authorization'), 'Bearer jwt-assinado')
 })
+
+test('checkout, pedido e mediação encaminham sessão como Bearer', async () => {
+  for (const [path, method] of [
+    ['/api/v1/checkout', 'POST'],
+    ['/api/v1/pedidos/123/cancelar', 'PATCH'],
+    ['/api/v1/admin/mediacoes/123/decisao', 'POST'],
+    ['/api/v1/artesao/pedidos-pendentes', 'GET'],
+    ['/api/v1/artesao/vendas', 'GET'],
+  ]) {
+    const requisicao = new NextRequest(`http://localhost:4321${path}`, {
+      method, headers: { cookie: 'balaio_sessao=jwt-assinado' },
+    })
+    const resposta = await proxy(requisicao)
+    assert.equal(resposta.headers.get('x-middleware-request-authorization'), 'Bearer jwt-assinado')
+  }
+})

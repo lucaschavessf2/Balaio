@@ -2,17 +2,17 @@ import Link from 'next/link'
 import { Migalhas } from '@/components/ui/Basicos'
 import PedidosPendentes from '@/components/pedido/PedidosPendentes'
 import { IconeSetaDireita } from '@/components/ui/Icones'
-import { listarPedidos, listarPedidosPendentes, listarConversasArtesao } from '@/services/api/pedidos.servico'
+import { listarVendasArtesao, listarPedidosPendentes, listarConversasArtesao } from '@/services/api/pedidos.servico'
 import { pecasPorArtesao } from '@/services/api/pecas.servico'
 import { exigirArtesao } from '@/services/autenticacao'
 
 export default async function Painel() {
-  const { artesao } = await exigirArtesao()
+  const { artesao, token } = await exigirArtesao()
   const [{ dados: pend }, { dados: conversas }, { dados: pecas }, { dados: pedidos }] = await Promise.all([
-    listarPedidosPendentes(artesao.slug),
+    listarPedidosPendentes(artesao.slug, token),
     listarConversasArtesao(artesao.slug),
-    pecasPorArtesao(artesao.slug),
-    listarPedidos(),
+    pecasPorArtesao(artesao.slug, token),
+    listarVendasArtesao(artesao.slug, token),
   ])
   const mapaPecas = new Map((pecas ?? []).map((p) => [p.slug, p]))
   const conversasArtesao = conversas ?? []
@@ -57,6 +57,9 @@ export default async function Painel() {
     const dataPedido = new Date(ano, mes - 1, dia)
     return dataPedido.getMonth() === agora.getMonth() && dataPedido.getFullYear() === agora.getFullYear()
   }
+  const receitaPecas = (pedido: (typeof pedidosDoArtesao)[number]) =>
+    pedido.itens?.reduce((total, item) => total + (item.preco ?? mapaPecas.get(item.slug)?.preco ?? 0) * item.quantidade, 0)
+      ?? pedido.total
 
   return (
     <>
@@ -71,7 +74,7 @@ export default async function Painel() {
         emProducao={pedidosDoArtesao.filter((pedido) => pedido.estado === 'producao').length}
         pecasAtivas={pecasAtivas}
         avisosPecas={avisosPecas}
-        faturamentoMes={pedidosDoArtesao.filter((pedido) => !estadosEncerrados.has(pedido.estado) && noMesAtual(pedido.data)).reduce((total, pedido) => total + pedido.total, 0)}
+        faturamentoMes={pedidosDoArtesao.filter((pedido) => !estadosEncerrados.has(pedido.estado) && noMesAtual(pedido.data)).reduce((total, pedido) => total + receitaPecas(pedido), 0)}
       />
 
       <section className="secao">

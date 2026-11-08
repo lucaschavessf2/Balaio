@@ -23,7 +23,7 @@ test('contrato HTTP, filtros, relações, CRUD e persistência', async (t) => {
     const res = await fetch(base + url, opcoes)
     return { status: res.status, cookie: res.headers.get('set-cookie'), ...await res.json() }
   }
-  for (const recurso of ['pecas', 'artesaos', 'coletivos', 'eventos', 'videos', 'pedidos', 'artesao/conversas', 'artesao/pedidos-pendentes', 'admin/mediacoes']) {
+  for (const recurso of ['pecas', 'artesaos', 'coletivos', 'eventos', 'videos', 'pedidos', 'artesao/conversas', 'artesao/pedidos-pendentes', 'artesao/vendas', 'admin/mediacoes']) {
     const res = await request('/' + recurso)
     assert.equal(res.status, 200, recurso)
     assert.equal(res.erro, null, recurso)
@@ -106,6 +106,8 @@ test('contrato HTTP, filtros, relações, CRUD e persistência', async (t) => {
   const demo = await request('/auth/entrar', { email: 'nuca@exemplo.com', senha: 'balaio123' })
   assert.equal((await request(`/pedidos/${pedido.dados.id}/estado`, { estado: 'producao' }, 'PATCH')).status, 403)
   const comoNuca = { Cookie: demo.cookie.split(';')[0] }
+  assert.ok((await request(`/artesao/vendas?artesao=${primeira.artesao}`)).dados.some((item) => item.id === pedido.dados.id))
+  assert.ok(!(await request(`/artesao/vendas?artesao=${vendedor.dados.artesaoId}`)).dados.some((item) => item.id === pedido.dados.id))
   assert.equal((await request(`/pedidos/${pedido.dados.id}/estado`, { estado: 'producao' }, 'PATCH', { Cookie: cookieVendedor })).status, 403)
   assert.equal((await request(`/pedidos/${pedido.dados.id}/recusar`, { motivo: 'Não posso atender.' }, 'PATCH', { Cookie: cookieVendedor })).status, 403)
   assert.equal((await request(`/pedidos/${pedido.dados.id}/estado`, { estado: 'entregue' }, 'PATCH', comoNuca)).status, 409)
