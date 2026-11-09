@@ -1,38 +1,25 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Campo, Foto, Migalhas } from '@/components/ui/Basicos'
 import EstadoVazio from '@/components/feedback/EstadoVazio'
 import { IconeCadeado, IconeCaminhao, IconeCheck, IconeSacola, IconeSetaDireita } from '@/components/ui/Icones'
 import { avisar } from '@/components/feedback/Avisos'
-import { finalizarCompra } from '@/services/api/pedidos.servico'
+import { concluirCheckoutPendente, finalizarCompra } from '@/services/api/pedidos.servico'
 import EstadoErro from '@/components/feedback/EstadoErro'
 import EstadoCarregando from '@/components/feedback/EstadoCarregando'
 import { useSacola } from '@/store/sacola'
 import { usePecas } from '@/hooks/usePecas'
 import { validarCEP, validarEstado, validarObrigatorio } from '@/utils/validacao'
 import { useDados } from '@/store/dados'
-import { useSessao } from '@/store/sessao'
 import { emReais, precoComDesconto } from '@/utils/formato'
 import { obterUsuario } from '@/services/api/conta.servico'
 import SeletorEstado from '@/components/forms/SeletorEstado'
 
-type Meio = 'pix' | 'cartao' | 'boleto'
-
-const meios: { id: Meio; nome: string; nota: string }[] = [
-  { id: 'pix', nome: 'Pix', nota: 'Simulado' },
-  { id: 'cartao', nome: 'Cartão', nota: 'Simulado' },
-  { id: 'boleto', nome: 'Boleto', nota: 'Simulado' },
-]
-
 export default function CheckoutFormulario() {
-  const { sessao } = useSessao()
-  const roteador = useRouter()
   const { itens, pronto, limpar } = useSacola()
   const { mapaPecas, carregando, erro } = usePecas()
-  const [meio, definirMeio] = useState<Meio>('pix')
   const { fretes: opcoesFrete, carregando: carregandoFretes, erroFretes } = useDados()
   const [freteId, definirFrete] = useState('padrao')
   const frete = opcoesFrete.find((f) => f.id === freteId) ?? opcoesFrete[0]
@@ -117,7 +104,7 @@ export default function CheckoutFormulario() {
     definirSalvando(true)
     definirErroConfirmacao(null)
     const resposta = await finalizarCompra({
-      itens, freteId: frete.id, meio, compradorId: sessao?.id ?? '',
+      itens, freteId: frete.id, meio: 'checkout_pro',
       endereco: { cep: String(dados.get('cep')), endereco: String(dados.get('endereco')), cidade: String(dados.get('cidade')), estado: String(dados.get('estado')) },
     })
     definirSalvando(false)
@@ -127,12 +114,22 @@ export default function CheckoutFormulario() {
       avisar.erro('Não foi possível registrar o pedido', mensagem)
       return
     }
+    if (!resposta.dados.checkoutUrl) {
+      definirErroConfirmacao('Pedido registrado; a página de pagamento ainda está sendo preparada. Tente novamente com os mesmos dados.')
+      return
+    }
+    let destino: URL
+    try { destino = new URL(resposta.dados.checkoutUrl) }
+    catch { definirErroConfirmacao('A página de pagamento de teste retornada é inválida.'); return }
+    if (destino.protocol !== 'https:' || destino.hostname !== 'sandbox.mercadopago.com') {
+      definirErroConfirmacao('A página de pagamento de teste retornada é inválida. Tente novamente mais tarde.')
+      return
+    }
     definirConcluido(true)
-    avisar.sucesso('Pedido registrado', resposta.dados.estado === 'aguardando_pagamento'
-      ? 'Aguardando confirmação do pagamento simulado.'
-      : 'Acompanhe a confirmação da disponibilidade. Nenhum pagamento real foi realizado.')
-    roteador.push('/confirmation/' + resposta.dados.id)
+    avisar.sucesso('Pedido registrado', 'Abrindo o checkout de teste do Mercado Pago.')
+    concluirCheckoutPendente()
     limpar()
+    window.location.assign(destino.href)
   }
 
   if ((!pronto || carregando || carregandoFretes) && !concluido) {
@@ -147,7 +144,7 @@ export default function CheckoutFormulario() {
     )
   }
 
-  if (concluido) return <EstadoCarregando rotulo="Abrindo a confirmação do pedido…" cartoes={1} />
+  if (concluido) return <EstadoCarregando rotulo="Abrindo o pagamento de teste…" cartoes={1} />
 
   if (erro || erroFretes || !frete) return <EstadoErro mensagem={erro ?? erroFretes ?? 'Nenhuma opção de entrega disponível.'} />
 
@@ -180,7 +177,7 @@ export default function CheckoutFormulario() {
 
       <h1 className="titulo-pagina">Finalizar compra</h1>
       <p className="subtitulo-pagina">
-        Compra de demonstração: os dados serão salvos, sem cobrança ou pagamento real.
+        O pagamento de teste acontece no site seguro do Mercado Pago. Os dados do cartão não passam pelo Balaio.
       </p>
 
       <ol className="etapas-compra">
@@ -254,41 +251,8 @@ export default function CheckoutFormulario() {
           </section>
 
           <section className="cartao">
-            <h2 className="secao-titulo">Forma de pagamento</h2>
-            <div className="opcoes-pagamento">
-              {meios.map((m) => (
-                <button
-                  key={m.id}
-                  type="button"
-                  className="opcao-pagamento"
-                  aria-pressed={meio === m.id}
-                  onClick={() => definirMeio(m.id)}
-                >
-                  <span>
-                    <span className="opcao-pagamento-nome">{m.nome}</span>
-                    <span className="opcao-pagamento-nota">{m.nota}</span>
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            {meio === 'pix' && (
-              <p className="texto-suave">O Pix é apenas uma escolha de demonstração. Nenhum código de pagamento será gerado.</p>
-            )}
-
-            {meio === 'cartao' && (
-              <div className="bloco-psp">
-                <p className="bloco-psp-titulo">
-                  <IconeCadeado />
-                  Cartão de demonstração
-                </p>
-                <p>Nenhum dado de cartão será solicitado e nenhuma cobrança será feita.</p>
-              </div>
-            )}
-
-            {meio === 'boleto' && (
-              <p className="texto-suave">O boleto é apenas uma escolha de demonstração. Nenhum documento de cobrança será emitido.</p>
-            )}
+            <h2 className="secao-titulo">Pagamento</h2>
+            <p className="texto-suave">Você escolherá o meio de pagamento no Checkout Pro de teste do Mercado Pago.</p>
           </section>
         </div>
 
@@ -350,7 +314,7 @@ export default function CheckoutFormulario() {
           <p className="nota-fiscal acima-4" style={{ display: 'flex', gap: 10 }}>
             <IconeCadeado />
             <span>
-              Esta etapa registra um pedido de demonstração. <strong>Nenhum pagamento real será processado.</strong>
+              Esta etapa registra o pedido e abre um pagamento em ambiente de teste. <strong>A confirmação depende do provedor.</strong>
             </span>
           </p>
         </aside>

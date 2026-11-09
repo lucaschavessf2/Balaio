@@ -10,6 +10,8 @@ export const rotuloEstadoPedido: Record<EstadoPedido, { texto: string; classe: s
   enviado: { texto: 'Enviado', classe: 'selo-neutro' },
   entregue: { texto: 'Entregue', classe: 'selo-disponivel' },
   encerramento_pendente: { texto: 'Encerramento em processamento', classe: 'selo-neutro' },
+    cancelamento_pendente: { texto: 'Cancelamento em processamento', classe: 'selo-neutro' },
+    reembolso_pendente: { texto: 'Reembolso em processamento', classe: 'selo-neutro' },
   falha_reserva: { texto: 'Reserva não concluída', classe: 'selo-unica' },
   falha_pagamento: { texto: 'Pagamento não confirmado', classe: 'selo-unica' },
   recusado: { texto: 'Recusado pelo artesão', classe: 'selo-unica' },

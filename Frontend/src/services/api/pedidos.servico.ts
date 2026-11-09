@@ -6,8 +6,7 @@ export type Checkout = {
   itens: { slug: string; quantidade: number }[]
   freteId: string
   endereco: { cep: string; endereco: string; cidade: string; estado: string }
-  meio: 'pix' | 'cartao' | 'boleto'
-  compradorId: string
+  meio: 'checkout_pro'
 }
 
 export async function finalizarCompra(compra: Checkout): Promise<RespostaApi<Pedido>> {
@@ -24,8 +23,11 @@ export async function finalizarCompra(compra: Checkout): Promise<RespostaApi<Ped
     }
   }
   const resposta = await buscar<Pedido>('/checkout', { method: 'POST', body: atual, headers: { 'Idempotency-Key': chave } })
-  if (resposta.dados && typeof window !== 'undefined') sessionStorage.removeItem(armazenamento)
   return resposta
+}
+
+export function concluirCheckoutPendente() {
+  if (typeof window !== 'undefined') sessionStorage.removeItem('balaio-checkout-pendente')
 }
 
 export function enviarMensagem(id: string, mensagem: Mensagem): Promise<RespostaApi<Mensagem>> {

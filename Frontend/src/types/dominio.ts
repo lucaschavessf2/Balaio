@@ -57,7 +57,7 @@ export type Artesao = {
   chavePix?: string
 }
 
-export type EstadoPedido = 'aguardando_reserva' | 'aguardando_pagamento' | 'confirmacao_pendente' | 'confirmado' | 'producao' | 'enviado' | 'entregue' | 'encerramento_pendente' | 'falha_reserva' | 'falha_pagamento' | 'recusado' | 'cancelado' | 'reembolsado'
+export type EstadoPedido = 'aguardando_reserva' | 'aguardando_pagamento' | 'confirmacao_pendente' | 'confirmado' | 'producao' | 'enviado' | 'entregue' | 'cancelamento_pendente' | 'reembolso_pendente' | 'encerramento_pendente' | 'falha_reserva' | 'falha_pagamento' | 'recusado' | 'cancelado' | 'reembolsado'
 
 export type EtapaPedido = {
   estado: EstadoPedido
@@ -71,6 +71,8 @@ export type EtapaPedido = {
 export type Pedido = {
   itens?: { slug: string; quantidade: number; preco?: number }[]
   simulado?: boolean
+  estadoPagamento?: string
+  checkoutUrl?: string | null
   id: string
   pecaSlug: string
   compradorId?: string

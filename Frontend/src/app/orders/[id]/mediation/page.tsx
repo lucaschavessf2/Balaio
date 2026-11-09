@@ -50,7 +50,7 @@ export default async function Mediacao({ params }: { params: Promise<{ id: strin
           <ol className="lista-passos-evento abaixo-4">
             <li>Você conta o que aconteceu e o que resolveria.</li>
             <li>O artesão é notificado e as duas partes têm 48h para responder.</li>
-            <li>Enquanto durar a mediação, o repasse do pagamento fica retido.</li>
+            <li>Se houver decisão de reembolso, o pedido aguardará a confirmação do provedor de teste.</li>
             <li>Sem acordo, a equipe da plataforma decide com base no histórico do pedido.</li>
           </ol>
           <p className="texto-suave">

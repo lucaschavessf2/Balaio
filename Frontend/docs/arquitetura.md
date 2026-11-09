@@ -34,6 +34,8 @@ Frontend/
 | `app/` | Monta cada tela: busca os dados pelos services e compõe os componentes |
 | `components/` | Componentes por domínio: `produto`, `carrinho`, `pedido`, `painel`, `admin`, `eventos`, `forms`, `layout`, `ui` e `feedback` (carregando, erro e estado vazio) |
 | `services/api/` | Único ponto de acesso à API: um cliente HTTP (`cliente.ts`) e um arquivo por recurso (`pecas.servico.ts`, `pedidos.servico.ts`...) |
+
+No Checkout Pro, o frontend recebe apenas a URL hospedada `sandbox.mercadopago.com` e redireciona o comprador. Nenhum cartão, token do provedor ou segredo webhook passa pelo navegador. O retorno para `/confirmation/:id` consulta o estado do commerce periodicamente; query string ou navegação de sucesso não alteram o status financeiro. Cancelamento e reembolso só são exibidos como concluídos depois da confirmação do provedor no backend. A integração não promete retenção ou repasse ao artesão.
 | `store/` | Sessão, sacola, favoritos e dados compartilhados |
 | `hooks/` | Lógica reutilizável dos componentes (`usePecas`, `useReferencias`...) |
 | `types/` | Tipos das entidades (`Peca`, `Artesao`, `Pedido`, `Evento`, `Usuario`...) |

@@ -14,6 +14,7 @@ import { exigirSessao } from '@/services/autenticacao'
 import type { EstadoPedido, EtapaPedido } from '@/types/dominio'
 import CancelarPedido from '@/components/pedido/CancelarPedido'
 import { acaoCancelamentoPedido } from '@/components/pedido/acaoCancelamentoPedido'
+import EstadoPagamento from '@/components/pedido/EstadoPagamento'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,7 +39,7 @@ function linhaDoTempo(estado: EstadoPedido, registradas: EtapaPedido[]): EtapaPe
       nota: registrada?.nota,
     }
   })
-  if (['aguardando_reserva', 'aguardando_pagamento', 'confirmacao_pendente', 'encerramento_pendente'].includes(estado)) {
+  if (['aguardando_reserva', 'aguardando_pagamento', 'confirmacao_pendente', 'cancelamento_pendente', 'reembolso_pendente', 'encerramento_pendente'].includes(estado)) {
     return [{ estado, titulo: rotuloEstadoPedido[estado].texto,
       detalhe: 'O pedido ainda não chegou à etapa de produção.', concluida: false, atual: true }, ...etapas]
   }
@@ -95,13 +96,14 @@ export default async function Acompanhamento({ params }: { params: Promise<{ id:
             </div>
 
             <ResumoItensPedido pedido={pedido} />
+            <EstadoPagamento inicial={pedido} />
           </section>
 
           {encerrado && (
             <section className="pedido-encerrado abaixo-5" role="status">
               <h2>{rotuloEstadoPedido[pedido.estado].texto}</h2>
               <p>{pedido.motivoEncerramento ?? 'Este pedido foi encerrado.'}</p>
-              <p className="campo-ajuda">Se havia uma peça única neste pedido, ela voltou a ficar disponível na vitrine.</p>
+              <p className="campo-ajuda">A disponibilidade da peça única depende da liberação confirmada pelo catálogo.</p>
             </section>
           )}
 
@@ -191,7 +193,11 @@ export default async function Acompanhamento({ params }: { params: Promise<{ id:
               <p className="texto-suave" role="status">
                 {pedido.estado === 'confirmacao_pendente'
                   ? 'A confirmação do pagamento está em processamento. Aguarde a atualização do pedido antes de solicitar o cancelamento.'
-                  : 'O encerramento está em processamento. A peça única só volta à vitrine após a liberação confirmada pelo catálogo.'}
+                  : pedido.estado === 'reembolso_pendente'
+                    ? 'O reembolso foi solicitado e ainda aguarda confirmação do Mercado Pago de teste.'
+                    : pedido.estado === 'cancelamento_pendente'
+                      ? 'O cancelamento está em processamento. O pedido só será encerrado após a confirmação do provedor.'
+                      : 'O encerramento está em processamento. A peça única só volta à vitrine após a liberação confirmada pelo catálogo.'}
               </p>
             ) : acaoCancelamento === 'encerrado' ? (
               <p className="texto-suave">O pedido já foi encerrado. Se precisar contestar o resultado, fale com a plataforma.</p>

@@ -6,6 +6,7 @@ import { Migalhas } from '@/components/ui/Basicos'
 import { IconeCheck, IconeConversa, IconeSetaDireita } from '@/components/ui/Icones'
 import { obterPedido } from '@/services/api/pedidos.servico'
 import { exigirSessao } from '@/services/autenticacao'
+import EstadoPagamento from '@/components/pedido/EstadoPagamento'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,18 +25,11 @@ export default async function Confirmacao({ params }: { params: Promise<{ id: st
         <span className="estado-vazio-icone" style={{ background: 'var(--verde)', color: 'var(--branco)' }}>
           <IconeCheck tamanho={38} />
         </span>
-        <h1 className="titulo-pagina">{pedido.estado === 'aguardando_reserva'
-          ? 'Confirmando a disponibilidade das peças'
-          : pedido.estado === 'aguardando_pagamento' || pedido.estado === 'confirmacao_pendente'
-            ? 'Pedido registrado, aguardando pagamento simulado'
-            : pedido.simulado ? 'Compra de demonstração registrada' : 'Pedido confirmado'}</h1>
+        <h1 className="titulo-pagina">Acompanhe a confirmação do pedido</h1>
         <p className="subtitulo-pagina" style={{ margin: '0 auto 24px' }}>
           Seu pedido <strong>#{pedido.id}</strong> está registrado e pode ser acompanhado pela plataforma.
         </p>
-        <span className="selo-pago">
-          <IconeCheck />
-          {pedido.simulado ? 'Sem cobrança real' : 'Pedido registrado'}
-        </span>
+        <EstadoPagamento inicial={pedido} />
       </div>
 
       <div className="duas-colunas secao">

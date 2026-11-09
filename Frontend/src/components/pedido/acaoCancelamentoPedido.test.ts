@@ -9,7 +9,7 @@ test('pedido antes da produção oferece cancelamento direto', () => {
 })
 
 test('operações pendentes não afirmam início de produção', () => {
-  for (const estado of ['confirmacao_pendente', 'encerramento_pendente'] as const) {
+  for (const estado of ['confirmacao_pendente', 'cancelamento_pendente', 'reembolso_pendente', 'encerramento_pendente'] as const) {
     assert.equal(acaoCancelamentoPedido(estado), 'pendente')
   }
 })

@@ -95,14 +95,13 @@ Guardados por usuário (logado) ou por visitante (cookie `balaio_cliente`).
 | Método | Rota | Acesso | Descrição |
 |---|---|---|---|
 | GET | `/fretes` | 🌐 | Opções de entrega |
-| POST | `/checkout` | 🔑 | Cria o pedido. O total é calculado na API |
+| POST | `/checkout` | 🔑 | Cria pedido, reserva e preferência Checkout Pro de teste; retorna URL sandbox quando pronta |
 | GET | `/pedidos`, `/pedidos/:id` | 🔑 | Pedidos do usuário logado |
-| PATCH | `/pedidos/:id/cancelar` | 🔑 | Cancela enquanto o pedido está `confirmado` |
+| PATCH | `/pedidos/:id/cancelar` | 🔑 | Solicita cancelamento ou reembolso; resultado depende de confirmação do provedor |
 | GET / POST | `/pedidos/:id/conversa` | 🔑 | Mensagens entre comprador e artesão |
 | POST | `/pedidos/:id/avaliacao` | 🔑 | `{ nota, comentario }`, só depois da entrega |
 
-Estados do pedido: `confirmado → producao → enviado → entregue`, ou `recusado` /
-`cancelado`.
+Estados financeiros incluem `aguardando_pagamento`, `confirmacao_pendente`, `cancelamento_pendente`, `reembolso_pendente`, `falha_pagamento` e `reembolsado`. O navegador consulta `GET /pedidos/:id` depois do retorno do Checkout Pro; parâmetros do redirect não confirmam pagamento.
 
 ### Painel do artesão
 
@@ -191,12 +190,13 @@ GET /api/v1/pecas?q=pifano&ordenar=preco-asc&pagina=1&tamanho=9
 ```http
 POST /api/v1/checkout
 Cookie: balaio_sessao=<token>
+Idempotency-Key: <uuid gerado pelo cliente e reutilizado até obter checkoutUrl>
 Content-Type: application/json
 
 {
   "itens": [{ "slug": "banda-de-pifanos-completa", "quantidade": 1 }],
   "freteId": "padrao",
-  "meio": "pix",
+  "meio": "checkout_pro",
   "endereco": { "cep": "50000-000", "endereco": "Rua da Aurora, 100", "cidade": "Recife", "estado": "PE" }
 }
 ```

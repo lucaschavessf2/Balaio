@@ -162,7 +162,7 @@ export default function ItensSacola() {
           </div>
 
           <p className="campo-ajuda acima-3" style={{ textAlign: 'center' }}>
-            O valor fica retido até a entrega ser confirmada.
+            O pagamento de teste é processado pelo Mercado Pago; acompanhe o estado no pedido.
           </p>
         </aside>
       </div>
