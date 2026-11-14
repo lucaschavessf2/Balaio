@@ -1,29 +1,12 @@
-'use client'
-
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
 import { Foto } from '@/components/ui/Basicos'
-import EstadoCarregando from '@/components/feedback/EstadoCarregando'
 import { obterPecaHistorico } from '@/services/api/pecas.servico'
-import type { Peca, Pedido } from '@/types/dominio'
+import type { Pedido } from '@/types/dominio'
 import { emReais } from '@/utils/formato'
 
-type ItemDetalhado = { slug: string; quantidade: number; peca: Peca | null }
-
-export default function ResumoItensPedido({ pedido }: { pedido: Pedido }) {
-  const [resultado, definirResultado] = useState<{ pedido: Pedido; itens: ItemDetalhado[] } | null>(null)
-
-  useEffect(() => {
-    let ativo = true
-    const itens = pedido.itens ?? [{ slug: pedido.pecaSlug, quantidade: 1 }]
-    void Promise.all(itens.map(async (item) => ({ ...item, peca: (await obterPecaHistorico(item.slug)).dados }))).then((itens) => {
-      if (ativo) definirResultado({ pedido, itens })
-    })
-    return () => { ativo = false }
-  }, [pedido])
-
-  if (resultado?.pedido !== pedido) return <EstadoCarregando rotulo="Carregando itens do pedido…" cartoes={1} />
-  const detalhados = resultado.itens
+export default async function ResumoItensPedido({ pedido }: { pedido: Pedido }) {
+  const itens = pedido.itens ?? [{ slug: pedido.pecaSlug, quantidade: 1 }]
+  const detalhados = await Promise.all(itens.map(async (item) => ({ ...item, peca: (await obterPecaHistorico(item.slug)).dados })))
   return <>
     {detalhados.map(({ slug, quantidade, peca }) => <div className="item-sacola" key={slug}>
       <div className="item-sacola-figura"><Foto nome={peca?.nome ?? slug} imagem={peca?.imagem} decorativa /></div>

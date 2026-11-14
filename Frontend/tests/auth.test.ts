@@ -67,8 +67,9 @@ for (const caminho of ['/auth/cadastro', '/auth/login', '/auth/entrar', '/auth/l
     assert.equal(eventos[0].headers['x-role'], undefined)
     assert.equal(eventos[0].headers.origin, 'http://localhost:4321')
     const cookies = resposta.headers.getSetCookie()
-    assert.ok(cookies.some((cookie) => cookie.includes('Path=/api/v1') && cookie.includes('HttpOnly') && cookie.startsWith('balaio_sessao=jwt.')))
-    assert.ok(cookies.some((cookie) => cookie.startsWith('balaio_sessao=;') && cookie.includes('Path=/;') && cookie.includes('Max-Age=0')))
+    const sessao = cookies.find((cookie) => cookie.startsWith('balaio_sessao=jwt.'))
+    assert.ok(sessao && sessao.endsWith('Path=/') && sessao.includes('HttpOnly') && !sessao.includes('Path=/api/v1'))
+    assert.ok(cookies.some((cookie) => cookie.startsWith('balaio_sessao=;') && cookie.includes('Path=/api/v1;') && cookie.includes('Max-Age=0')))
     verificarLimpezaDemo(resposta)
   })
 }
@@ -317,8 +318,8 @@ test('JSON legado não autentica e redirects externos são rejeitados', () => {
   for (const proximo of ['//externa.invalid', '/\\externa.invalid', '/%2fexterna.invalid', '/\nexterna.invalid']) assert.equal(destinoSeguro(proximo), undefined)
   assert.equal(destinoSeguro('/orders?pagina=2'), '/orders?pagina=2')
   assert.equal(sessaoDoUsuario({ nome: 'A', email: 'a@b.c', imagem: '', id: 'a' }), null)
-  for (const papel of ['comprador', 'artesao', 'admin'] as const) {
-    assert.equal(destinoInicial({ id: 'real', nome: 'Real', email: 'real@auth.test', imagem: '', papel }), '/account')
+  for (const [papel, destino] of [['comprador', '/account'], ['artesao', '/dashboard'], ['admin', '/admin']] as const) {
+    assert.equal(destinoInicial({ id: 'real', nome: 'Real', email: 'real@auth.test', imagem: '', papel }), destino)
   }
 })
 
@@ -331,4 +332,19 @@ test('rotas por limites de segmento e política de senha alinhada ao domínio', 
   assert.equal(validarSenha('SenhaSomenteTeste123'), null)
   assert.ok(validarSenha('á'.repeat(37)))
   assert.ok(validarSenha('a'.repeat(12) + '\u0000'))
+})
+
+test('sem API_GATEWAY_URL o proxy repassa tudo à Fake API, inclusive autenticação e cookies', async () => {
+  const anterior = process.env.API_GATEWAY_URL
+  try {
+    delete process.env.API_GATEWAY_URL
+    for (const [caminho, metodo] of [['/auth/login', 'POST'], ['/checkout', 'POST'], ['/admin/curadoria', 'GET'], ['/usuario', 'GET']]) {
+      eventos.length = 0
+      const resposta = await chamar(caminho, metodo, { Cookie: 'balaio_sessao=opaco; balaio_cliente=visitante', Authorization: 'Bearer opaco' }, metodo === 'GET' ? undefined : {})
+      assert.equal(resposta.status, 200, caminho)
+      assert.deepEqual(eventos.map((e) => e.destino), ['fake'], caminho)
+      assert.equal(eventos[0].headers.cookie, 'balaio_sessao=opaco; balaio_cliente=visitante')
+      assert.equal(eventos[0].headers.authorization, 'Bearer opaco')
+    }
+  } finally { process.env.API_GATEWAY_URL = anterior }
 })

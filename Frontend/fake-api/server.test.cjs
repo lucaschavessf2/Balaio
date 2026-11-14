@@ -409,6 +409,41 @@ test('contrato HTTP, filtros, relações, CRUD e persistência', async (t) => {
   assert.equal((await request(`/conta/${conta}/senha`, { senhaAtual: 'errada', novaSenha: 'outra12345' }, 'POST', autorizacaoConta)).status, 401)
   assert.equal((await request(`/conta/${conta}/senha`, { senhaAtual: 'segredo123', novaSenha: 'outra12345' }, 'POST', autorizacaoConta)).status, 200)
   assert.equal((await request('/auth/entrar', { email: 'nova@exemplo.com', senha: 'outra12345' })).status, 200)
+
+  const sessaoBia = await request('/auth/entrar', { email: 'dona-bia-do-ipojuca@exemplo.com', senha: 'balaio123' })
+  const autorizacaoBia = { Cookie: sessaoBia.cookie.split(';')[0] }
+  const [aceitavel, recusavel] = (await request('/artesao/pedidos-pendentes?artesao=dona-bia-do-ipojuca', undefined, 'GET', autorizacaoBia)).dados
+  const aceito = await request(`/pedidos/${aceitavel.id}/estado`, { estado: 'producao' }, 'PATCH', autorizacaoBia)
+  assert.equal(aceito.status, 200)
+  assert.equal(aceito.dados.estado, 'producao')
+  assert.match(aceito.dados.data, /^\d{2}\/\d{2}\/\d{4}$/)
+  const pedidoRecusado = await request(`/pedidos/${recusavel.id}/recusar`, { motivo: 'Sem material no momento.' }, 'PATCH', autorizacaoBia)
+  assert.equal(pedidoRecusado.status, 200)
+  assert.match(pedidoRecusado.dados.data, /^\d{2}\/\d{2}\/\d{4}$/)
+  assert.equal((await request('/artesao/pedidos-pendentes?artesao=dona-bia-do-ipojuca', undefined, 'GET', autorizacaoBia)).dados.length, 0)
+
+  const sessaoNuca = await request('/auth/entrar', { email: 'nuca@exemplo.com', senha: 'balaio123' })
+  const autorizacaoNuca = { Cookie: sessaoNuca.cookie.split(';')[0] }
+  const sessaoDila = await request('/auth/entrar', { email: 'mestre-dila@exemplo.com', senha: 'balaio123' })
+  const autorizacaoDila = { Cookie: sessaoDila.cookie.split(';')[0] }
+  assert.equal((await request('/videos/v-001', { legenda: 'Sem login' }, 'PATCH')).status, 401)
+  assert.equal((await request('/videos/v-001', { legenda: 'De outro ateliê' }, 'PATCH', autorizacaoDila)).status, 404)
+  assert.equal((await request('/videos/v-001', { legenda: 'Trocada' }, 'PUT', autorizacaoNuca)).status, 405)
+  assert.equal((await request('/videos/v-001', { legenda: '   ' }, 'PATCH', autorizacaoNuca)).status, 400)
+  assert.equal((await request('/videos/v-001', { peca: 'painel-xilogravura-sertaneja' }, 'PATCH', autorizacaoNuca)).status, 400)
+  const editado = await request('/videos/v-001', { legenda: 'Legenda nova', etiquetas: ['barro'], situacao: 'rascunho', artesao: 'mestre-dila', curtidas: 9 }, 'PATCH', autorizacaoNuca)
+  assert.equal(editado.status, 200)
+  assert.equal(editado.dados.legenda, 'Legenda nova')
+  assert.equal(editado.dados.publicadoEm, 'Rascunho')
+  assert.equal(editado.dados.artesao, 'mestre-nuca')
+  assert.notEqual(editado.dados.curtidas, 9)
+  assert.ok(!(await request('/videos')).dados.some((video) => video.id === 'v-001'))
+  assert.equal((await request('/videos/v-001', { situacao: 'publicada' }, 'PATCH', autorizacaoNuca)).dados.publicadoEm, 'agora')
+  assert.equal((await request('/videos/v-001', undefined, 'DELETE', autorizacaoDila)).status, 404)
+  assert.ok((await request('/videos/v-001/comentarios')).dados.length > 0)
+  assert.equal((await request('/videos/v-001', undefined, 'DELETE', autorizacaoNuca)).status, 200)
+  assert.equal((await request('/videos/v-001/comentarios')).status, 404)
+  assert.ok(!(await request('/videos')).dados.some((video) => video.id === 'v-001'))
 })
 
 test('completa tipo das peças e referências em um banco antigo', async () => {

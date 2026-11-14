@@ -1,51 +1,32 @@
-'use client'
-
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
-import EstadoCarregando from '@/components/feedback/EstadoCarregando'
 import EstadoErro from '@/components/feedback/EstadoErro'
-import EstadoVazio from '@/components/feedback/EstadoVazio'
 import Pagina from '@/components/layout/Pagina'
 import { Foto, Migalhas } from '@/components/ui/Basicos'
+import EstadoVazio from '@/components/feedback/EstadoVazio'
+import BotaoAdicionarSacola from '@/components/carrinho/BotaoAdicionarSacola'
 import { IconePacote } from '@/components/ui/Icones'
-import { usePedidosConta } from '@/hooks/usePedidosConta'
+import { listarPedidos } from '@/services/api/pedidos.servico'
 import { obterPecaHistorico } from '@/services/api/pecas.servico'
 import { listarArtesaos } from '@/services/api/artesaos.servico'
-import { useSessao } from '@/store/sessao'
-import type { Artesao, Peca, Pedido } from '@/types/dominio'
 import { emReais } from '@/utils/formato'
 import { rotuloEstadoPedido } from '@/constants/rotulos'
+import { exigirSessao } from '@/services/autenticacao'
 
-type DetalhesPedidos = { pedidos: Pedido[]; pecas: Peca[]; artesaos: Artesao[] }
-
-export default function MeusPedidos() {
-  const { sessao, estado: estadoSessao } = useSessao()
-  const { pedidos, erro, carregando } = usePedidosConta()
-  const [detalhes, definirDetalhes] = useState<DetalhesPedidos | null>(null)
-
-  useEffect(() => {
-    if (!pedidos?.length) return
-    let ativo = true
-    const slugs = [...new Set(pedidos.flatMap((pedido) => [pedido.pecaSlug, ...(pedido.itens ?? []).map((item) => item.slug)]))]
-    void Promise.all([
-      Promise.all(slugs.map((slug) => obterPecaHistorico(slug))),
-      listarArtesaos(),
-    ]).then(([pecas, artesaos]) => {
-      if (ativo) definirDetalhes({
-        pedidos,
-        pecas: pecas.flatMap((resposta) => resposta.dados ? [resposta.dados] : []),
-        artesaos: artesaos.dados ?? [],
-      })
-    })
-    return () => { ativo = false }
-  }, [pedidos])
-
-  if (!sessao || estadoSessao !== 'autenticada') return null
-  const listaPedidos = pedidos ?? []
-  const carregandoDetalhes = listaPedidos.length > 0 && detalhes?.pedidos !== pedidos
-  const mapaPecas = new Map((detalhes?.pedidos === pedidos ? detalhes.pecas : []).map((peca) => [peca.slug, peca]))
-  const mapaArtesaos = new Map((detalhes?.pedidos === pedidos ? detalhes.artesaos : []).map((artesao) => [artesao.slug, artesao]))
-
+export default async function MeusPedidos() {
+  const { token } = await exigirSessao()
+  const [{ dados: pedidos, erro }, { dados: artesaos }] = await Promise.all([
+    listarPedidos(token),
+    listarArtesaos(),
+  ])
+  if (erro) return <Pagina><EstadoErro mensagem={erro.mensagem} /></Pagina>
+  const pedidosLista = pedidos ?? []
+  const slugs = [...new Set(pedidosLista.flatMap((pedido) => [pedido.pecaSlug, ...(pedido.itens ?? []).map((item) => item.slug)]))]
+  const pecas = await Promise.all(slugs.map((slug) => obterPecaHistorico(slug)))
+  const mapaPecas = new Map(pecas.flatMap((resposta) => resposta.dados ? [[resposta.dados.slug, resposta.dados] as const] : []))
+  const mapaArtesaos = new Map((artesaos ?? []).map((a) => [a.slug, a]))
+  const acharPeca = (slug: string) => mapaPecas.get(slug)
+  const acharArtesao = (slug: string) => mapaArtesaos.get(slug)
+  const listaPedidos = pedidosLista
   return (
     <Pagina>
       <Migalhas trilha={[{ texto: 'Início', href: '/' }, { texto: 'Meus pedidos' }]} />
@@ -55,9 +36,7 @@ export default function MeusPedidos() {
         Acompanhe o que está sendo produzido, o que está a caminho e o que já chegou.
       </p>
 
-      {carregando || carregandoDetalhes ? <EstadoCarregando rotulo="Carregando seus pedidos…" cartoes={3} /> : erro ? (
-        <EstadoErro mensagem={erro} />
-      ) : listaPedidos.length === 0 ? (
+      {listaPedidos.length === 0 ? (
         <EstadoVazio
           icone={<IconePacote tamanho={34} />}
           titulo="Você ainda não fez nenhum pedido"
@@ -68,43 +47,80 @@ export default function MeusPedidos() {
             </Link>
           }
         />
-      ) : listaPedidos.map((pedido) => {
-        const peca = mapaPecas.get(pedido.pecaSlug)
-        const artesao = peca ? mapaArtesaos.get(peca.artesao) : undefined
-        const estado = rotuloEstadoPedido[pedido.estado]
-        const entregue = pedido.estado === 'entregue'
-        const encerrado = ['recusado', 'cancelado', 'reembolsado'].includes(pedido.estado)
+      ) : (
+        <div className="escalonado">
+          {listaPedidos.map((pedido) => {
+            const peca = acharPeca(pedido.pecaSlug)
+            const artesao = peca ? acharArtesao(peca.artesao) : undefined
+            const estado = rotuloEstadoPedido[pedido.estado]
+            const entregue = pedido.estado === 'entregue'
+            const encerrado = ['recusado', 'cancelado', 'reembolsado'].includes(pedido.estado)
 
-        return (
-          <article className="cartao-pedido" key={pedido.id}>
-            <header className="cartao-pedido-topo">
-              <span className={`selo ${estado.classe}`}>
-                <span className="selo-ponto" />
-                {estado.texto}
-              </span>
-              <span className="dado-rotulo">{pedido.data}</span>
-            </header>
+            return (
+              <article className="cartao-pedido" key={pedido.id}>
+                <header className="cartao-pedido-topo">
+                  <span className={`selo ${estado.classe}`}>
+                    <span className="selo-ponto" />
+                    {estado.texto}
+                  </span>
+                  <span className="dado-rotulo">{pedido.data}</span>
+                </header>
 
-            <div className="cartao-pedido-corpo">
-              <div className="cartao-pedido-figura">
-                {peca && <Foto nome={peca.nome} imagem={peca.imagem} decorativa />}
-              </div>
-              <div className="encolhivel">
-                <p className="texto-forte">{peca?.nome ?? pedido.pecaSlug}{(pedido.itens?.length ?? 0) > 1 ? ` e mais ${pedido.itens!.length - 1} peça(s)` : ''}</p>
-                <p className="autoria">{artesao ? `por ${artesao.nome} · ` : ''}Pedido #{pedido.id}</p>
-                <p className={`cartao-pedido-status${entregue ? ' status-bom' : ''}`}>
-                  {encerrado
-                    ? pedido.motivoEncerramento ?? 'Este pedido foi encerrado.'
-                    : entregue
-                      ? 'Entregue no seu endereço'
-                      : (pedido.previsaoEntrega ? `Previsão de entrega: ${pedido.previsaoEntrega}` : 'Aguardando previsão de entrega')}
-                </p>
-                <p className="preco-destaque">{emReais(pedido.total)}</p>
-              </div>
-            </div>
-          </article>
-        )
-      })}
+                <Link href={`/orders/${pedido.id}`} className="cartao-pedido-corpo">
+                  <div className="cartao-pedido-figura">
+                    {peca && <Foto nome={peca.nome} imagem={peca.imagem} decorativa />}
+                  </div>
+                  <div className="encolhivel">
+                    <p className="texto-forte">{peca?.nome}{(pedido.itens?.length ?? 0) > 1 ? ` e mais ${pedido.itens!.length - 1} peça(s)` : ''}</p>
+                    <p className="autoria">
+                      por {artesao?.nome} · Pedido #{pedido.id}
+                    </p>
+                    <p className={`cartao-pedido-status${entregue ? ' status-bom' : ''}`}>
+                      {encerrado
+                        ? pedido.motivoEncerramento ?? 'Este pedido foi encerrado.'
+                        : entregue
+                          ? 'Entregue no seu endereço'
+                          : (pedido.previsaoEntrega ? `Previsão de entrega: ${pedido.previsaoEntrega}` : 'Aguardando previsão de entrega')}
+                    </p>
+                    <p className="preco-destaque">{emReais(pedido.total)}</p>
+                  </div>
+                </Link>
+
+                <footer className="acoes-linha acoes-empilhaveis cartao-pedido-acoes">
+                  {!entregue && !encerrado && (
+                    <Link href={`/orders/${pedido.id}`} className="botao botao-primario">
+                      Acompanhar pedido
+                    </Link>
+                  )}
+                  {entregue && !pedido.avaliado && (
+                    <Link href={`/orders/${pedido.id}/review`} className="botao botao-sucesso">
+                      Avaliar
+                    </Link>
+                  )}
+                  {entregue && peca && !peca.inativadoEm && (
+                    <BotaoAdicionarSacola
+                      slug={peca.slug}
+                      disponibilidade={peca.disponibilidade}
+                      texto="Comprar de novo"
+                      className="botao botao-secundario"
+                    />
+                  )}
+                  {entregue && (
+                    <Link href={`/orders/${pedido.id}`} className="botao botao-fantasma">
+                      Ver detalhes
+                    </Link>
+                  )}
+                  {encerrado ? (
+                    <Link href={`/orders/${pedido.id}`} className="botao botao-fantasma">Ver detalhes</Link>
+                  ) : (
+                    <Link href={`/orders/${pedido.id}/mediation`} className="botao botao-fantasma">Preciso de ajuda</Link>
+                  )}
+                </footer>
+              </article>
+            )
+          })}
+        </div>
+      )}
     </Pagina>
   )
 }

@@ -193,6 +193,7 @@ export type Video = {
   comentarios: number
   publicadoEm: string
   capa: string
+  situacao?: 'publicada' | 'rascunho'
 }
 
 export type Comentario = {

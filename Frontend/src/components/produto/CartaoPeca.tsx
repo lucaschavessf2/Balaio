@@ -23,7 +23,7 @@ function PrecoGrande({ valor }: { valor: number }) {
 }
 
 export default function CartaoPeca({ peca }: { peca: Peca }) {
-  const { artesaos } = useDados()
+  const { artesaos, carregando } = useDados()
   const artesao = artesaos.find((a) => a.slug === peca.artesao)
   const temDesconto = (peca.desconto ?? 0) > 0
 
@@ -39,7 +39,7 @@ export default function CartaoPeca({ peca }: { peca: Peca }) {
             {peca.nome}
           </Link>
         </h3>
-        <span className="autoria autoria-com-retrato">
+        <span className="autoria autoria-com-retrato" data-carregando={carregando || undefined}>
           <Retrato imagem={artesao?.imagem} tamanho={20} />
           por {artesao?.nome ?? 'Artesão parceiro'}
         </span>

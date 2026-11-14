@@ -87,7 +87,7 @@
 }
 
 .popup-evento strong {
-  @apply font-titulo text-corpo leading-snug;
+  @apply font-corpo font-semibold text-corpo leading-snug;
 }
 
 .popup-evento span {
@@ -215,7 +215,7 @@
 }
 
 .cartao-evento-nome {
-  @apply font-titulo font-semibold text-corpo leading-snug text-tinta;
+  @apply font-corpo font-semibold text-corpo leading-snug text-tinta;
 }
 
 .cartao-evento-meta {

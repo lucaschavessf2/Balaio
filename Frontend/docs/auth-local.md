@@ -2,7 +2,9 @@
 
 Cadastro, login/alias, logout e consulta de sessão usam **Next → api-gateway → profile-service → PostgreSQL**. `POST /api/v1/auth/{cadastro,login,entrar,logout}` e `GET /api/v1/usuario` nunca usam a Fake API nem fazem fallback para ela quando o gateway falha. `API_GATEWAY_URL` e `API_URL` são configurações distintas, somente do servidor, lidas em runtime.
 
-O navegador usa a mesma origem do Next, `credentials: 'same-origin'` e cookie `balaio_sessao` HttpOnly, SameSite=Lax, Path=/api/v1, 60 minutos. O backend determina Secure; só o perfil local HTTP pode desativá-lo. Nenhum JWT é lido pelo JavaScript, enviado à Fake API ou salvo em localStorage/sessionStorage. O proxy preserva Origin, Bearer e Set-Cookie somente no fluxo real e descarta headers de identidade enviados pelo cliente.
+**Modos.** A autenticação real só é ativada quando `API_GATEWAY_URL` está definida. Sem ela, o Next repassa todo `/api/v1/*` para a Fake API (login, sessão, checkout, painéis e administração inclusos), como no fluxo padrão da `develop`. As páginas protegidas continuam renderizadas no servidor (`exigirSessao`/`exigirArtesao`), que valida o token no gateway (modo real) ou na Fake API (modo simulado).
+
+O navegador usa a mesma origem do Next, `credentials: 'same-origin'` e cookie `balaio_sessao` HttpOnly, SameSite=Lax, 60 minutos. O profile-service emite o cookie com Path=/api/v1; o proxy do Next o reescreve para Path=/ para que o SSR das páginas protegidas receba a sessão, e expira qualquer cópia antiga em Path=/api/v1. O backend determina Secure; só o perfil local HTTP pode desativá-lo. Nenhum JWT é lido pelo JavaScript, enviado à Fake API ou salvo em localStorage/sessionStorage. O proxy preserva Origin, Bearer e Set-Cookie somente no fluxo real e descarta headers de identidade enviados pelo cliente.
 
 ## Preparação
 
@@ -108,10 +110,10 @@ Abra **http://localhost:4321/login/register**. Crie comprador ou artesão com se
 ## Conferência manual
 
 1. Cadastre uma conta e confirme `/account`. No Network, verifique o envelope público e Set-Cookie; não há JWT no JSON.
-2. Recarregue `/account`: o provider consulta `GET /api/v1/usuario` e recupera a identidade persistida. O JWT tem Path=/api/v1 e não chega ao SSR das páginas.
+2. Recarregue `/account`: o servidor do Next lê `balaio_sessao` (Path=/) e confirma a identidade com `GET /usuario` no gateway antes de renderizar.
 3. Em Minha conta, use Meus pedidos, Endereços de entrega e Meus dados. Salve um endereço e contatos e recarregue: persistem no Fake para o mesmo UUID. Outra conta não recebe esses dados. A lista de pedidos começa vazia se não houver pedidos daquele UUID; fixtures globais não são apropriadas. Alterar senha continua apontando à recuperação Fake, sem alterar a senha real. `401` do gateway invalida a sessão; `403` informa falta de permissão.
 4. Clique em sair e tente `/account` novamente: será exigido login. Se logout falhar, a tela limpa o estado e oferece nova tentativa, sem afirmar que removeu o cookie. Um JWT copiado continua válido até expirar; não há refresh/revogação imediata.
-5. Navegue pelo catálogo, sacola e favoritos: os dados públicos e o estado de visitante continuam disponíveis. Checkout, publicação e painéis ainda não integrados seguem bloqueados e suas páginas redirecionam para a conta, sem avisos novos.
+5. Navegue pelo catálogo, sacola e favoritos: os dados públicos e o estado de visitante continuam disponíveis. No modo real, as rotas de checkout, publicação, painéis e administração ainda não integradas ao backend respondem 404 pelo proxy; use o modo simulado (sem `API_GATEWAY_URL`) para exercitá-las.
 6. Pare somente o gateway/profile e tente login com a Fake API ainda ativa: a resposta deve ser indisponibilidade, sem autenticar pelo simulador.
 
 A interface revalida ao montar, voltar à aba/foco e a cada 30 segundos enquanto visível. A expiração é aplicada no backend; a tela ociosa visível reage na próxima revalidação. Ao voltar de uma aba em segundo plano, ocorre nova consulta. Não há temporizador inferido por decodificação do cookie HttpOnly.

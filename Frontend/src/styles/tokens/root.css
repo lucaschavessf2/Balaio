@@ -61,6 +61,13 @@
 
   --transicao-rapida: 140ms ease;
   --transicao: 220ms cubic-bezier(0.2, 0.6, 0.2, 1);
+  --mola: cubic-bezier(0.2, 0.9, 0.3, 1);
+  --mola-suave: cubic-bezier(0.22, 1, 0.36, 1);
+  --mola-duracao: 620ms;
+  --mola-duracao-folha: 460ms;
+  --escalonado-passo: 45ms;
+  --entrada-deslocamento: 18px;
+  --entrada-escala: 0.97;
 
   --sombra-cor: light-dark(rgba(74, 40, 18, 0.09), rgba(0, 0, 0, 0.45));
   --sombra: 0 1px 2px var(--sombra-cor), 0 2px 8px var(--sombra-cor);
@@ -83,6 +90,13 @@
   --textura-trama: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Cpath d='M0 27.5h28M27.5 0v28' stroke='%23b5713f' stroke-opacity='.08'/%3E%3C/svg%3E");
 
   --grafico-serie: light-dark(#a23e12, #d4794a);
+}
+
+@supports (animation-timing-function: linear(0, 1)) {
+  :root {
+    --mola: linear(0, 0.062, 0.203, 0.375, 0.544, 0.692, 0.812, 0.902, 0.965, 1.005, 1.027, 1.037, 1.038, 1.035, 1.029, 1.022, 1.016, 1.01, 1.006, 1.003, 1.001, 1, 0.999, 0.999, 1);
+    --mola-suave: linear(0, 0.082, 0.244, 0.414, 0.563, 0.683, 0.775, 0.842, 0.891, 0.925, 0.949, 0.966, 0.977, 0.985, 0.99, 0.993, 0.996, 0.997, 1);
+  }
 }
 
 :root[data-tema="claro"] {

@@ -19,6 +19,7 @@ import {
   CalendarDays,
   Check,
   ChevronDown,
+  ExternalLink,
   Heart,
   Home,
   Info,
@@ -164,6 +165,10 @@ export function IconeMarcador({ tamanho = 18, preenchido = false }: Props & { pr
 
 export function IconeSetaDireita({ tamanho = 16 }: Props) {
   return <ArrowRight size={tamanho} {...padrao} />
+}
+
+export function IconeNovaAba({ tamanho = 16 }: Props) {
+  return <ExternalLink size={tamanho} {...padrao} />
 }
 
 export function IconeSetaEsquerda({ tamanho = 16 }: Props) {

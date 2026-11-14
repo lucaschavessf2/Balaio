@@ -171,7 +171,7 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
       pecaSlug: pendente.pecaSlug,
       itens: [{ slug: pendente.pecaSlug, quantidade: 1 }],
       compradorNome: pendente.comprador,
-      data: pendente.quando,
+      data: new Date().toLocaleDateString('pt-BR'),
       total: pendente.valor,
       estado: 'confirmado',
       avaliado: false,
@@ -635,6 +635,42 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
     if (encontrar('videos', video.id)) return erro(res, 409, 'Este vídeo já existe.')
     res.status(201).json(ok(inserir('videos', video)))
   })
+  const videoDoArtesaoLogado = (req, res) => {
+    const usuario = exigirArtesaoLogado(req, res)
+    if (!usuario) return null
+    const video = encontrar('videos', req.params.id)
+    if (!video || video.artesao !== usuario.artesaoId) {
+      erro(res, 404, 'Vídeo não encontrado.')
+      return null
+    }
+    return video
+  }
+  server.patch('/api/v1/videos/:id', (req, res) => {
+    const video = videoDoArtesaoLogado(req, res)
+    if (!video) return
+    const alteracoes = Object.fromEntries(['legenda', 'etiquetas', 'peca', 'situacao'].filter((campo) => req.body[campo] !== undefined).map((campo) => [campo, req.body[campo]]))
+    if ('legenda' in alteracoes && (typeof alteracoes.legenda !== 'string' || !alteracoes.legenda.trim())) return erro(res, 400, 'Informe a legenda do vídeo.')
+    if ('etiquetas' in alteracoes && (!Array.isArray(alteracoes.etiquetas) || alteracoes.etiquetas.some((etiqueta) => typeof etiqueta !== 'string'))) return erro(res, 400, 'Etiquetas inválidas.')
+    if (alteracoes.peca && encontrar('pecas', alteracoes.peca)?.artesao !== video.artesao) return erro(res, 400, 'Vincule uma peça do seu ateliê.')
+    if ('situacao' in alteracoes && !['publicada', 'rascunho'].includes(alteracoes.situacao)) return erro(res, 400, 'Situação do vídeo inválida.')
+    const situacaoAtual = video.situacao ?? 'publicada'
+    if (alteracoes.situacao && alteracoes.situacao !== situacaoAtual) alteracoes.publicadoEm = alteracoes.situacao === 'rascunho' ? 'Rascunho' : 'agora'
+    res.json(ok(db.get('videos').find({ id: video.id }).assign(alteracoes).write()))
+  })
+  server.delete('/api/v1/videos/:id', (req, res) => {
+    const video = videoDoArtesaoLogado(req, res)
+    if (!video) return
+    db.get('videos').remove({ id: video.id }).write()
+    db.get('comentarios').remove({ videoId: video.id }).write()
+    for (const estado of ler('estadosCliente')) {
+      db.get('estadosCliente').find({ id: estado.id }).assign({
+        videosCurtidos: (estado.videosCurtidos ?? []).filter((id) => id !== video.id),
+        videosSalvos: (estado.videosSalvos ?? []).filter((id) => id !== video.id),
+      }).write()
+    }
+    res.json(ok(video))
+  })
+  server.put('/api/v1/videos/:id', (req, res) => erro(res, 405, 'Operação não permitida.', 'OPERACAO_NAO_PERMITIDA'))
   server.post('/api/v1/pecas', (req, res) => {
     const usuario = exigirArtesaoLogado(req, res)
     if (!usuario) return
@@ -822,7 +858,7 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
     res.json(ok(encerrarPedido(pedido, 'cancelado', 'Cancelado pelo comprador antes do início da produção.')))
   })
   server.patch('/api/v1/pedidos/:id/estado', (req, res) => {
-    const pedido = encontrar('pedidos', req.params.id)
+    const pedido = materializarPedidoPendente(req.params.id)
     if (!pedido) return erro(res, 404, 'Pedido não encontrado.')
     if (['recusado', 'cancelado', 'reembolsado'].includes(pedido.estado)) return erro(res, 409, 'Este pedido já foi encerrado.')
     const estados = ['confirmado', 'producao', 'enviado', 'entregue']

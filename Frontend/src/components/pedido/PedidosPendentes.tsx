@@ -36,11 +36,26 @@ export default function PedidosPendentes({
 }) {
   const roteador = useRouter()
   const dialogoRecusa = useRef<HTMLDialogElement>(null)
-  const [pendentes, definirPendentes] = useState(iniciais)
+  const [resolvidos, definirResolvidos] = useState<string[]>([])
   const [pedidoRecusado, definirPedidoRecusado] = useState<PedidoPendente | null>(null)
   const [motivo, definirMotivo] = useState('')
   const [erroMotivo, definirErroMotivo] = useState<string | null>(null)
   const [salvando, definirSalvando] = useState(false)
+  const [processando, definirProcessando] = useState<string[]>([])
+  const pedidosEmAndamento = useRef(new Set<string>())
+  const pendentes = iniciais.filter((pedido) => !resolvidos.includes(pedido.id))
+
+  function iniciarAtualizacao(id: string) {
+    if (pedidosEmAndamento.current.has(id)) return false
+    pedidosEmAndamento.current.add(id)
+    definirProcessando((atuais) => [...atuais, id])
+    return true
+  }
+
+  function finalizarAtualizacao(id: string) {
+    pedidosEmAndamento.current.delete(id)
+    definirProcessando((atuais) => atuais.filter((atual) => atual !== id))
+  }
 
   const metricas = [
     {
@@ -60,15 +75,21 @@ export default function PedidosPendentes({
   ]
 
   async function aceitar(pedido: PedidoPendente) {
-    const resposta = await atualizarEstadoPedido(pedido.id, 'producao')
-    if (!resposta.dados) return avisar.erro('Não foi possível aceitar', resposta.erro?.mensagem)
-    definirPendentes(pendentes.filter((p) => p.id !== pedido.id))
-    avisarPainelAtualizado()
-    roteador.refresh()
-    avisar.sucesso('Pedido aceito', 'Combine o prazo com o comprador pela conversa.')
+    if (!iniciarAtualizacao(pedido.id)) return
+    try {
+      const resposta = await atualizarEstadoPedido(pedido.id, 'producao')
+      if (!resposta.dados) return avisar.erro('Não foi possível aceitar', resposta.erro?.mensagem)
+      definirResolvidos((atuais) => [...new Set([...atuais, pedido.id])])
+      avisarPainelAtualizado()
+      roteador.refresh()
+      avisar.sucesso('Pedido aceito', 'Combine o prazo com o comprador pela conversa.')
+    } finally {
+      finalizarAtualizacao(pedido.id)
+    }
   }
 
   function abrirRecusa(pedido: PedidoPendente) {
+    if (salvando || pedidosEmAndamento.current.has(pedido.id)) return
     definirPedidoRecusado(pedido)
     definirMotivo('')
     definirErroMotivo(null)
@@ -83,15 +104,21 @@ export default function PedidosPendentes({
       definirErroMotivo('Explique brevemente por que você não consegue atender este pedido')
       return
     }
+    const pedido = pedidoRecusado
+    if (!iniciarAtualizacao(pedido.id)) return
     definirSalvando(true)
-    const resposta = await recusarPedido(pedidoRecusado.id, texto)
-    definirSalvando(false)
-    if (!resposta.dados) return avisar.erro('Não foi possível recusar', resposta.erro?.mensagem)
-    definirPendentes((atuais) => atuais.filter((pedido) => pedido.id !== pedidoRecusado.id))
-    dialogoRecusa.current?.close()
-    avisarPainelAtualizado()
-    roteador.refresh()
-    avisar.info('Pedido recusado', 'O comprador verá o motivo e a peça única, se houver, voltou à vitrine.')
+    try {
+      const resposta = await recusarPedido(pedido.id, texto)
+      if (!resposta.dados) return avisar.erro('Não foi possível recusar', resposta.erro?.mensagem)
+      definirResolvidos((atuais) => [...new Set([...atuais, pedido.id])])
+      dialogoRecusa.current?.close()
+      avisarPainelAtualizado()
+      roteador.refresh()
+      avisar.info('Pedido recusado', 'O comprador verá o motivo e a peça única, se houver, voltou à vitrine.')
+    } finally {
+      definirSalvando(false)
+      finalizarAtualizacao(pedido.id)
+    }
   }
 
   return (
@@ -166,10 +193,10 @@ export default function PedidosPendentes({
                 <span className="selo-ponto" />
                 Pendente
               </span>
-              <button type="button" className="botao botao-sucesso" onClick={() => aceitar(pedido)}>
+              <button type="button" className="botao botao-sucesso" disabled={processando.includes(pedido.id)} onClick={() => aceitar(pedido)}>
                 Aceitar pedido
               </button>
-              <button type="button" className="botao botao-fantasma" onClick={() => abrirRecusa(pedido)}>
+              <button type="button" className="botao botao-fantasma" disabled={processando.includes(pedido.id)} onClick={() => abrirRecusa(pedido)}>
                 Recusar
               </button>
             </div>
@@ -177,10 +204,10 @@ export default function PedidosPendentes({
         ))}
       </section>
 
-      <dialog className="modal" ref={dialogoRecusa} aria-labelledby="recusa-titulo">
+      <dialog className="modal" ref={dialogoRecusa} aria-labelledby="recusa-titulo" onCancel={(evento) => { if (salvando) evento.preventDefault() }}>
         <div className="modal-cabecalho">
           <h2 className="modal-titulo" id="recusa-titulo">Recusar pedido</h2>
-          <button type="button" className="modal-fechar" aria-label="Fechar" onClick={() => dialogoRecusa.current?.close()}>
+          <button type="button" className="modal-fechar" aria-label="Fechar" disabled={salvando} onClick={() => dialogoRecusa.current?.close()}>
             <IconeFechar tamanho={20} />
           </button>
         </div>
@@ -189,10 +216,10 @@ export default function PedidosPendentes({
             {pedidoRecusado?.pecaNome}. O comprador verá a justificativa e será avisado sobre o cancelamento.
           </p>
           <Campo rotulo="Motivo da recusa" ajuda="Seja direto e cordial." erro={erroMotivo ?? undefined} id="motivo-recusa">
-            <textarea id="motivo-recusa" value={motivo} maxLength={500} onChange={(evento) => definirMotivo(evento.target.value)} />
+            <textarea id="motivo-recusa" value={motivo} maxLength={500} disabled={salvando} onChange={(evento) => definirMotivo(evento.target.value)} />
           </Campo>
           <div className="modal-acoes">
-            <button type="button" className="botao botao-fantasma" onClick={() => dialogoRecusa.current?.close()}>Voltar</button>
+            <button type="button" className="botao botao-fantasma" disabled={salvando} onClick={() => dialogoRecusa.current?.close()}>Voltar</button>
             <button type="submit" className="botao botao-perigo" disabled={salvando}>{salvando ? 'Recusando…' : 'Confirmar recusa'}</button>
           </div>
         </form>

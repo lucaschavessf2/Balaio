@@ -80,43 +80,12 @@ details[open] > .filtros-titulo .seta-grupo {
   scroll-margin-top: calc(var(--cabecalho-espaco) + 12px);
 }
 
-.catalogo .grade-pecas {
-  animation: surgir 300ms ease both;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .catalogo .grade-pecas {
-    animation: none;
-  }
-}
-
 .catalogo-topo {
   @apply flex justify-between items-center gap-3 flex-wrap mb-4 text-pequeno text-tinta-suave;
 }
 
-.catalogo-topo .campo-select {
-  @apply w-auto min-w-40;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .filtros[open] {
-    animation: none;
-  }
-}
-
 .catalogo > * {
   min-width: 0;
-}
-
-@keyframes surgir {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
 }
 
 .filtros-cabecalho {
@@ -147,7 +116,7 @@ details[open] > .filtros-titulo .seta-grupo {
   border-radius: var(--raio-g) var(--raio-g) 0 0;
   padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px));
   color: var(--tinta);
-  animation: folha-sobe 260ms ease;
+  animation: folha-sobe var(--mola-duracao-folha) var(--mola-suave);
 }
 
 .filtros::backdrop {
@@ -210,4 +179,14 @@ a.chip-filtro:hover {
 
 .ordenar-listagem {
   @apply flex items-center gap-2;
+}
+
+.seletor-ordenacao {
+  @apply min-w-[190px];
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .filtros[open] {
+    animation: none;
+  }
 }

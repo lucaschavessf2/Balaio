@@ -16,7 +16,11 @@ export default function CaixaConversas({ fios, conversaInicial }: Props) {
   const [mensagens, definirMensagens] = useState<Record<string, Mensagem[]>>(() =>
     fios[0] ? { [fios[0].id]: conversaInicial } : {},
   )
-  const [rascunho, definirRascunho] = useState('')
+  const [rascunhos, definirRascunhos] = useState<Record<string, string>>({})
+  const [enviando, definirEnviando] = useState<string[]>([])
+  const [carregando, definirCarregando] = useState<string[]>([])
+  const enviosEmAndamento = useRef(new Set<string>())
+  const carregamentosEmAndamento = useRef(new Set<string>())
   const refTituloFio = useRef<HTMLParagraphElement>(null)
   const jaAbriuFio = useRef(false)
 
@@ -39,10 +43,18 @@ export default function CaixaConversas({ fios, conversaInicial }: Props) {
   async function selecionar(id: string) {
     definirFioAtivo(id)
     definirFioAberto(true)
-    if (!lidas.includes(id)) definirLidas([...lidas, id])
-    if (!mensagens[id]) {
+    definirLidas((atuais) => atuais.includes(id) ? atuais : [...atuais, id])
+    if (mensagens[id] || carregamentosEmAndamento.current.has(id)) return
+    carregamentosEmAndamento.current.add(id)
+    definirCarregando((atuais) => [...atuais, id])
+    try {
       const resposta = await conversaDoPedido(id)
-      if (resposta.dados) definirMensagens((atuais) => ({ ...atuais, [id]: resposta.dados! }))
+      if (!resposta.dados) return avisar.erro('Não foi possível carregar a conversa', resposta.erro?.mensagem)
+      const historico = resposta.dados
+      definirMensagens((atuais) => atuais[id] ? atuais : { ...atuais, [id]: historico })
+    } finally {
+      carregamentosEmAndamento.current.delete(id)
+      definirCarregando((atuais) => atuais.filter((atual) => atual !== id))
     }
   }
 
@@ -58,13 +70,24 @@ export default function CaixaConversas({ fios, conversaInicial }: Props) {
 
   async function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
+    if (!fioAtivo || enviosEmAndamento.current.has(fioAtivo) || carregamentosEmAndamento.current.has(fioAtivo)) return
+    const id = fioAtivo
+    const rascunho = rascunhos[id] ?? ''
     const texto = rascunho.trim()
-    if (!texto || !fioAtivo) return
+    if (!texto) return
+    enviosEmAndamento.current.add(id)
+    definirEnviando((atuais) => [...atuais, id])
     const nova: Mensagem = { autor: 'artesao', texto, hora: 'agora' }
-    const resposta = await enviarMensagem(fioAtivo, nova)
-    if (!resposta.dados) return avisar.erro('Não foi possível enviar', resposta.erro?.mensagem)
-    definirMensagens({ ...mensagens, [fioAtivo]: [...conversaDo(fioAtivo), resposta.dados] })
-    definirRascunho('')
+    try {
+      const resposta = await enviarMensagem(id, nova)
+      if (!resposta.dados) return avisar.erro('Não foi possível enviar', resposta.erro?.mensagem)
+      const enviada = resposta.dados
+      definirMensagens((atuais) => ({ ...atuais, [id]: [...(atuais[id] ?? conversaDo(id)), enviada] }))
+      definirRascunhos((atuais) => atuais[id] === rascunho ? { ...atuais, [id]: '' } : atuais)
+    } finally {
+      enviosEmAndamento.current.delete(id)
+      definirEnviando((atuais) => atuais.filter((atual) => atual !== id))
+    }
   }
 
   return (
@@ -131,10 +154,13 @@ export default function CaixaConversas({ fios, conversaInicial }: Props) {
               className="campo-select"
               placeholder="Escreva sua resposta..."
               style={{ flex: 1, minHeight: 48 }}
-              value={rascunho}
-              onChange={(evento) => definirRascunho(evento.target.value)}
+              value={rascunhos[fio.id] ?? ''}
+              onChange={(evento) => {
+                const texto = evento.target.value
+                definirRascunhos((atuais) => ({ ...atuais, [fio.id]: texto }))
+              }}
             />
-            <button type="submit" className="botao botao-primario" style={{ padding: '0 16px' }} aria-label="Enviar resposta">
+            <button type="submit" className="botao botao-primario" disabled={enviando.includes(fio.id) || carregando.includes(fio.id)} style={{ padding: '0 16px' }} aria-label="Enviar resposta">
               <IconeEnviar />
             </button>
           </form>

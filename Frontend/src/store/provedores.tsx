@@ -5,19 +5,31 @@ import { SacolaProvider } from '@/store/sacola'
 import { FavoritosProvider } from '@/store/favoritos'
 import { DadosProvider } from '@/store/dados'
 import { SessaoProvider, useSessao } from '@/store/sessao'
-import ProtecaoRotas from '@/components/auth/ProtecaoRotas'
+import { EstadoClienteProvider } from '@/store/estadoCliente'
+import { HistoricoBuscaProvider } from '@/store/historicoBusca'
+import type { Sessao } from '@/services/sessao/cookie'
 
-function EstadoDaVisita({ children }: { children: ReactNode }) {
-  const { versao } = useSessao()
-  return <SacolaProvider key={`sacola-${versao}`}>
-    <FavoritosProvider key={`favoritos-${versao}`}><DadosProvider><ProtecaoRotas>{children}</ProtecaoRotas></DadosProvider></FavoritosProvider>
-  </SacolaProvider>
+export default function Provedores({ sessao, children }: { sessao: Sessao | null; children: ReactNode }) {
+  return (
+    <SessaoProvider inicial={sessao}>
+      <DadosProvider>
+        <EstadoDaSessao>{children}</EstadoDaSessao>
+      </DadosProvider>
+    </SessaoProvider>
+  )
 }
 
-export default function Provedores({ children }: { children: ReactNode }) {
+function EstadoDaSessao({ children }: { children: ReactNode }) {
+  const { sessao } = useSessao()
+  const identidade = sessao ? `usuario:${sessao.id}` : 'visitante'
+
   return (
-    <SessaoProvider>
-      <EstadoDaVisita>{children}</EstadoDaVisita>
-    </SessaoProvider>
+    <EstadoClienteProvider key={identidade}>
+      <SacolaProvider>
+        <FavoritosProvider>
+          <HistoricoBuscaProvider>{children}</HistoricoBuscaProvider>
+        </FavoritosProvider>
+      </SacolaProvider>
+    </EstadoClienteProvider>
   )
 }

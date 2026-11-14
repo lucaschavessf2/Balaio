@@ -1,40 +1,38 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import { obterEstado, salvarFavoritos } from '@/services/api/estado.servico'
+import { createContext, useContext, type ReactNode } from 'react'
+import { salvarFavoritos } from '@/services/api/estado.servico'
+import { useEstadoCliente } from '@/store/estadoCliente'
+import { useEstadoPersistido } from '@/hooks/useEstadoPersistido'
 
 type ContextoFavoritos = {
   slugs: string[]
   pronto: boolean
+  erro: string | null
+  recarregar: () => void
   alternar: (slug: string) => boolean
   ehFavorito: (slug: string) => boolean
 }
 
 const Contexto = createContext<ContextoFavoritos | null>(null)
+const FAVORITOS_VAZIOS: string[] = []
 
 export function FavoritosProvider({ children }: { children: ReactNode }) {
-  const [slugs, setSlugs] = useState<string[]>([])
-  const [pronto, setPronto] = useState(false)
-
-  useEffect(() => {
-    let vivo = true
-    obterEstado().then(({ dados }) => {
-      if (vivo) setSlugs(dados?.favoritos ?? [])
-    }).finally(() => { if (vivo) setPronto(true) })
-    return () => { vivo = false }
-  }, [])
+  const { estado, pronto, erro, recarregar } = useEstadoCliente()
+  const { valor: slugs, atualizar } = useEstadoPersistido(
+    estado?.favoritos ?? FAVORITOS_VAZIOS,
+    salvarFavoritos,
+    'Não foi possível salvar os favoritos',
+  )
 
   function alternar(slug: string): boolean {
-    const jaTem = slugs.includes(slug)
-    const proximos = jaTem ? slugs.filter((s) => s !== slug) : [...slugs, slug]
-    setSlugs(proximos)
-    void salvarFavoritos(proximos)
-    return !jaTem
+    const proximos = atualizar((atuais) => atuais.includes(slug) ? atuais.filter((s) => s !== slug) : [...atuais, slug])
+    return proximos.includes(slug)
   }
 
   function ehFavorito(slug: string): boolean {
     return slugs.includes(slug)
   }
 
-  return <Contexto.Provider value={{ slugs, pronto, alternar, ehFavorito }}>{children}</Contexto.Provider>
+  return <Contexto.Provider value={{ slugs, pronto, erro, recarregar, alternar, ehFavorito }}>{children}</Contexto.Provider>
 }
 
 export function useFavoritos(): ContextoFavoritos {

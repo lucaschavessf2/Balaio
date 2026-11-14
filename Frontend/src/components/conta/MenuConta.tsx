@@ -3,12 +3,12 @@
 import Link from 'next/link'
 import { Retrato } from '@/components/ui/Basicos'
 import BotaoSair from '@/components/conta/BotaoSair'
-import { IconeCadeado, IconeCoracao, IconeMapa, IconePacote, IconeUsuario } from '@/components/ui/Icones'
+import { IconeCadeado, IconeCoracao, IconeMapa, IconePacote, IconePincel, IconeUsuario } from '@/components/ui/Icones'
 import type { Usuario } from '@/types/dominio'
 
 export type ChaveConta = 'pedidos' | 'favoritos' | 'enderecos' | 'dados'
 
-export default function MenuConta({ ativo, usuario, totalPedidos }: { ativo?: ChaveConta; usuario: Usuario; totalPedidos?: number }) {
+export default function MenuConta({ ativo, usuario, totalPedidos = 0 }: { ativo?: ChaveConta; usuario: Usuario; totalPedidos?: number }) {
   return (
     <nav className="menu-lateral" aria-label="Minha conta">
       <div className="menu-oficina">
@@ -27,7 +27,7 @@ export default function MenuConta({ ativo, usuario, totalPedidos }: { ativo?: Ch
         >
           <IconePacote />
           Meus pedidos
-          {totalPedidos !== undefined && <span className="menu-marcador">{totalPedidos}</span>}
+          <span className="menu-marcador">{totalPedidos}</span>
         </Link>
         <Link
           href="/favorites"
@@ -57,6 +57,12 @@ export default function MenuConta({ ativo, usuario, totalPedidos }: { ativo?: Ch
           <IconeCadeado />
           Alterar senha
         </Link>
+        {usuario.perfil === 'artesao' && (
+          <Link href="/dashboard" className="menu-item">
+            <IconePincel />
+            Painel do artesão
+          </Link>
+        )}
         <BotaoSair />
       </div>
     </nav>

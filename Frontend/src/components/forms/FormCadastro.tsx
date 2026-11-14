@@ -76,7 +76,10 @@ export default function FormCadastro({ tecnicas, territorios }: Props) {
     if (!sessao) { definirErroEnvio('A API não retornou uma conta válida.'); return }
     iniciarSessao(sessao)
     const destino = destinoInicial(sessao)
-    avisar.sucesso('Conta criada!')
+    avisar.sucesso(
+      'Conta criada!',
+      vendedor ? 'Seu ateliê já pode publicar a primeira peça.' : 'Boas compras: seu catálogo está liberado.',
+    )
     roteador.push(destino)
     roteador.refresh()
   }

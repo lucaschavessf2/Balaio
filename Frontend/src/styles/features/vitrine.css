@@ -56,7 +56,7 @@
 }
 
 .cartao-comunidade-nome {
-  @apply font-titulo font-semibold text-corpo leading-snug;
+  @apply font-corpo font-semibold text-corpo leading-snug;
 }
 
 .cartao-comunidade-rodape {
@@ -110,6 +110,10 @@
 @media (prefers-reduced-motion: reduce) {
   .atalho-icone {
     transition: none;
+  }
+
+  .atalho:hover .atalho-icone {
+    transform: none;
   }
 }
 

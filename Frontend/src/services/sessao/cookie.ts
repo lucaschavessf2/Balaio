@@ -4,13 +4,15 @@ import type { Usuario } from '@/types/dominio'
 export type Sessao = UsuarioAutenticado
 
 export const COOKIE_SESSAO = 'balaio-sessao'
+export const COOKIE_AUTENTICACAO = 'balaio_sessao'
+export const DURACAO_SESSAO_SEGUNDOS = 60 * 60 * 24 * 7
 
 const PAPEIS: Papel[] = ['comprador', 'artesao', 'admin']
 
 const DESTINO_POR_PAPEL: Record<Papel, string> = {
   comprador: '/account',
-  artesao: '/account',
-  admin: '/account',
+  artesao: '/dashboard',
+  admin: '/admin',
 }
 
 export function sessaoDoUsuario(usuario: Usuario): Sessao | null {
@@ -29,7 +31,6 @@ export function sessaoDoUsuario(usuario: Usuario): Sessao | null {
 
 export function lerSessaoDoCookie(valor: string | undefined): Sessao | null {
   void valor
-  // Nenhum cookie JavaScript autentica uma conta.
   return null
 }
 
@@ -37,9 +38,11 @@ export function destinoInicial(sessao: Sessao): string {
   return DESTINO_POR_PAPEL[sessao.papel]
 }
 
-export function destinoSeguro(proximo: string | undefined): string | undefined {
-  return proximo?.startsWith('/') && !/^\/\/|[\\\u0000-\u0020]/.test(proximo)
-    && !/%(?:2f|5c|0[0-9a-f]|1[0-9a-f])/i.test(proximo) ? proximo : undefined
+export function destinoSeguro(proximo: unknown): string | undefined {
+  if (typeof proximo !== 'string' || !proximo.startsWith('/') || proximo.startsWith('//')) return undefined
+  if (/[\\\u0000- \u007f]/.test(proximo)) return undefined
+  if (/%(?:2f|5c|0[0-9a-f]|1[0-9a-f])/i.test(proximo)) return undefined
+  return proximo
 }
 
 export function rotaDeLogin(proximo: string): string {

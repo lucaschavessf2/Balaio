@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useRef, useState } from 'react'
 import EstadoVazio from '@/components/feedback/EstadoVazio'
 import { avisar } from '@/components/feedback/Avisos'
 import { IconeAviso } from '@/components/ui/Icones'
@@ -8,21 +8,28 @@ import { enviar } from '@/services/api/cliente'
 import { type Mediacao } from '@/types/dominio'
 
 export default function ListaMediacoes({ iniciais }: { iniciais: Mediacao[] }) {
-  const [lista, definirLista] = useState<Mediacao[]>(iniciais)
   const [abertas, definirAbertas] = useState<string[]>([])
-
-  useEffect(() => {
-    definirLista(iniciais)
-  }, [iniciais])
+  const [processando, definirProcessando] = useState<string[]>([])
+  const emAndamento = useRef(new Set<string>())
 
   async function abrirMediacao(m: Mediacao) {
-    const resposta = await enviar<Mediacao>(`/admin/mediacoes/${m.id}`, { emAnalise: true }, 'PATCH')
-    if (resposta.erro) { avisar.erro('Não foi possível atualizar', resposta.erro.mensagem); return }
-    definirAbertas([...abertas, m.id])
-    avisar.info('Mediação aberta', 'As duas partes foram notificadas e têm 48h para responder.')
+    if (m.emAnalise || abertas.includes(m.id) || emAndamento.current.has(m.id)) return
+    emAndamento.current.add(m.id)
+    definirProcessando((atuais) => [...atuais, m.id])
+    try {
+      const resposta = await enviar<Mediacao>(`/admin/mediacoes/${m.id}`, { emAnalise: true }, 'PATCH')
+      if (resposta.erro || !resposta.dados) { avisar.erro('Não foi possível atualizar', resposta.erro?.mensagem); return }
+      definirAbertas((atuais) => [...new Set([...atuais, m.id])])
+      avisar.info('Mediação aberta', 'As duas partes foram notificadas e têm 48h para responder.')
+    } catch {
+      avisar.erro('Não foi possível atualizar', 'Tente novamente.')
+    } finally {
+      emAndamento.current.delete(m.id)
+      definirProcessando((atuais) => atuais.filter((id) => id !== m.id))
+    }
   }
 
-  if (lista.length === 0) {
+  if (iniciais.length === 0) {
     return (
       <EstadoVazio
         icone={<IconeAviso tamanho={34} />}
@@ -34,7 +41,7 @@ export default function ListaMediacoes({ iniciais }: { iniciais: Mediacao[] }) {
 
   return (
     <ul className="lista-curadoria">
-      {lista.map((m) => {
+      {iniciais.map((m) => {
         const emAnalise = m.emAnalise || abertas.includes(m.id)
         return (
           <li className="cartao-curadoria" key={m.id}>
@@ -59,7 +66,7 @@ export default function ListaMediacoes({ iniciais }: { iniciais: Mediacao[] }) {
               {emAnalise ? (
                 <p className="campo-ajuda">As duas partes foram notificadas e têm 48h para responder.</p>
               ) : (
-                <button type="button" className="botao botao-primario" onClick={() => abrirMediacao(m)}>
+                <button type="button" className="botao botao-primario" disabled={processando.includes(m.id)} onClick={() => abrirMediacao(m)}>
                   Abrir mediação
                 </button>
               )}

@@ -101,8 +101,36 @@ async function corpoDaConta(requisicao: Request, caminho: string): Promise<Array
   return corpo.byteLength ? corpo : undefined
 }
 
+function cookieDeSessaoNaRaiz(cookie: string) {
+  if (!/^balaio_sessao=/i.test(cookie)) return cookie
+  const atributos = cookie.split(';').map((parte) => parte.trim()).filter((parte) => !/^path=/i.test(parte))
+  return [...atributos, 'Path=/'].join('; ')
+}
+
+const HEADERS_DE_TRANSPORTE = new Set(['host', 'connection', 'content-length', 'transfer-encoding', 'keep-alive', 'upgrade', 'accept-encoding'])
+
+async function encaminharSimulador(requisicao: Request, url: URL): Promise<Response> {
+  const headers = new Headers()
+  requisicao.headers.forEach((valor, nome) => { if (!HEADERS_DE_TRANSPORTE.has(nome)) headers.set(nome, valor) })
+  try {
+    const resposta = await fetch(`${destinoConfigurado(false)}${url.pathname.slice('/api/v1'.length)}${url.search}`, {
+      method: requisicao.method, headers, cache: 'no-store', redirect: 'manual',
+      body: ['GET', 'HEAD'].includes(requisicao.method.toUpperCase()) ? undefined : await requisicao.arrayBuffer(),
+    })
+    const saida = new Headers()
+    resposta.headers.forEach((valor, nome) => {
+      if (!['content-encoding', 'content-length', 'transfer-encoding', 'connection', 'set-cookie'].includes(nome)) saida.set(nome, valor)
+    })
+    for (const cookie of resposta.headers.getSetCookie()) saida.append('set-cookie', cookie)
+    return new Response(resposta.body, { status: resposta.status, headers: saida })
+  } catch {
+    return erro(502, 'API_INDISPONIVEL', 'Não foi possível falar com o servidor.')
+  }
+}
+
 export async function encaminharApi(requisicao: Request): Promise<Response> {
   const url = new URL(requisicao.url)
+  if (!process.env.API_GATEWAY_URL?.trim()) return encaminharSimulador(requisicao, url)
   const finalizar = (resposta: Response) => limparSessaoLegada(resposta, url.protocol === 'https:')
   const caminho = url.pathname.slice('/api/v1'.length)
   if (!url.pathname.startsWith('/api/v1/') || /%2f|%5c|%2e|\\|\/\//i.test(caminho)
@@ -159,12 +187,13 @@ export async function encaminharApi(requisicao: Request): Promise<Response> {
       if (valor) saida.set(nome, valor)
     }
     for (const cookie of resposta.headers.getSetCookie()) {
-      if (real || /^balaio_cliente=/i.test(cookie)) saida.append('set-cookie', cookie)
+      if (real) saida.append('set-cookie', cookieDeSessaoNaRaiz(cookie))
+      else if (/^balaio_cliente=/i.test(cookie)) saida.append('set-cookie', cookie)
     }
     if (real) {
       const secure = url.protocol === 'https:' || resposta.headers.getSetCookie().some((cookie) => /;\s*Secure(?:;|$)/i.test(cookie))
       const atributos = `Path=/; Max-Age=0; SameSite=Lax${secure ? '; Secure' : ''}`
-      saida.append('set-cookie', `balaio_sessao=; HttpOnly; ${atributos}`)
+      saida.append('set-cookie', `balaio_sessao=; HttpOnly; Path=/api/v1; Max-Age=0; SameSite=Lax${secure ? '; Secure' : ''}`)
       saida.append('set-cookie', `balaio-sessao=; ${atributos}`)
       if (metodo === 'POST' && caminho === '/auth/logout' && resposta.ok) {
         saida.append('set-cookie', `balaio_cliente=; HttpOnly; ${atributos}`)

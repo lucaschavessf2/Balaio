@@ -10,6 +10,16 @@ export function criarVideo(video: Video & { situacao: 'publicada' | 'rascunho' }
   return enviar('/videos', video)
 }
 
+export type AlteracoesVideo = Partial<Pick<Video, 'legenda' | 'etiquetas' | 'peca' | 'situacao'>>
+
+export function atualizarVideo(id: string, alteracoes: AlteracoesVideo): Promise<RespostaApi<Video>> {
+  return enviar(`/videos/${encodeURIComponent(id)}`, alteracoes, 'PATCH')
+}
+
+export function removerVideo(id: string): Promise<RespostaApi<Video>> {
+  return buscar<Video>(`/videos/${encodeURIComponent(id)}`, { method: 'DELETE' })
+}
+
 export function comentarVideo(id: string, comentario: Comentario): Promise<RespostaApi<Comentario>> {
   return enviar(`/videos/${encodeURIComponent(id)}/comentarios`, comentario)
 }

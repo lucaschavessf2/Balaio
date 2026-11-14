@@ -56,7 +56,7 @@
 }
 
 .metricas-loja strong {
-  @apply font-titulo text-[20px] text-tinta;
+  @apply font-corpo font-bold text-[20px] text-tinta;
 }
 
 @media (min-width: 700px) {

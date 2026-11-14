@@ -6,11 +6,13 @@ import { atualizarPeca, criarPeca, type DadosPeca, type FotoParaEnviar } from '@
 import type { Disponibilidade, Peca, Tecnica } from '@/types/dominio'
 import type { TipoPeca } from '@/constants/referencias'
 import { Campo, Migalhas } from '@/components/ui/Basicos'
+import Seletor from '@/components/ui/Seletor'
 import { avisar } from '@/components/feedback/Avisos'
 import { numeroDoPreco, validarObrigatorio, validarPreco, validarPrazoDias } from '@/utils/validacao'
 import { FORMATOS_FOTO } from '@/utils/foto'
 import { IconeAviso, IconePincel } from '@/components/ui/Icones'
 import EstadoCarregando from '@/components/feedback/EstadoCarregando'
+import EstadoErro from '@/components/feedback/EstadoErro'
 import ApoioPrecificacao from '@/components/painel/ApoioPrecificacao'
 import { useReferencias } from '@/hooks/useReferencias'
 import { emReais } from '@/utils/formato'
@@ -68,7 +70,7 @@ export default function FormPeca({ peca, modelo }: Props) {
   const editando = Boolean(peca)
   const publicada = editando && (peca?.situacao ?? 'publicada') === 'publicada'
   const [salvando, definirSalvando] = useState(false)
-  const { tecnicas, territorios, categorias, tipos, carregando } = useReferencias()
+  const { tecnicas, territorios, categorias, tipos, carregando, erro, recarregar } = useReferencias()
   const [disponibilidade, definirDisponibilidade] = useState<Disponibilidade>(base?.disponibilidade ?? 'disponivel')
   const [preco, definirPreco] = useState(() => base?.preco ? emReais(base.preco) : '')
   const [erros, definirErros] = useState<Record<string, string>>({})
@@ -116,6 +118,16 @@ export default function FormPeca({ peca, modelo }: Props) {
         {migalhas}
         <h1 className="titulo-pagina">{titulo}</h1>
         <EstadoCarregando rotulo="Carregando o formulário…" cartoes={0} />
+      </>
+    )
+  }
+
+  if (erro) {
+    return (
+      <>
+        {migalhas}
+        <h1 className="titulo-pagina">{titulo}</h1>
+        <EstadoErro mensagem={erro} aoTentarNovamente={recarregar} />
       </>
     )
   }
@@ -297,37 +309,21 @@ export default function FormPeca({ peca, modelo }: Props) {
 
             <div className="grade-dois">
               <Campo rotulo="Técnica" id="peca-tecnica">
-                <select id="peca-tecnica" name="tecnica" defaultValue={base?.tecnica ?? tecnicas[0]}>
-                  {tecnicas.map((t) => (
-                    <option key={t}>{t}</option>
-                  ))}
-                </select>
+                <Seletor id="peca-tecnica" name="tecnica" opcoes={tecnicas} defaultValue={base?.tecnica} />
               </Campo>
 
               <Campo rotulo="Tipo de peça" ajuda="É por aqui que o comprador filtra na loja." id="peca-tipo">
-                <select id="peca-tipo" name="tipo" defaultValue={base?.tipo ?? tipos[0]}>
-                  {tipos.map((t) => (
-                    <option key={t}>{t}</option>
-                  ))}
-                </select>
+                <Seletor id="peca-tipo" name="tipo" opcoes={tipos} defaultValue={base?.tipo} />
               </Campo>
             </div>
 
             <div className="grade-dois">
               <Campo rotulo="Categoria" id="peca-categoria">
-                <select id="peca-categoria" name="categoria" defaultValue={base?.categoria ?? categorias[0]}>
-                  {categorias.map((c) => (
-                    <option key={c}>{c}</option>
-                  ))}
-                </select>
+                <Seletor id="peca-categoria" name="categoria" opcoes={categorias} defaultValue={base?.categoria} />
               </Campo>
 
               <Campo rotulo="Território de origem" id="peca-territorio">
-                <select id="peca-territorio" name="territorio" defaultValue={base?.territorio ?? territorios[0]}>
-                  {territorios.map((t) => (
-                    <option key={t}>{t}</option>
-                  ))}
-                </select>
+                <Seletor id="peca-territorio" name="territorio" opcoes={territorios} defaultValue={base?.territorio} />
               </Campo>
             </div>
 
