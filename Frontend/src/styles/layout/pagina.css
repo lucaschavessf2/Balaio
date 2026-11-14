@@ -46,7 +46,7 @@
 }
 
 .painel-layout {
-  @apply grid gap-6 grid-cols-1 items-start xl:grid-cols-[280px_minmax(0,1fr)];
+  @apply grid gap-6 grid-cols-1 items-start xl:grid-cols-[300px_minmax(0,1fr)];
 }
 
 .tabela-envolvida {

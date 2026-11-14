@@ -3,13 +3,11 @@
 import { useRouter } from 'next/navigation'
 import { criarVideo } from '@/services/api/videos.servico'
 import { useRef, useState, type FormEvent } from 'react'
-import { Campo } from '@/components/ui/Basicos'
+import CamposVideo, { type PecaVinculavel } from '@/components/forms/CamposVideo'
 import { avisar } from '@/components/feedback/Avisos'
 import { validarObrigatorio } from '@/utils/validacao'
 import { IconePincel } from '@/components/ui/Icones'
 import { useSessao } from '@/store/sessao'
-
-type PecaVinculavel = { slug: string; nome: string }
 
 export default function FormPublicarVideo({ pecas }: { pecas: PecaVinculavel[] }) {
   const roteador = useRouter()
@@ -81,33 +79,7 @@ export default function FormPublicarVideo({ pecas }: { pecas: PecaVinculavel[] }
           />
         </label>
 
-        <Campo
-          rotulo="Legenda"
-          ajuda="Conte o que está acontecendo na cena. Fale como falaria na feira."
-          erro={erroLegenda ?? undefined}
-          id="video-legenda"
-        >
-          <textarea
-            id="video-legenda"
-            name="legenda"
-            placeholder="A juba do leão é feita cacho por cacho, com faca de ponta fina..."
-          />
-        </Campo>
-
-        <Campo rotulo="Etiquetas" ajuda="Separe por espaço. Ajudam quem procura pela técnica." id="video-etiquetas">
-          <input id="video-etiquetas" name="etiquetas" placeholder="ceramica tracunhaem passoapasso" />
-        </Campo>
-
-        <Campo rotulo="Vincular a uma peça" ajuda="Quem assistir pode ir direto para a peça e comprar." id="video-peca">
-          <select id="video-peca" name="peca" defaultValue="">
-            <option value="">Nenhuma peça vinculada</option>
-            {pecas.map((p) => (
-              <option key={p.slug} value={p.slug}>
-                {p.nome}
-              </option>
-            ))}
-          </select>
-        </Campo>
+        <CamposVideo pecas={pecas} erroLegenda={erroLegenda} />
 
         <div className="acoes-linha">
           <button disabled={salvando} type="submit" className="botao botao-primario">

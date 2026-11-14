@@ -4,6 +4,7 @@ import type { Usuario } from '@/types/dominio'
 export type Sessao = UsuarioAutenticado
 
 export const COOKIE_SESSAO = 'balaio-sessao'
+export const COOKIE_AUTENTICACAO = 'balaio_sessao'
 export const DURACAO_SESSAO_SEGUNDOS = 60 * 60 * 24 * 7
 
 const PAPEIS: Papel[] = ['comprador', 'artesao', 'admin']
@@ -43,8 +44,10 @@ export function destinoInicial(sessao: Sessao): string {
   return DESTINO_POR_PAPEL[sessao.papel]
 }
 
-export function destinoSeguro(proximo: string | undefined): string | undefined {
-  return proximo?.startsWith('/') && !proximo.startsWith('//') ? proximo : undefined
+export function destinoSeguro(proximo: unknown): string | undefined {
+  if (typeof proximo !== 'string' || !proximo.startsWith('/') || proximo.startsWith('//')) return undefined
+  if (/[\\\u0000-\u001f\u007f]/.test(proximo)) return undefined
+  return proximo
 }
 
 export function rotaDeLogin(proximo: string): string {

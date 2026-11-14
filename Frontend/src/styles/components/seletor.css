@@ -21,6 +21,18 @@
   border-color: var(--vermelho-tinta);
 }
 
+.seletor-gatilho:disabled {
+  @apply opacity-60 cursor-not-allowed;
+}
+
+.seletor-compacto .seletor-gatilho {
+  @apply min-h-10 py-2 px-3 text-pequeno;
+}
+
+.seletor-compacto .seletor-opcao {
+  @apply min-h-10 px-2.5;
+}
+
 .seletor-gatilho svg {
   @apply flex-none text-tinta-suave;
   transition: transform 150ms ease;
@@ -37,7 +49,14 @@
 
 .seletor-lista {
   @apply absolute z-30 left-0 right-0 top-[calc(100%+6px)] m-0 p-1.5 list-none bg-superficie border border-linha rounded-caixa shadow-(--sombra-alta) max-h-64 overflow-y-auto outline-none;
-  animation: seletor-abre 140ms ease;
+  animation: seletor-abre var(--mola-duracao-folha) var(--mola);
+  transform-origin: top center;
+}
+
+.seletor-lista-acima {
+  @apply top-auto bottom-[calc(100%+6px)];
+  transform-origin: bottom center;
+  --seletor-entrada: 6px;
 }
 
 .seletor-opcao {
@@ -71,11 +90,7 @@
 @keyframes seletor-abre {
   from {
     opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+    transform: translateY(var(--seletor-entrada, -6px)) scale(0.98);
   }
 }
 
@@ -84,7 +99,7 @@
 }
 
 .modal[open] {
-  animation: modal-abre 180ms ease;
+  animation: modal-abre var(--mola-duracao) var(--mola);
 }
 
 .modal::backdrop {
@@ -96,7 +111,7 @@
 }
 
 .modal-titulo {
-  @apply font-titulo text-[22px] font-bold leading-tight;
+  @apply font-corpo text-[22px] font-bold leading-tight;
 }
 
 .modal-fechar {

@@ -11,10 +11,11 @@ import EstadoCarregando from '@/components/feedback/EstadoCarregando'
 
 export default function ListaFavoritos() {
   const { mapaPecas, carregando, erro } = usePecas()
-  const { slugs } = useFavoritos()
+  const { slugs, pronto, erro: erroFavoritos, recarregar } = useFavoritos()
   const pecas = slugs.map((slug) => mapaPecas.get(slug)).filter((p) => p !== undefined)
 
-  if (carregando) return <EstadoCarregando />
+  if (!pronto || carregando) return <EstadoCarregando />
+  if (erroFavoritos) return <EstadoErro mensagem={erroFavoritos} aoTentarNovamente={recarregar} />
   if (erro) return <EstadoErro mensagem={erro} />
 
   if (pecas.length === 0) {
@@ -33,7 +34,7 @@ export default function ListaFavoritos() {
   }
 
   return (
-    <div className="grade-pecas grade-pecas-compacta">
+    <div className="grade-pecas grade-pecas-compacta escalonado">
       {pecas.map((p) => (
         <CartaoPeca key={p.slug} peca={p} />
       ))}

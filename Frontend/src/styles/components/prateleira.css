@@ -24,7 +24,7 @@
 }
 
 .prateleira-corpo {
-  @apply relative;
+  @apply relative flow-root;
 }
 
 .prateleira-trilho {
@@ -34,6 +34,9 @@
   scroll-padding-inline: 4px;
   overscroll-behavior-x: contain;
   scrollbar-width: none;
+  --entrada-escala: 1;
+  padding-bottom: calc(var(--entrada-deslocamento) + 4px);
+  margin-bottom: calc(var(--entrada-deslocamento) * -1);
 }
 
 .prateleira-trilho::-webkit-scrollbar {

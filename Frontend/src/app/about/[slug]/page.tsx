@@ -136,8 +136,8 @@ export function generateStaticParams() {
 
 export default async function Institucional({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
+  if (!Object.hasOwn(documentos, slug)) notFound()
   const doc = documentos[slug]
-  if (!doc) notFound()
 
   return (
     <Pagina>

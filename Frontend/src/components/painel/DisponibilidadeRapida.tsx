@@ -3,14 +3,15 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { SeloDisponibilidade } from '@/components/ui/Basicos'
+import Seletor from '@/components/ui/Seletor'
 import { avisar } from '@/components/feedback/Avisos'
 import { atualizarPeca } from '@/services/api/pecas.servico'
 import type { Disponibilidade } from '@/types/dominio'
 
-const opcoes: { valor: Disponibilidade; texto: string }[] = [
-  { valor: 'disponivel', texto: 'Disponível' },
-  { valor: 'encomenda', texto: 'Sob encomenda' },
-  { valor: 'unica', texto: 'Peça única' },
+const opcoes: { valor: Disponibilidade; rotulo: string }[] = [
+  { valor: 'disponivel', rotulo: 'Disponível' },
+  { valor: 'encomenda', rotulo: 'Sob encomenda' },
+  { valor: 'unica', rotulo: 'Peça única' },
 ]
 
 type Props = {
@@ -62,18 +63,18 @@ export default function DisponibilidadeRapida({ slug, inicial, prazoInicial, ven
 
   return (
     <div className="disponibilidade-rapida">
-      <select
+      <Seletor
+        compacto
         aria-label="Condição de venda"
+        opcoes={opcoes}
         value={selecionada}
         disabled={salvando}
-        onChange={(evento) => {
-          const proxima = evento.target.value as Disponibilidade
+        onChange={(valor) => {
+          const proxima = valor as Disponibilidade
           definirSelecionada(proxima)
           if (proxima !== 'encomenda') void salvar(proxima)
         }}
-      >
-        {opcoes.map((opcao) => <option key={opcao.valor} value={opcao.valor}>{opcao.texto}</option>)}
-      </select>
+      />
       {selecionada === 'encomenda' && (
         <div className="disponibilidade-prazo">
           <input

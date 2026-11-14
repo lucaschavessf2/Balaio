@@ -102,7 +102,7 @@ export default async function Busca({ searchParams }: Props) {
               />
             ) : (
               <>
-                <div className="grade-pecas">
+                <div className="grade-pecas escalonado">
                   {resultados.map((peca) => (
                     <CartaoPeca key={peca.slug} peca={peca} />
                   ))}

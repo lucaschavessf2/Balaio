@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import EstadoVazio from '@/components/feedback/EstadoVazio'
 import { avisar } from '@/components/feedback/Avisos'
 import { IconeAviso } from '@/components/ui/Icones'
@@ -10,17 +10,29 @@ import { type Mediacao } from '@/types/dominio'
 export default function ListaMediacoes({ iniciais }: { iniciais: Mediacao[] }) {
   const [lista, definirLista] = useState<Mediacao[]>(iniciais)
   const [abertas, definirAbertas] = useState<string[]>([])
+  const [processando, definirProcessando] = useState<string[]>([])
+  const emAndamento = useRef(new Set<string>())
 
   useEffect(() => {
     definirLista(iniciais)
   }, [iniciais])
 
   async function abrirMediacao(m: Mediacao) {
-    const resposta = await enviar<Mediacao>(`/admin/mediacoes/${m.id}`, { estado: 'emAnalise' }, 'PATCH')
-    if (resposta.erro) { avisar.erro('Não foi possível atualizar', resposta.erro.mensagem); return }
-    if (resposta.dados) definirLista((atual) => atual.map((item) => item.id === m.id ? resposta.dados! : item))
-    definirAbertas([...abertas, m.id])
-    avisar.info('Mediação em análise', 'Registre a decisão quando houver elementos suficientes.')
+    if (m.emAnalise || m.estado === 'emAnalise' || abertas.includes(m.id) || emAndamento.current.has(m.id)) return
+    emAndamento.current.add(m.id)
+    definirProcessando((atuais) => [...atuais, m.id])
+    try {
+      const resposta = await enviar<Mediacao>(`/admin/mediacoes/${m.id}`, { estado: 'emAnalise' }, 'PATCH')
+      if (resposta.erro || !resposta.dados) { avisar.erro('Não foi possível atualizar', resposta.erro?.mensagem); return }
+      definirLista((atual) => atual.map((item) => item.id === m.id ? resposta.dados! : item))
+      definirAbertas((atuais) => [...new Set([...atuais, m.id])])
+      avisar.info('Mediação em análise', 'Registre a decisão quando houver elementos suficientes.')
+    } catch {
+      avisar.erro('Não foi possível atualizar', 'Tente novamente.')
+    } finally {
+      emAndamento.current.delete(m.id)
+      definirProcessando((atuais) => atuais.filter((id) => id !== m.id))
+    }
   }
 
   async function decidirMediacao(m: Mediacao, decisao: string) {
@@ -84,7 +96,7 @@ export default function ListaMediacoes({ iniciais }: { iniciais: Mediacao[] }) {
                   <button type="submit" className="botao botao-primario">Registrar decisão</button>
                 </form>
               ) : (
-                <button type="button" className="botao botao-primario" onClick={() => abrirMediacao(m)}>
+                <button type="button" className="botao botao-primario" disabled={processando.includes(m.id)} onClick={() => abrirMediacao(m)}>
                   Abrir mediação
                 </button>
               )}

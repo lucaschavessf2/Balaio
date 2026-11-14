@@ -5,6 +5,7 @@ import type { ReactNode } from 'react'
 import MenuDrawer from '@/components/navegacao/MenuDrawer'
 import MenuPainelLateral from '@/components/painel/MenuPainelLateral'
 import type { ChavePainel } from '@/components/painel/itensPainel'
+import { useArtesaoLogado, useContagensPainel } from '@/hooks/useArtesaoLogado'
 
 type Props = { children: ReactNode }
 
@@ -19,14 +20,16 @@ function itemAtivo(caminho: string): ChavePainel {
 
 export default function LayoutPainel({ children }: Props) {
   const ativo = itemAtivo(usePathname())
+  const artesao = useArtesaoLogado()
+  const contagens = useContagensPainel()
 
   return (
     <>
       <MenuDrawer titulo="Painel do artesão" rotulo="Menu do painel">
-        <MenuPainelLateral ativo={ativo} />
+        <MenuPainelLateral ativo={ativo} artesao={artesao} contagens={contagens} />
       </MenuDrawer>
       <div className="painel-layout">
-        <MenuPainelLateral ativo={ativo} />
+        <MenuPainelLateral ativo={ativo} artesao={artesao} contagens={contagens} />
         <div className="encolhivel">{children}</div>
       </div>
     </>

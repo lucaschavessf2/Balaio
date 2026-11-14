@@ -9,7 +9,7 @@ const promessas = [
   'O repasse só chega ao ateliê depois da entrega',
 ]
 
-type Props = { searchParams: Promise<{ proximo?: string }> }
+type Props = { searchParams: Promise<{ proximo?: string | string[] }> }
 
 export default async function Entrar({ searchParams }: Props) {
   const { proximo } = await searchParams

@@ -136,6 +136,7 @@ O formulário consulta `GET /referencias` no catálogo real. Se as listas não c
 | GET | `/eventos?lat=&lng=` | 🌐 | Agenda, ordenada por distância quando há coordenadas |
 | POST | `/eventos` | 🌐 | Cria evento |
 | GET / POST | `/videos`, `/videos/:id/comentarios` | 🌐 | Vídeos dos ateliês e comentários |
+| PATCH / DELETE | `/videos/:id` | 🧑‍🎨 | Edita `{ legenda, etiquetas, peca, situacao }` ou remove um vídeo do próprio ateliê, com seus comentários |
 
 ---
 
