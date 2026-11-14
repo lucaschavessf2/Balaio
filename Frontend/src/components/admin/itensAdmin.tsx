@@ -40,7 +40,7 @@ export function itensAdmin({ curadoria, mediacoes }: ContagensAdmin = { curadori
       href: '/admin/mediations',
       icone: <IconeAviso />,
       grupo: 'moderacao',
-      marcador: mediacoes > 0 ? { texto: `${mediacoes} abertas`, alerta: true } : undefined,
+      marcador: mediacoes > 0 ? { texto: mediacoes === 1 ? '1 aberta' : `${mediacoes} abertas`, alerta: true } : undefined,
     },
     {
       chave: 'criterios',

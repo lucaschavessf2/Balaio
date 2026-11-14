@@ -57,7 +57,7 @@ export type Artesao = {
   chavePix?: string
 }
 
-export type EstadoPedido = 'confirmado' | 'producao' | 'enviado' | 'entregue' | 'recusado' | 'cancelado' | 'reembolsado'
+export type EstadoPedido = 'aguardando_reserva' | 'aguardando_pagamento' | 'confirmacao_pendente' | 'confirmado' | 'producao' | 'enviado' | 'entregue' | 'encerramento_pendente' | 'falha_reserva' | 'falha_pagamento' | 'recusado' | 'cancelado' | 'reembolsado'
 
 export type EtapaPedido = {
   estado: EstadoPedido
@@ -69,7 +69,7 @@ export type EtapaPedido = {
 }
 
 export type Pedido = {
-  itens?: { slug: string; quantidade: number }[]
+  itens?: { slug: string; quantidade: number; preco?: number }[]
   simulado?: boolean
   id: string
   pecaSlug: string
@@ -139,6 +139,8 @@ export type Mensagem = {
 
 export type Mediacao = {
   emAnalise?: boolean
+  estado?: 'aberta' | 'emAnalise' | 'decisao_pendente' | 'decidida'
+  decisao?: 'cancelar_reembolsar' | 'negar' | 'manter_conversa' | null
   id: string
   pedido: string
   assunto: string
@@ -193,6 +195,7 @@ export type Video = {
   comentarios: number
   publicadoEm: string
   capa: string
+  situacao?: 'publicada' | 'rascunho'
 }
 
 export type Comentario = {

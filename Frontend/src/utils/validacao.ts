@@ -12,7 +12,10 @@ export function validarEmail(valor: string): string | null {
 
 export function validarSenha(valor: string): string | null {
   if (!valor.trim()) return 'Crie uma senha'
-  return valor.length >= 8 ? null : 'A senha precisa de no mínimo 8 caracteres'
+  if (Array.from(valor).length < 12) return 'A senha precisa de no mínimo 12 caracteres'
+  if (new TextEncoder().encode(valor).length > 72) return 'A senha deve ter no máximo 72 bytes em UTF-8'
+  if (/[\p{Cc}\p{Cs}]/u.test(valor)) return 'A senha não pode conter caracteres de controle ou inválidos'
+  return null
 }
 
 export function validarPreco(valor: string): string | null {

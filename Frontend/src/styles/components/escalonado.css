@@ -1,0 +1,50 @@
+.escalonado > :nth-child(1) {
+  --escalonado-indice: 0;
+}
+
+.escalonado > :nth-child(2) {
+  --escalonado-indice: 1;
+}
+
+.escalonado > :nth-child(3) {
+  --escalonado-indice: 2;
+}
+
+.escalonado > :nth-child(4) {
+  --escalonado-indice: 3;
+}
+
+.escalonado > :nth-child(5) {
+  --escalonado-indice: 4;
+}
+
+.escalonado > :nth-child(6) {
+  --escalonado-indice: 5;
+}
+
+.escalonado > :nth-child(7) {
+  --escalonado-indice: 6;
+}
+
+.escalonado > :nth-child(n + 8) {
+  --escalonado-indice: 7;
+}
+
+@media screen and (prefers-reduced-motion: no-preference) {
+  .escalonado > * {
+    animation: entrar-com-mola var(--mola-duracao) var(--mola) backwards;
+    animation-delay: calc(var(--escalonado-indice) * var(--escalonado-passo));
+  }
+
+  .escalonado[data-revelar="aguardando"] > * {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+@keyframes entrar-com-mola {
+  from {
+    opacity: 0;
+    transform: translateY(var(--entrada-deslocamento)) scale(var(--entrada-escala));
+  }
+}

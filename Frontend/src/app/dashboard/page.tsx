@@ -2,17 +2,18 @@ import Link from 'next/link'
 import { Migalhas } from '@/components/ui/Basicos'
 import PedidosPendentes from '@/components/pedido/PedidosPendentes'
 import { IconeSetaDireita } from '@/components/ui/Icones'
-import { listarPedidos, listarPedidosPendentes, listarConversasArtesao } from '@/services/api/pedidos.servico'
+import { listarVendasArtesao, listarPedidosPendentes, listarConversasArtesao } from '@/services/api/pedidos.servico'
 import { pecasPorArtesao } from '@/services/api/pecas.servico'
 import { exigirArtesao } from '@/services/autenticacao'
+import { ESTADOS_ENCERRADOS, faturamentoNoMes, vendasDoArtesao } from '@/utils/vendas'
 
 export default async function Painel() {
-  const { artesao } = await exigirArtesao()
+  const { artesao, token } = await exigirArtesao()
   const [{ dados: pend }, { dados: conversas }, { dados: pecas }, { dados: pedidos }] = await Promise.all([
-    listarPedidosPendentes(artesao.slug),
+    listarPedidosPendentes(artesao.slug, token),
     listarConversasArtesao(artesao.slug),
-    pecasPorArtesao(artesao.slug),
-    listarPedidos(),
+    pecasPorArtesao(artesao.slug, token),
+    listarVendasArtesao(artesao.slug, token),
   ])
   const mapaPecas = new Map((pecas ?? []).map((p) => [p.slug, p]))
   const conversasArtesao = conversas ?? []
@@ -35,9 +36,8 @@ export default async function Painel() {
   const pedidosDoArtesao = (pedidos ?? []).filter((pedido) =>
     (pedido.itens ?? [{ slug: pedido.pecaSlug }]).some((item) => slugsDoArtesao.has(item.slug)),
   )
-  const estadosEncerrados = new Set(['recusado', 'cancelado', 'reembolsado'])
   const pecasUnicasVendidas = new Set(
-    pedidosDoArtesao.filter((pedido) => !estadosEncerrados.has(pedido.estado)).flatMap((pedido) =>
+    pedidosDoArtesao.filter((pedido) => !ESTADOS_ENCERRADOS.has(pedido.estado)).flatMap((pedido) =>
       (pedido.itens ?? [{ slug: pedido.pecaSlug }])
         .filter((item) => mapaPecas.get(item.slug)?.disponibilidade === 'unica')
         .map((item) => item.slug),
@@ -52,11 +52,10 @@ export default async function Painel() {
     return []
   })
   const agora = new Date()
-  const noMesAtual = (data: string) => {
-    const [dia, mes, ano] = data.split('/').map(Number)
-    const dataPedido = new Date(ano, mes - 1, dia)
-    return dataPedido.getMonth() === agora.getMonth() && dataPedido.getFullYear() === agora.getFullYear()
-  }
+  const faturamentoMes = faturamentoNoMes(vendasDoArtesao(pedidosDoArtesao, pecas ?? []), {
+    ano: agora.getFullYear(),
+    mes: agora.getMonth() + 1,
+  })
 
   return (
     <>
@@ -71,7 +70,7 @@ export default async function Painel() {
         emProducao={pedidosDoArtesao.filter((pedido) => pedido.estado === 'producao').length}
         pecasAtivas={pecasAtivas}
         avisosPecas={avisosPecas}
-        faturamentoMes={pedidosDoArtesao.filter((pedido) => !estadosEncerrados.has(pedido.estado) && noMesAtual(pedido.data)).reduce((total, pedido) => total + pedido.total, 0)}
+        faturamentoMes={faturamentoMes}
       />
 
       <section className="secao">

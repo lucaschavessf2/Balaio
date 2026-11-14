@@ -27,6 +27,10 @@ export default function PerguntasPublicas({ iniciais, slug, artesaoSlug, artesao
   const [erro, definirErro] = useState<string | null>(null)
   const [respondendo, definirRespondendo] = useState<string | null>(null)
   const [rascunhoResposta, definirRascunhoResposta] = useState('')
+  const [enviandoPergunta, definirEnviandoPergunta] = useState(false)
+  const [enviandoResposta, definirEnviandoResposta] = useState(false)
+  const envioPerguntaEmAndamento = useRef(false)
+  const envioRespostaEmAndamento = useRef(false)
   const campoResposta = useRef<HTMLInputElement>(null)
 
   useEffect(() => definirPerguntas(iniciais), [iniciais])
@@ -39,30 +43,47 @@ export default function PerguntasPublicas({ iniciais, slug, artesaoSlug, artesao
 
   async function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
-    if (!sessao) return
+    if (!sessao || envioPerguntaEmAndamento.current) return
+    const textoEnviado = texto
     const limpo = texto.trim()
     if (!limpo) {
       definirErro('Escreva sua pergunta antes de enviar')
       return
     }
     definirErro(null)
-    const resposta = await criarPergunta(slug, limpo)
-    if (!resposta.dados) return avisar.erro('Não foi possível enviar', resposta.erro?.mensagem)
-    definirPerguntas([...perguntas, resposta.dados])
-    definirTexto('')
-    avisar.sucesso('Pergunta enviada', 'Ela já aparece aqui com o seu nome.')
+    envioPerguntaEmAndamento.current = true
+    definirEnviandoPergunta(true)
+    try {
+      const resposta = await criarPergunta(slug, limpo)
+      if (!resposta.dados) return avisar.erro('Não foi possível enviar', resposta.erro?.mensagem)
+      const nova = resposta.dados
+      definirPerguntas((atuais) => [...atuais, nova])
+      definirTexto((atual) => atual === textoEnviado ? '' : atual)
+      avisar.sucesso('Pergunta enviada', 'Ela já aparece aqui com o seu nome.')
+    } finally {
+      envioPerguntaEmAndamento.current = false
+      definirEnviandoPergunta(false)
+    }
   }
 
   async function responder(evento: FormEvent<HTMLFormElement>, pergunta: PerguntaPublica) {
     evento.preventDefault()
     const limpo = rascunhoResposta.trim()
-    if (!limpo) return
-    const resposta = await responderPergunta(slug, pergunta.id, limpo)
-    if (!resposta.dados) return avisar.erro('Não foi possível responder', resposta.erro?.mensagem)
-    definirPerguntas(perguntas.map((item) => item.id === pergunta.id ? resposta.dados! : item))
-    definirRespondendo(null)
-    definirRascunhoResposta('')
-    avisar.sucesso('Resposta publicada', 'Ela fica visível para quem visitar a peça.')
+    if (!limpo || envioRespostaEmAndamento.current) return
+    envioRespostaEmAndamento.current = true
+    definirEnviandoResposta(true)
+    try {
+      const resposta = await responderPergunta(slug, pergunta.id, limpo)
+      if (!resposta.dados) return avisar.erro('Não foi possível responder', resposta.erro?.mensagem)
+      const atualizada = resposta.dados
+      definirPerguntas((atuais) => atuais.map((item) => item.id === pergunta.id ? atualizada : item))
+      definirRespondendo((atual) => atual === pergunta.id ? null : atual)
+      definirRascunhoResposta('')
+      avisar.sucesso('Resposta publicada', 'Ela fica visível para quem visitar a peça.')
+    } finally {
+      envioRespostaEmAndamento.current = false
+      definirEnviandoResposta(false)
+    }
   }
 
   return (
@@ -97,26 +118,28 @@ export default function PerguntasPublicas({ iniciais, slug, artesaoSlug, artesao
                   <p className="balao balao-resposta">{p.resposta}</p>
                 </div>
               </div>
-            ) : respondendo === p.pergunta ? (
+            ) : respondendo === p.id ? (
               <form className="conversa-envio resposta-envio" onSubmit={(e) => responder(e, p)}>
-                <label className="so-leitor" htmlFor={`responder-${p.pergunta.slice(0, 20)}`}>
+                <label className="so-leitor" htmlFor={`responder-${p.id}`}>
                   Escreva a resposta do artesão
                 </label>
                 <input
-                  id={`responder-${p.pergunta.slice(0, 20)}`}
+                  id={`responder-${p.id}`}
                   ref={campoResposta}
                   className="campo-select"
                   placeholder="Responda como artesão"
                   value={rascunhoResposta}
+                  disabled={enviandoResposta}
                   enterKeyHint="send"
                   onChange={(evento) => definirRascunhoResposta(evento.target.value)}
                 />
-                <button type="submit" className="botao botao-primario" aria-label="Publicar resposta">
+                <button type="submit" className="botao botao-primario" disabled={enviandoResposta} aria-label="Publicar resposta">
                   <IconeEnviar />
                 </button>
                 <button
                   type="button"
                   className="botao botao-fantasma"
+                  disabled={enviandoResposta}
                   onClick={() => {
                     definirRespondendo(null)
                     definirRascunhoResposta('')
@@ -132,8 +155,10 @@ export default function PerguntasPublicas({ iniciais, slug, artesaoSlug, artesao
                   <button
                     type="button"
                     className="botao-texto"
+                    disabled={enviandoResposta}
                     onClick={() => {
-                      definirRespondendo(p.pergunta)
+                      if (envioRespostaEmAndamento.current) return
+                      definirRespondendo(p.id)
                       definirRascunhoResposta('')
                     }}
                   >
@@ -163,7 +188,7 @@ export default function PerguntasPublicas({ iniciais, slug, artesaoSlug, artesao
               if (erro) definirErro(null)
             }}
           />
-          <button type="submit" className="botao botao-primario" aria-label="Enviar pergunta">
+          <button type="submit" className="botao botao-primario" disabled={enviandoPergunta} aria-label="Enviar pergunta">
             <IconeEnviar />
           </button>
         </form>

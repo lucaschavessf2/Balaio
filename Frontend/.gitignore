@@ -6,6 +6,21 @@ next-env.d.ts
 .DS_Store
 fake-api/db.json
 fake-api/arquivos/
-.env.local
 .env
+.env.*
+!.env.example
 .claude
+playwright-report/
+test-results/
+
+# Local-only agent material and private credentials
+.agents/
+.agent_flow/
+documentacao/
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.log

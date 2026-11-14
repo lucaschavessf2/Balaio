@@ -1,1 +1,20 @@
 brag-output/
+
+# Local-only project material
+/.agents/
+/.agent_flow/
+/documentacao/
+
+# Environment secrets and private key material
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.log
+Thumbs.db
+.DS_Store

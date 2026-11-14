@@ -23,8 +23,9 @@ function PrecoGrande({ valor }: { valor: number }) {
 }
 
 export default function CartaoPeca({ peca }: { peca: Peca }) {
-  const { artesaos } = useDados()
+  const { artesaos, carregando } = useDados()
   const artesao = artesaos.find((a) => a.slug === peca.artesao)
+  const temDesconto = (peca.desconto ?? 0) > 0
 
   return (
     <article className="cartao-peca">
@@ -38,7 +39,7 @@ export default function CartaoPeca({ peca }: { peca: Peca }) {
             {peca.nome}
           </Link>
         </h3>
-        <span className="autoria autoria-com-retrato">
+        <span className="autoria autoria-com-retrato" data-carregando={carregando || undefined}>
           <Retrato imagem={artesao?.imagem} tamanho={20} />
           por {artesao?.nome ?? 'Artesão parceiro'}
         </span>
@@ -54,16 +55,16 @@ export default function CartaoPeca({ peca }: { peca: Peca }) {
         )}
 
         <div className="cartao-peca-precos">
-          {peca.desconto && <span className="preco-riscado">{emReais(peca.preco)}</span>}
+          {temDesconto && <span className="preco-riscado">{emReais(peca.preco)}</span>}
           <span className="linha-preco-grande">
             <PrecoGrande valor={precoComDesconto(peca)} />
-            {peca.desconto && (
+            {temDesconto && (
               <span className="chip-desconto">
                 {peca.desconto}% de desconto<span className="so-leitor"> da plataforma</span>
               </span>
             )}
           </span>
-          {peca.desconto && <span className="chip-beneficio">Economize {emReais(peca.preco - precoComDesconto(peca))}</span>}
+          {temDesconto && <span className="chip-beneficio">Economize {emReais(peca.preco - precoComDesconto(peca))}</span>}
         </div>
       </div>
       <BotaoFavoritar slug={peca.slug} nome={peca.nome} />

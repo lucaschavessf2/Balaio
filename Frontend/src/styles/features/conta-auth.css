@@ -40,7 +40,7 @@
 }
 
 .auth-marca-nome {
-  @apply font-titulo text-[26px] font-bold leading-none lg:mt-3;
+  @apply font-titulo text-[26px] leading-none lg:mt-3;
 }
 
 .auth-marca-frase {
@@ -64,7 +64,7 @@
 }
 
 .auth-titulo {
-  @apply font-titulo text-[30px] font-bold mb-1.5;
+  @apply font-titulo text-[30px] mb-1.5;
   letter-spacing: 0.015em;
 }
 

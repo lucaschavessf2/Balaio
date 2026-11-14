@@ -1,5 +1,7 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import { obterEstado, salvarSacola } from '@/services/api/estado.servico'
+import { createContext, useContext, type ReactNode } from 'react'
+import { salvarSacola } from '@/services/api/estado.servico'
+import { useEstadoCliente } from '@/store/estadoCliente'
+import { useEstadoPersistido } from '@/hooks/useEstadoPersistido'
 
 export type ItemSacola = { slug: string; quantidade: number }
 
@@ -8,6 +10,8 @@ export type ResultadoAdicionar = 'adicionada' | 'ja-esta'
 type ContextoSacola = {
   itens: ItemSacola[]
   pronto: boolean
+  erro: string | null
+  recarregar: () => void
   adicionar: (slug: string, unica?: boolean) => ResultadoAdicionar
   remover: (slug: string) => void
   repor: (item: ItemSacola, posicao: number) => void
@@ -16,55 +20,52 @@ type ContextoSacola = {
 }
 
 const Contexto = createContext<ContextoSacola | null>(null)
+const SACOLA_VAZIA: ItemSacola[] = []
 
 export function SacolaProvider({ children }: { children: ReactNode }) {
-  const [itens, setItens] = useState<ItemSacola[]>([])
-  const [pronto, setPronto] = useState(false)
-
-  useEffect(() => {
-    let vivo = true
-    obterEstado().then(({ dados }) => {
-      if (vivo) setItens(dados?.sacola ?? [])
-    }).finally(() => { if (vivo) setPronto(true) })
-    return () => { vivo = false }
-  }, [])
-
-  function atualizar(proximos: ItemSacola[]) {
-    setItens(proximos)
-    void salvarSacola(proximos)
-  }
+  const { estado, pronto, erro, recarregar } = useEstadoCliente()
+  const { valor: itens, atualizar } = useEstadoPersistido(
+    estado?.sacola ?? SACOLA_VAZIA,
+    salvarSacola,
+    'Não foi possível salvar a sacola',
+  )
 
   function adicionar(slug: string, unica = false): ResultadoAdicionar {
-    const existente = itens.find((i) => i.slug === slug)
-    if (existente) {
-      if (unica) return 'ja-esta'
-      atualizar(itens.map((i) => (i.slug === slug ? { ...i, quantidade: i.quantidade + 1 } : i)))
-      return 'adicionada'
-    }
-    atualizar([...itens, { slug, quantidade: 1 }])
-    return 'adicionada'
+    let resultado: ResultadoAdicionar = 'adicionada'
+    atualizar((atuais) => {
+      const existente = atuais.find((item) => item.slug === slug)
+      if (!existente) return [...atuais, { slug, quantidade: 1 }]
+      if (unica || existente.quantidade >= 3) {
+        resultado = 'ja-esta'
+        return atuais
+      }
+      return atuais.map((item) => item.slug === slug ? { ...item, quantidade: item.quantidade + 1 } : item)
+    })
+    return resultado
   }
 
   function remover(slug: string) {
-    atualizar(itens.filter((i) => i.slug !== slug))
+    atualizar((atuais) => atuais.filter((i) => i.slug !== slug))
   }
 
   function repor(item: ItemSacola, posicao: number) {
-    const proximos = itens.filter((i) => i.slug !== item.slug)
-    proximos.splice(Math.min(posicao, proximos.length), 0, item)
-    atualizar(proximos)
+    atualizar((atuais) => {
+      const proximos = atuais.filter((i) => i.slug !== item.slug)
+      proximos.splice(Math.min(posicao, proximos.length), 0, item)
+      return proximos
+    })
   }
 
   function alterarQuantidade(slug: string, quantidade: number) {
-    atualizar(itens.map((i) => (i.slug === slug ? { ...i, quantidade } : i)))
+    atualizar((atuais) => atuais.map((i) => (i.slug === slug ? { ...i, quantidade } : i)))
   }
 
   function limpar() {
-    atualizar([])
+    atualizar(() => [])
   }
 
   return (
-    <Contexto.Provider value={{ itens, pronto, adicionar, remover, repor, alterarQuantidade, limpar }}>
+    <Contexto.Provider value={{ itens, pronto, erro, recarregar, adicionar, remover, repor, alterarQuantidade, limpar }}>
       {children}
     </Contexto.Provider>
   )
