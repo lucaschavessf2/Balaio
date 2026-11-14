@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "concurrently --kill-others -n api,web \"npm:api\" \"npm:dev:web\"",
+    "dev": "node scripts/iniciar-desenvolvimento.cjs",
     "build": "next build",
     "start": "next start -p 4321",
     "lint": "eslint .",
@@ -12,6 +12,8 @@
     "api:seed": "tsx fake-api/seed.ts",
     "api:reset": "node fake-api/reset.cjs",
     "test:api": "node --test fake-api/server.test.cjs",
+    "test:auth": "tsx --test tests/auth.test.ts",
+    "test:e2e:auth": "playwright test",
     "test:session": "tsx --test src/proxy.test.ts",
     "test:orders": "tsx --test src/components/pedido/acaoCancelamentoPedido.test.ts"
   },
@@ -27,6 +29,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.6",
+    "@playwright/test": "^1.64.1",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "22.10.5",
     "@types/react": "19.0.7",

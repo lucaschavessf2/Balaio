@@ -52,7 +52,6 @@ export default function FormRecuperar() {
         <p className="autoria">
           Se existir uma conta para <strong>{enviadoPara}</strong>, você receberá um link de recuperação válido por 1 hora.
         </p>
-        <p className="campo-ajuda">Não chegou? Confira a caixa de spam antes de pedir outro.</p>
         <Link href="/login" className="botao botao-secundario botao-largo acima-2">
           Voltar para o login
         </Link>
@@ -80,7 +79,7 @@ export default function FormRecuperar() {
       </Campo>
 
       <button type="submit" className="botao botao-primario botao-largo" disabled={enviando}>
-        {enviando ? 'Enviando…' : 'Enviar link de recuperação'}
+        {enviando ? 'Enviando…' : 'Solicitar recuperação'}
       </button>
     </form>
   )

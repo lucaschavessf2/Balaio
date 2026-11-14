@@ -1,11 +1,11 @@
 # API do Balaio
 
-Nesta entrega, o frontend consome uma **Fake API** (`fake-api/server.cjs`, json-server
-com rotas próprias). Os dados ficam em `fake-api/db.json` e persistem entre reinícios.
-Na próxima entrega, o backend real implementa **as mesmas rotas e o mesmo formato de
-resposta**, e o frontend continua igual.
+Na etapa 6, cadastro, login/alias, logout e `GET /usuario` usam **gateway/profile reais**.
+O dispatcher mantém capacidades públicas, estado de visitante e os itens da conta na Fake API (`fake-api/server.cjs`).
+`GET /conta/perfil`, `PATCH /usuario`, endereços e consulta de pedidos usam o Fake após validar a sessão real no gateway. Demais recursos privados pendentes retornam 404. Consulte [autenticação real e execução local](auth-local.md).
+Os dados simulados ficam em `fake-api/db.json`, separados por UUID em `perfisExternos`; edições não alteram as credenciais ou o perfil do backend real.
 
-- **URL base:** `http://127.0.0.1:3001/api/v1` (configurável por `API_URL`)
+- **URL no navegador:** `/api/v1`; autenticação usa `API_GATEWAY_URL` no servidor. `API_URL` mantém o destino Fake.
 - **Formato:** JSON
 - **Acesso no frontend:** todas as chamadas passam por `src/services/api/`
 
@@ -37,13 +37,17 @@ Toda resposta segue o mesmo envelope:
 
 ## Autenticação
 
-- `POST /auth/login` confere a senha (hash `scrypt`) e grava o cookie **`balaio_sessao`**
-  (`HttpOnly`, válido por 7 dias).
-- As rotas protegidas leem o cookie ou o header `Authorization: Bearer <token>`.
+- `POST /auth/login` e alias `/auth/entrar` usam a senha bcrypt persistida no profile e
+  emitem JWT RS256 no cookie **`balaio_sessao`** (HttpOnly, SameSite=Lax, Path=/api/v1,
+  60 minutos; Secure em HTTPS). Cadastro também emite o cookie. JWT não vai no JSON.
+- O gateway aceita cookie/Bearer e encaminha Bearer validado. `GET /usuario` revalida
+  no profile e devolve a conta atual; no navegador a consulta restaura a sessão após reload.
+- Não há modo demo, seleção de fixture ou sessão Fake no frontend. Cookies antigos de demonstração são expirados pelo proxy e nunca encaminhados.
 - **Papéis:** `comprador`, `artesao` e `admin`. O cadastro público só cria comprador ou
   artesão.
-- No frontend, `/account`, `/orders` e `/checkout` exigem login; `/dashboard` exige
-  artesão; `/admin` exige administrador.
+- `/account`, `/account/details`, `/account/addresses` e `/orders` exigem sessão real. O hub e o menu de perfil oferecem os itens anteriores, sem seletor demo ou aviso de integração. Alterar senha mantém o link de recuperação simulado preexistente, que não muda a senha real.
+- Para os itens Fake da conta, o proxy consulta `GET /usuario` real a cada requisição. Só depois envia identidade limitada em contexto interno HMAC, vinculado ao método/caminho e válido por até 30 segundos. JWT, cookie de autenticação e senha nunca vão ao Fake. Mutações por cookie exigem Origin permitido; Bearer puro segue a validação do gateway. Pedidos e endereços de outras contas não são expostos.
+- Checkout, detalhes/ações de pedidos, publicação e painéis continuam bloqueados e suas páginas redirecionam para `/account` sem avisos. A consulta HTTP de um pedido por ID é limitada ao próprio comprador; não habilita suas ações.
 
 **Acesso** nas tabelas abaixo: 🌐 público · 🔑 logado · 🧑‍🎨 artesão · 🛡️ admin.
 Na Fake API, algumas rotas de painel e de mediação ainda não conferem o papel. O backend
@@ -223,5 +227,5 @@ Sem login, a mesma chamada retorna **401** com `NAO_AUTENTICADO`.
 
 1. O backend implementa as rotas deste documento com o mesmo prefixo e o mesmo formato
    de resposta.
-2. A variável `API_URL` passa a apontar para o backend.
-3. Nenhuma tela muda: todas as chamadas já passam por `src/services/api/`.
+2. Migre método/caminho específico no dispatcher para `API_GATEWAY_URL`; preserve `API_URL` para capacidades ainda simuladas.
+3. Ajuste carregadores/identidade da capacidade e teste os contratos. Não encaminhe JWT real ao validador opaco do Fake.

@@ -127,7 +127,7 @@ export default function FormCadastro({ tecnicas, territorios }: Props) {
 
       <Campo
         rotulo="Crie uma senha"
-        ajuda="No mínimo 8 caracteres."
+        ajuda="No mínimo 12 caracteres e no máximo 72 bytes em UTF-8."
         erro={erros['cadastro-senha']}
         id="cadastro-senha"
       >

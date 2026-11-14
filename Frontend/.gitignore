@@ -10,6 +10,8 @@ fake-api/arquivos/
 .env.*
 !.env.example
 .claude
+playwright-report/
+test-results/
 
 # Local-only agent material and private credentials
 .agents/

@@ -1,11 +1,9 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { COOKIE_AUTENTICACAO, destinoInicial, destinoSeguro, rotaDeLogin } from '@/services/sessao/cookie'
+import { papelDaRota, rotaProtegida } from '@/services/sessao/rotas'
 import { validarSessaoBackend } from '@/services/sessao/validacao'
 
-const ROTAS_DE_CONTA = ['/account', '/orders', '/checkout', '/confirmation', '/dashboard', '/admin']
 const ROTAS_SO_DE_VISITANTE = ['/login', '/login/register']
-
-const comecaCom = (caminho: string, rota: string) => caminho === rota || caminho.startsWith(`${rota}/`)
 
 export async function proxy(requisicao: NextRequest) {
   const { pathname, search, searchParams } = requisicao.nextUrl
@@ -37,7 +35,7 @@ export async function proxy(requisicao: NextRequest) {
     return NextResponse.next({ request: { headers } })
   }
   const soVisitante = ROTAS_SO_DE_VISITANTE.includes(pathname)
-  if (!soVisitante && !ROTAS_DE_CONTA.some((rota) => comecaCom(pathname, rota))) return NextResponse.next()
+  if (!soVisitante && !rotaProtegida(pathname)) return NextResponse.next()
   const sessao = await validarSessaoBackend(requisicao.cookies.get(COOKIE_AUTENTICACAO)?.value)
   const irPara = (destino: string) => NextResponse.redirect(new URL(destino, requisicao.url))
 
@@ -46,8 +44,8 @@ export async function proxy(requisicao: NextRequest) {
   }
 
   if (!sessao) return irPara(rotaDeLogin(pathname + search))
-  if (comecaCom(pathname, '/dashboard') && sessao.papel !== 'artesao') return irPara(destinoInicial(sessao))
-  if (comecaCom(pathname, '/admin') && sessao.papel !== 'admin') return irPara(destinoInicial(sessao))
+  const papel = papelDaRota(pathname)
+  if (papel && sessao.papel !== papel) return irPara(destinoInicial(sessao))
   return NextResponse.next()
 }
 

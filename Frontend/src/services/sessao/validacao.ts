@@ -1,9 +1,10 @@
 import { sessaoDoUsuario, type Sessao } from './cookie'
+import { urlDoGateway } from '@/services/api/gateway'
 import type { Usuario } from '@/types/dominio'
 
 export async function validarSessaoBackend(token: string | undefined): Promise<Sessao | null> {
   if (!token) return null
-  const base = (process.env.API_URL ?? 'http://127.0.0.1:3001/api/v1').replace(/\/$/, '')
+  const base = urlDoGateway() ?? (process.env.API_URL ?? 'http://127.0.0.1:3001/api/v1').replace(/\/$/, '')
   try {
     const resposta = await fetch(`${base}/usuario`, {
       headers: { Authorization: `Bearer ${token}` },

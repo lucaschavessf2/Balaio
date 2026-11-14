@@ -8,6 +8,7 @@ export type Paginacao = {
 export type ErroApi = {
   codigo: string
   mensagem: string
+  status?: number
   campos?: Record<string, string>
   campo?: string
 }

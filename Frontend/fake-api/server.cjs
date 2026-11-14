@@ -2,7 +2,7 @@ const jsonServer = require('json-server')
 const bodyParser = require('body-parser')
 const { existsSync, copyFileSync, readFileSync, mkdirSync, writeFileSync, rmSync } = require('node:fs')
 const path = require('node:path')
-const { randomBytes, randomUUID, scryptSync, timingSafeEqual } = require('node:crypto')
+const { createHmac, randomBytes, randomUUID, scryptSync, timingSafeEqual } = require('node:crypto')
 
 const ok = (dados, paginacao) => ({ dados, erro: null, ...(paginacao ? { paginacao } : {}) })
 const erro = (res, status, mensagem, codigo) => res.status(status).json({ dados: null, erro: { codigo: codigo ?? (status === 404 ? 'RECURSO_NAO_ENCONTRADO' : 'REQUISICAO_INVALIDA'), mensagem } })
@@ -41,6 +41,13 @@ const CAMPOS_PERFIL = ['nome', 'atelie', 'historia', 'territorio', 'tecnica', 'i
 const CONFIGURACOES_PADRAO = { cepOrigem: '', prazoPadraoDias: 15, aceitaEncomendas: true, encomendasPausadas: false, chavePix: '' }
 const LIMITE_CHAVE_PIX = 140
 const COOKIE_SESSAO = 'balaio_sessao'
+const UUID_VALIDO = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const destinoDoContextoPermitido = (metodo, caminho) => (
+  (['GET', 'PATCH'].includes(metodo) && caminho === '/api/v1/usuario') ||
+  (['GET', 'POST'].includes(metodo) && caminho === '/api/v1/usuario/enderecos') ||
+  (['PATCH', 'DELETE'].includes(metodo) && /^\/api\/v1\/usuario\/enderecos\/[^/]+$/.test(caminho)) ||
+  (metodo === 'GET' && /^\/api\/v1\/pedidos(?:\/[^/]+)?$/.test(caminho))
+)
 const emailValido = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 const senhaProtegida = (senha, sal = randomBytes(16).toString('hex')) => ({ sal, hash: scryptSync(senha, sal, 64).toString('hex') })
 const senhaConfere = (senha, usuario) => {
@@ -63,6 +70,7 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
   const server = jsonServer.create()
   const router = jsonServer.router(arquivo)
   const db = router.db
+  const chaveContexto = process.env.BALAIO_FAKE_INTERNAL_KEY
   const seed = JSON.parse(readFileSync(path.join(__dirname, 'seed.json'), 'utf8'))
   const pastaFotosPecas = path.join(path.dirname(arquivo), 'arquivos', 'pecas')
   for (const colecao of Object.keys(seed)) {
@@ -105,6 +113,40 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
     if (dono) pedido.compradorId = dono.id
   }
   db.write()
+  server.use((req, res, next) => {
+    const codificado = req.headers['x-balaio-contexto']
+    const assinatura = req.headers['x-balaio-assinatura']
+    if (codificado === undefined && assinatura === undefined) return next()
+    const invalido = () => erro(res, 401, 'Contexto de autenticação inválido.', 'NAO_AUTENTICADO')
+    if (typeof chaveContexto !== 'string' || chaveContexto.length < 32 ||
+        typeof codificado !== 'string' || codificado.length > 8192 || !/^[A-Za-z0-9_-]+$/.test(codificado) ||
+        typeof assinatura !== 'string' || !/^[a-f0-9]{64}$/i.test(assinatura)) return invalido()
+    const esperada = createHmac('sha256', chaveContexto).update(codificado).digest()
+    if (!timingSafeEqual(esperada, Buffer.from(assinatura, 'hex'))) return invalido()
+    let contexto
+    try {
+      const conteudo = Buffer.from(codificado, 'base64url')
+      if (conteudo.toString('base64url') !== codificado) return invalido()
+      contexto = JSON.parse(conteudo.toString('utf8'))
+    } catch { return invalido() }
+    const agora = Math.floor(Date.now() / 1000)
+    if (!contexto || typeof contexto !== 'object' || Array.isArray(contexto) ||
+        typeof contexto.sub !== 'string' || !UUID_VALIDO.test(contexto.sub) ||
+        typeof contexto.nome !== 'string' || !contexto.nome.trim() ||
+        typeof contexto.email !== 'string' || !emailValido(contexto.email) ||
+        !['comprador', 'artesao', 'admin'].includes(contexto.papel) ||
+        contexto.metodo !== req.method || contexto.caminho !== req.originalUrl ||
+        !Number.isInteger(contexto.exp) || contexto.exp <= agora || contexto.exp > agora + 30 ||
+        !destinoDoContextoPermitido(req.method, req.path)) return invalido()
+    req.contextoExterno = contexto
+    next()
+  })
+  server.use((req, res, next) => {
+    let caminho
+    try { caminho = decodeURIComponent(req.path) } catch { return erro(res, 400, 'Requisição inválida.') }
+    if (caminho.toLowerCase().split('/').includes('perfisexternos') || /^\/(?:api\/v1\/)?db\/?$/i.test(caminho)) return erro(res, 404, 'Recurso não encontrado.')
+    next()
+  })
   server.use(jsonServer.defaults({ static: path.join(__dirname, '../public'), logger: process.env.NODE_ENV !== 'test' }))
   server.post('/api/v1/pecas', bodyParser.json({ limit: LIMITE_CORPO_COM_FOTOS }))
   server.patch('/api/v1/pecas/:id', bodyParser.json({ limit: LIMITE_CORPO_COM_FOTOS }))
@@ -161,7 +203,7 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
     return encontrar('pedidos', pedido.id)
   }
 
-  server.all(['/api/v1/usuarios*', '/api/v1/configuracoesAtelie*'], (req, res) => erro(res, 404, 'Recurso não encontrado.'))
+  server.all(['/api/v1/usuarios*', '/api/v1/configuracoesAtelie*', '/api/v1/perfisExternos*', '/perfisExternos*'], (req, res) => erro(res, 404, 'Recurso não encontrado.'))
   const configuracoesDe = (slug) => ({ ...CONFIGURACOES_PADRAO, ...(ler('configuracoesAtelie').find((c) => c.id === slug) ?? {}), id: slug })
   server.get('/api/v1/artesaos/:id/configuracoes', (req, res) => {
     if (!encontrar('artesaos', req.params.id)) return erro(res, 404, 'Artesão não encontrado.')
@@ -183,7 +225,7 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
     res.json(ok(atualizado))
   })
 
-  for (const [colecao, inicial] of [['usuarios', []], ['sessoes', []], ['estadosCliente', []], ['perguntas', []], ['recuperacoes', []]]) {
+  for (const [colecao, inicial] of [['usuarios', []], ['perfisExternos', []], ['sessoes', []], ['estadosCliente', []], ['perguntas', []], ['recuperacoes', []]]) {
     if (!db.has(colecao).value()) db.set(colecao, inicial).write()
   }
   const demonstracao = ler('usuario')
@@ -202,9 +244,22 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
     return cookies(req)[COOKIE_SESSAO]
   }
   const usuarioDaRequisicao = (req) => {
+    if (req.contextoExterno) {
+      const { sub, nome, email, papel } = req.contextoExterno
+      const perfil = papel === 'artesao' ? 'artesao' : 'comprador'
+      let usuario = encontrar('perfisExternos', sub)
+      if (!usuario) usuario = inserir('perfisExternos', { id: sub, nome, email, papel, perfil, imagem: '', telefone: '', tipoComprador: 'final', enderecos: [] })
+      if (usuario.papel !== papel || usuario.perfil !== perfil) usuario = db.get('perfisExternos').find({ id: sub }).assign({ papel, perfil }).write()
+      return usuario
+    }
     const sessao = ler('sessoes').find((item) => item.id === tokenDaRequisicao(req))
     return sessao ? encontrar('usuarios', sessao.usuarioId) : null
   }
+  const colecaoDoUsuario = (req) => req.contextoExterno ? 'perfisExternos' : 'usuarios'
+  const salvarUsuario = (req, usuario, alteracoes) => db.get(colecaoDoUsuario(req)).find({ id: usuario.id }).assign(alteracoes).write()
+  const camposDoEndereco = (req) => req.contextoExterno
+    ? Object.fromEntries(['apelido', 'rua', 'bairro', 'cep', 'principal'].filter((campo) => req.body[campo] !== undefined).map((campo) => [campo, req.body[campo]]))
+    : req.body
   const abrirSessao = (res, usuario) => {
     const sessao = { id: randomBytes(32).toString('hex'), usuarioId: usuario.id, criadaEm: new Date().toISOString() }
     inserir('sessoes', sessao)
@@ -381,11 +436,10 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
     const nome = String(req.body.nome ?? usuario.nome).trim()
     const email = String(req.body.email ?? usuario.email).trim().toLowerCase()
     if (!nome || !emailValido(email)) return erro(res, 400, 'Informe um nome e um e-mail válido.')
-    if (ler('usuarios').some((item) => item.id !== usuario.id && item.email === email)) return erro(res, 409, 'Já existe uma conta com este e-mail.', 'EMAIL_EM_USO')
+    if (ler(colecaoDoUsuario(req)).some((item) => item.id !== usuario.id && item.email === email)) return erro(res, 409, 'Já existe uma conta com este e-mail.', 'EMAIL_EM_USO')
     const alteracoes = { nome, email, telefone: String(req.body.telefone ?? usuario.telefone ?? '').trim(), tipoComprador: String(req.body.tipoComprador ?? usuario.tipoComprador ?? 'final') }
-    db.get('usuarios').find({ id: usuario.id }).assign(alteracoes).write()
-    const atualizado = encontrar('usuarios', usuario.id)
-    db.set('usuario', usuarioPublico(atualizado)).write()
+    const atualizado = salvarUsuario(req, usuario, alteracoes)
+    if (!req.contextoExterno) db.set('usuario', usuarioPublico(atualizado)).write()
     res.json(ok(usuarioPublico(atualizado)))
   })
 
@@ -418,12 +472,12 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
   server.post('/api/v1/usuario/enderecos', (req, res) => {
     const usuario = exigirUsuario(req, res)
     if (!usuario) return
-    const endereco = { ...req.body, id: randomUUID(), principal: !(usuario.enderecos ?? []).length || Boolean(req.body.principal) }
+    const endereco = { ...camposDoEndereco(req), id: randomUUID(), principal: !(usuario.enderecos ?? []).length || Boolean(req.body.principal) }
     if (!endereco.apelido?.trim() || !endereco.rua?.trim() || !endereco.cep?.trim()) return erro(res, 400, 'Informe nome, rua e CEP do endereço.')
     let enderecos = [...(usuario.enderecos ?? [])]
     if (endereco.principal) enderecos = enderecos.map((item) => ({ ...item, principal: false }))
     enderecos.push(endereco)
-    db.get('usuarios').find({ id: usuario.id }).assign({ enderecos }).write()
+    salvarUsuario(req, usuario, { enderecos })
     res.status(201).json(ok(endereco))
   })
   server.patch('/api/v1/usuario/enderecos/:id', (req, res) => {
@@ -431,9 +485,9 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
     if (!usuario) return
     const atual = (usuario.enderecos ?? []).find((item) => item.id === req.params.id)
     if (!atual) return erro(res, 404, 'Endereço não encontrado.')
-    let enderecos = (usuario.enderecos ?? []).map((item) => item.id === atual.id ? { ...item, ...req.body, id: atual.id } : item)
+    let enderecos = (usuario.enderecos ?? []).map((item) => item.id === atual.id ? { ...item, ...camposDoEndereco(req), id: atual.id } : item)
     if (req.body.principal) enderecos = enderecos.map((item) => ({ ...item, principal: item.id === atual.id }))
-    db.get('usuarios').find({ id: usuario.id }).assign({ enderecos }).write()
+    salvarUsuario(req, usuario, { enderecos })
     res.json(ok(enderecos.find((item) => item.id === atual.id)))
   })
   server.delete('/api/v1/usuario/enderecos/:id', (req, res) => {
@@ -443,7 +497,7 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
     if (!atual) return erro(res, 404, 'Endereço não encontrado.')
     let enderecos = (usuario.enderecos ?? []).filter((item) => item.id !== atual.id)
     if (atual.principal && enderecos.length) enderecos = enderecos.map((item, indice) => ({ ...item, principal: indice === 0 }))
-    db.get('usuarios').find({ id: usuario.id }).assign({ enderecos }).write()
+    salvarUsuario(req, usuario, { enderecos })
     res.json(ok(atual))
   })
 
@@ -540,7 +594,7 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
     const pedido = encontrar('pedidos', req.params.id)
     if (!pedido) return erro(res, 404, 'Pedido não encontrado.')
     const usuario = usuarioDaRequisicao(req)
-    if (usuario && (pedido.compradorId ?? pedido.usuarioId) && (pedido.compradorId ?? pedido.usuarioId) !== usuario.id) return erro(res, 404, 'Pedido não encontrado.')
+    if (usuario && (req.contextoExterno || (pedido.compradorId ?? pedido.usuarioId)) && (pedido.compradorId ?? pedido.usuarioId) !== usuario.id) return erro(res, 404, 'Pedido não encontrado.')
     res.json(ok(pedido))
   })
 

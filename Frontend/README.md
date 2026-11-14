@@ -3,6 +3,8 @@
 > Marketplace da economia criativa e do artesanato de Pernambuco.
 > Projeto Integrador **Origem**, disciplina de Desenvolvimento Web, CESAR School, 2026.2.
 
+**Autenticação real (PI-168, etapa 6):** cadastro, login, sessão e logout usam o gateway/profile. Meus dados, endereços e consulta de pedidos usam a Fake API com isolamento por conta. Consulte [execução local, configurações e testes](docs/auth-local.md). Não há seletor ou sessão demo.
+
 | | |
 |---|---|
 | **Deploy** | https://balaio.torreszx.space |
@@ -10,7 +12,7 @@
 | **Repositório** | https://github.com/lucaschavessf2/marketplace-artesanato |
 | **Branch principal** | Hoje o desenvolvimento acontece em `develop`, por pull request, e `main` é a branch padrão |
 | **Entrega atual** | Avaliação 1: frontend responsivo + Fake API estruturada |
-| **Contas de teste** | `carlos@exemplo.com` (comprador), `nuca@exemplo.com` (artesão), `admin@exemplo.com` (admin). Senha: `balaio123` |
+| **Contas locais** | Cadastre comprador ou artesão em `/login/register`; a conta é persistida no profile/PostgreSQL. |
 
 ## 👥 Membros da Equipe
 
@@ -123,17 +125,13 @@ O `npm run dev` sobe a Fake API e o Next.js juntos (`Ctrl+C` encerra os dois). N
 primeiro início, a Fake API cria o banco `fake-api/db.json` a partir do
 `fake-api/seed.json`. As alterações feitas pela interface **persistem entre reinícios**.
 
-### Contas de demonstração
+### Contas locais
 
-Todas usam a senha **`balaio123`**:
+Cadastre sua conta em `/login/register` e entre por `/login`. Todos os papéis usam `/account` como destino enquanto os demais recursos privados não estiverem integrados. As contas do seed da Fake API não autenticam o frontend.
 
-| Perfil | E-mail | Vai para |
-|---|---|---|
-| Comprador | `carlos@exemplo.com` | `/account` |
-| Artesão | `nuca@exemplo.com` (e outros `*@exemplo.com` do seed) | `/dashboard` |
-| Administrador | `admin@exemplo.com` | `/admin` |
+O cadastro em `/login/register` cria comprador ou artesão no profile/PostgreSQL, com senha mínima de 12 caracteres; não cria ateliê. Os itens de `/account` consultam dados simulados separados pelo UUID autenticado. Editar o perfil Fake não altera o nome, e-mail ou senha usados na autenticação real.
 
-Também é possível criar conta de comprador ou de artesão em `/login/register`.
+`npm run dev` gera em memória uma chave interna compartilhada entre Next e Fake. Se iniciar os processos separadamente, defina o mesmo `BALAIO_FAKE_INTERNAL_KEY` aleatório, com no mínimo 32 caracteres, em ambos. O launcher de produção do Docker faz isso automaticamente. Não use essa chave no navegador ou em variável `NEXT_PUBLIC_*`.
 
 ### Scripts
 
@@ -161,12 +159,13 @@ Acesse http://localhost:7879. A imagem isolada e o Compose padrão sobem o Next.
 
 ## Variáveis de ambiente
 
-Nenhuma é obrigatória no ambiente local. Para mudar o padrão, copie
-`Frontend/.env.example` para `Frontend/.env.local`:
+O login exige gateway/profile configurados. Copie `Frontend/.env.example` para
+`Frontend/.env.local`, preservando configurações já existentes:
 
 | Variável | Padrão | Para quê |
 |---|---|---|
-| `API_URL` | `http://127.0.0.1:3001/api/v1` | URL da API usada no servidor (SSR) e no encaminhamento de `/api/v1` do navegador. **Na Avaliação 2, recebe a URL do backend real** |
+| `API_URL` | `http://127.0.0.1:3001/api/v1` | API das capacidades ainda simuladas; permanece na Fake API |
+| `API_GATEWAY_URL` | `http://127.0.0.1:8080/api/v1` | Gateway real para cadastro, login, sessão e logout; sem fallback |
 | `FAKE_API_PORT` | `3001` | Porta da Fake API (se mudar, ajuste `API_URL`) |
 | `FAKE_API_ENABLED` | `true` na imagem isolada | Defina `false` quando `API_URL` apontar ao gateway real |
 
@@ -262,13 +261,13 @@ telas**:
 
 1. **Toda chamada passa por `src/services/api/`.** As telas usam funções como
    `listarPecas()` e `finalizarCompra()`, nunca `fetch` direto nem dados fixos. O único
-   ponto que sabe a URL da API é `src/services/api/cliente.ts`.
+   roteamento HTTP fica em `src/services/api/cliente.ts` e no dispatcher `src/services/api/proxy.ts`.
 2. **O contrato já é o de uma API real:** HTTP, prefixo versionado `/api/v1`, envelope
    `{ dados, erro, paginacao }`, status HTTP corretos, sessão por cookie `HttpOnly` e
    regras de negócio no servidor (total do checkout, permissões, estados do pedido).
-3. **A troca é de configuração:** o backend implementa as rotas documentadas e a
-   variável `API_URL` passa a apontar para ele. O rewrite do Next.js e o SSR seguem a
-   nova URL automaticamente.
+3. **A migração acontece por capacidade:** autenticação usa `API_GATEWAY_URL`; `API_URL`
+   preserva os fluxos simulados. Não trocar a origem global enquanto os serviços de
+   negócio estiverem pendentes. O dispatcher escolhe método e caminho exatos.
 4. **O que entra de novo:** services para recomendação (módulo de IA), indicadores do
    admin e vendas do artesão. A Fake API sai do deploy, mas continua útil para
    desenvolvimento e testes.
