@@ -18,13 +18,17 @@ export default async function Confirmacao({ params }: { params: Promise<{ id: st
 
   return (
     <Pagina>
-      <Migalhas trilha={[{ texto: 'Início', href: '/' }, { texto: 'Pedido confirmado' }]} />
+      <Migalhas trilha={[{ texto: 'Início', href: '/' }, { texto: 'Pedido registrado' }]} />
 
       <div className="cartao estado-vazio">
         <span className="estado-vazio-icone" style={{ background: 'var(--verde)', color: 'var(--branco)' }}>
           <IconeCheck tamanho={38} />
         </span>
-        <h1 className="titulo-pagina">{pedido.simulado ? 'Compra de demonstração registrada' : 'Pedido confirmado'}</h1>
+        <h1 className="titulo-pagina">{pedido.estado === 'aguardando_reserva'
+          ? 'Confirmando a disponibilidade das peças'
+          : pedido.estado === 'aguardando_pagamento' || pedido.estado === 'confirmacao_pendente'
+            ? 'Pedido registrado, aguardando pagamento simulado'
+            : pedido.simulado ? 'Compra de demonstração registrada' : 'Pedido confirmado'}</h1>
         <p className="subtitulo-pagina" style={{ margin: '0 auto 24px' }}>
           Seu pedido <strong>#{pedido.id}</strong> está registrado e pode ser acompanhado pela plataforma.
         </p>

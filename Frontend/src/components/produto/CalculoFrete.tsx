@@ -7,7 +7,7 @@ import { useDados } from '@/store/dados'
 import { emReais } from '@/utils/formato'
 
 export default function CalculoFrete({ territorio }: { territorio: string }) {
-  const { fretes: opcoesFrete, erro: erroFretes, carregando } = useDados()
+  const { fretes: opcoesFrete, erroFretes, carregando } = useDados()
   const [cep, definirCep] = useState('')
   const [erro, definirErro] = useState<string | null>(null)
   const [calculado, definirCalculado] = useState(false)

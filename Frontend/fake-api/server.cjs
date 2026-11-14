@@ -119,6 +119,10 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
   const encontrar = (nome, id) => ler(nome).find((item) => item.id === id)
   const inserir = (nome, item) => { db.get(nome).push(item).write(); return item }
   const itensDoPedido = (pedido) => pedido.itens ?? [{ slug: pedido.pecaSlug, quantidade: 1 }]
+  const pedidoDoArtesao = (pedido, artesaoId) => {
+    const itens = itensDoPedido(pedido)
+    return itens.length > 0 && itens.every((item) => encontrar('pecas', item.slug)?.artesao === artesaoId)
+  }
   const materializarPedidoPendente = (id) => {
     const existente = encontrar('pedidos', id)
     if (existente) return existente
@@ -139,7 +143,7 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
   const reativarPecasUnicas = (pedido) => {
     for (const item of itensDoPedido(pedido)) {
       const peca = encontrar('pecas', item.slug)
-      if (peca?.disponibilidade === 'unica') {
+      if (peca?.disponibilidade === 'unica' && peca.vendidaEmPedido === pedido.id) {
         db.get('pecas').find({ id: peca.id }).assign({ inativadoEm: null, vendidaEmPedido: null }).write()
       }
     }
@@ -152,6 +156,7 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
     }]
     db.get('pedidos').find({ id: pedido.id }).assign({ estado, motivoEncerramento: motivo, etapas }).write()
     db.get('pedidosPendentes').remove({ id: pedido.id }).write()
+    // Simulação local: no serviço real, somente o catálogo confirma a liberação da reserva.
     reativarPecasUnicas(pedido)
     return encontrar('pedidos', pedido.id)
   }
@@ -729,6 +734,14 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
     const novos = ler('pedidos').filter((pedido) => pedido.estado === 'confirmado' && (!artesao || (pedido.itens ?? [{ slug: pedido.pecaSlug }]).some((item) => slugs.has(item.slug))) && !iniciais.some((item) => item.id === pedido.id)).map((pedido) => ({ id: pedido.id, pecaSlug: pedido.pecaSlug, comprador: pedido.compradorNome, quando: pedido.data, valor: pedido.total }))
     res.json(ok([...iniciais, ...novos]))
   })
+  server.get('/api/v1/artesao/vendas', (req, res) => {
+    const artesao = String(req.query.artesao || '')
+    const slugs = new Set(ler('pecas').filter((peca) => peca.artesao === artesao).map((peca) => peca.slug))
+    const vendas = ler('pedidos').filter((pedido) =>
+      ['confirmado', 'producao', 'enviado', 'entregue'].includes(pedido.estado)
+      && (!artesao || (pedido.itens ?? [{ slug: pedido.pecaSlug }]).some((item) => slugs.has(item.slug))))
+    res.json(ok(vendas))
+  })
   server.get('/api/v1/artesao/conversas', (req, res) => {
     const artesao = String(req.query.artesao || '')
     const slugs = new Set(ler('pecas').filter((peca) => peca.artesao === artesao).map((peca) => peca.slug))
@@ -761,10 +774,13 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
     if (['cep', 'endereco', 'cidade', 'estado'].some((campo) => typeof endereco[campo] !== 'string' || !endereco[campo].trim())) return erro(res, 400, 'Endereço incompleto.')
     if (new Set(itens.map((item) => item?.slug)).size !== itens.length) return erro(res, 400, 'Há peças duplicadas na compra.')
     let subtotal = 0
+    let artesaoDoPedido = null
     for (const item of itens) {
       if (!item) return erro(res, 400, 'Item inválido.')
       const peca = encontrar('pecas', item.slug)
       if (!peca || peca.inativadoEm || !Number.isInteger(item.quantidade) || item.quantidade < 1 || item.quantidade > 3 || (peca.disponibilidade === 'unica' && item.quantidade !== 1)) return erro(res, 400, 'Peça indisponível ou quantidade inválida.')
+      if (artesaoDoPedido && artesaoDoPedido !== peca.artesao) return erro(res, 400, 'Finalize separadamente as peças de cada ateliê.')
+      artesaoDoPedido = peca.artesao
       subtotal += preco(peca) * item.quantidade
     }
     const pedido = {
@@ -788,11 +804,12 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
     if (!usuario || usuario.perfil !== 'artesao' || !usuario.artesaoId) return erro(res, 403, 'Somente o artesão responsável pode recusar o pedido.', 'SEM_PERMISSAO')
     const pedido = materializarPedidoPendente(req.params.id)
     if (!pedido) return erro(res, 404, 'Pedido não encontrado.')
-    if (pedido.estado !== 'confirmado') return erro(res, 409, 'Só é possível recusar antes de iniciar a produção.')
-    const pertenceAoArtesao = itensDoPedido(pedido).some((item) => encontrar('pecas', item.slug)?.artesao === usuario.artesaoId)
+    const pertenceAoArtesao = pedidoDoArtesao(pedido, usuario.artesaoId)
     if (!pertenceAoArtesao) return erro(res, 403, 'Este pedido pertence a outro ateliê.', 'SEM_PERMISSAO')
     const motivo = String(req.body.motivo || '').trim()
     if (motivo.length < 5) return erro(res, 400, 'Informe o motivo da recusa.')
+    if (pedido.estado === 'recusado' && pedido.motivoEncerramento === motivo) return res.json(ok(pedido))
+    if (pedido.estado !== 'confirmado') return erro(res, 409, 'Só é possível recusar antes de iniciar a produção.')
     res.json(ok(encerrarPedido(pedido, 'recusado', motivo)))
   })
   server.patch('/api/v1/pedidos/:id/cancelar', (req, res) => {
@@ -800,15 +817,22 @@ function criarServidor(arquivo = path.join(__dirname, 'db.json')) {
     if (!usuario) return erro(res, 401, 'Entre na sua conta para cancelar o pedido.', 'NAO_AUTENTICADO')
     const pedido = encontrar('pedidos', req.params.id)
     if (!pedido || (pedido.compradorId ?? pedido.usuarioId) !== usuario.id) return erro(res, 404, 'Pedido não encontrado.')
+    if (pedido.estado === 'cancelado') return res.json(ok(pedido))
     if (pedido.estado !== 'confirmado') return erro(res, 409, 'A produção já começou. Solicite a mediação da plataforma.')
     res.json(ok(encerrarPedido(pedido, 'cancelado', 'Cancelado pelo comprador antes do início da produção.')))
   })
   server.patch('/api/v1/pedidos/:id/estado', (req, res) => {
     const pedido = materializarPedidoPendente(req.params.id)
     if (!pedido) return erro(res, 404, 'Pedido não encontrado.')
+    const usuario = usuarioDaRequisicao(req)
+    if (!usuario || usuario.perfil !== 'artesao' || !usuario.artesaoId) return erro(res, 403, 'Somente o artesão responsável pode atualizar o pedido.', 'SEM_PERMISSAO')
+    if (!pedidoDoArtesao(pedido, usuario.artesaoId)) return erro(res, 403, 'Este pedido pertence a outro ateliê.', 'SEM_PERMISSAO')
     if (['recusado', 'cancelado', 'reembolsado'].includes(pedido.estado)) return erro(res, 409, 'Este pedido já foi encerrado.')
     const estados = ['confirmado', 'producao', 'enviado', 'entregue']
     if (!estados.includes(req.body.estado)) return erro(res, 400, 'Estado do pedido inválido.')
+    if (estados.indexOf(req.body.estado) < estados.indexOf(pedido.estado)) return erro(res, 409, 'O pedido não pode voltar a uma etapa anterior.')
+    if (estados.indexOf(req.body.estado) > estados.indexOf(pedido.estado) + 1) return erro(res, 409, 'Conclua a etapa atual antes de avançar.')
+    if (req.body.estado === pedido.estado) return res.json(ok(pedido))
     const indiceAtual = estados.indexOf(req.body.estado)
     const titulos = {
       confirmado: 'Pedido confirmado',

@@ -17,7 +17,7 @@ const QUANTIDADES = ['1', '2', '3']
 
 export default function ItensSacola() {
   const { mapaPecas, carregando, erro } = usePecas()
-  const { artesaos, fretes, carregando: carregandoFretes, erro: erroFretes } = useDados()
+  const { artesaos, fretes, carregando: carregandoFretes, erroFretes } = useDados()
   const { itens, pronto, erro: erroSacola, recarregar, remover, repor, alterarQuantidade } = useSacola()
 
   const detalhados = itens.flatMap((item) => {

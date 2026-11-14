@@ -14,7 +14,9 @@ export async function buscar<T>(caminho: string, opcoes?: RequestInit): Promise<
     })
     const corpo = await resposta.json().catch(() => null)
     if (!resposta.ok) {
-      return falha(corpo?.erro?.codigo ?? `HTTP_${resposta.status}`, corpo?.erro?.mensagem ?? 'Não foi possível concluir a solicitação.', corpo?.erro?.campos)
+      return falha(corpo?.erro?.codigo ?? `HTTP_${resposta.status}`,
+        corpo?.erro?.mensagem ?? 'Não foi possível concluir a solicitação.',
+        corpo?.erro?.campos, corpo?.erro?.campo)
     }
     if (!corpo || typeof corpo !== 'object' || Array.isArray(corpo) || !('dados' in corpo) || !('erro' in corpo)) return falha('RESPOSTA_INVALIDA', 'O servidor retornou uma resposta inválida.')
     return corpo as RespostaApi<T>

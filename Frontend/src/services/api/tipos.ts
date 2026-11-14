@@ -9,6 +9,7 @@ export type ErroApi = {
   codigo: string
   mensagem: string
   campos?: Record<string, string>
+  campo?: string
 }
 
 export type RespostaApi<T> = {
@@ -21,8 +22,8 @@ export function sucesso<T>(dados: T, paginacao?: Paginacao): RespostaApi<T> {
   return paginacao ? { dados, erro: null, paginacao } : { dados, erro: null }
 }
 
-export function falha(codigo: string, mensagem: string, campos?: Record<string, string>): RespostaApi<never> {
-  return { dados: null, erro: campos ? { codigo, mensagem, campos } : { codigo, mensagem } }
+export function falha(codigo: string, mensagem: string, campos?: Record<string, string>, campo?: string): RespostaApi<never> {
+  return { dados: null, erro: { codigo, mensagem, ...(campos ? { campos } : {}), ...(campo ? { campo } : {}) } }
 }
 
 export function paginar<T>(itens: T[], pagina = 1, tamanho = itens.length): { itens: T[]; paginacao: Paginacao } {

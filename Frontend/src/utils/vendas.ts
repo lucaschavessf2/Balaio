@@ -23,10 +23,10 @@ export function vendasDoArtesao(pedidos: Pedido[], pecas: Peca[]) {
   const mapaPecas = new Map(pecas.map((peca) => [peca.slug, peca]))
   return pedidos
     .filter((pedido) => !ESTADOS_ENCERRADOS.has(pedido.estado))
-    .flatMap((pedido) => (pedido.itens ?? [{ slug: pedido.pecaSlug, quantidade: 1 }]).flatMap((item) => {
+    .flatMap((pedido) => (pedido.itens ?? [{ slug: pedido.pecaSlug, quantidade: 1, preco: undefined }]).flatMap((item) => {
       const peca = mapaPecas.get(item.slug)
       if (!peca) return []
-      return [{ slug: item.slug, nome: peca.nome, quantidade: item.quantidade, valor: peca.preco * item.quantidade, mes: mesDoPedido(pedido.data) }]
+      return [{ slug: item.slug, nome: peca.nome, quantidade: item.quantidade, valor: (item.preco ?? peca.preco) * item.quantidade, mes: mesDoPedido(pedido.data) }]
     }))
 }
 

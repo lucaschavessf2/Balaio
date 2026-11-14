@@ -6,14 +6,16 @@ import { IconeGrafico } from '@/components/ui/Icones'
 import { emReais } from '@/utils/formato'
 import { faturamentoNoMes, vendasDoArtesao } from '@/utils/vendas'
 import { exigirArtesao } from '@/services/autenticacao'
-import { listarPedidos } from '@/services/api/pedidos.servico'
+import { listarVendasArtesao } from '@/services/api/pedidos.servico'
 import { pecasPorArtesao } from '@/services/api/pecas.servico'
 
 const MESES_NO_GRAFICO = 6
 
 export default async function Vendas() {
-  const { artesao } = await exigirArtesao()
-  const [{ dados: pedidos, erro: erroPedidos }, { dados: pecas, erro: erroPecas }] = await Promise.all([listarPedidos(), pecasPorArtesao(artesao.slug)])
+  const { artesao, token } = await exigirArtesao()
+  const [{ dados: pedidos, erro: erroPedidos }, { dados: pecas, erro: erroPecas }] = await Promise.all([
+    listarVendasArtesao(artesao.slug, token), pecasPorArtesao(artesao.slug, token),
+  ])
   const erro = erroPedidos ?? erroPecas
   const vendas = vendasDoArtesao(pedidos ?? [], pecas ?? [])
   const porPeca = new Map<string, { nome: string; unidades: number; receita: number }>()

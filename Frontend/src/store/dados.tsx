@@ -6,8 +6,8 @@ import { listarColetivos } from '@/services/api/coletivos.servico'
 import type { Artesao, Coletivo, OpcaoFrete } from '@/types/dominio'
 import { listarFretes } from '@/services/api/conta.servico'
 
-type Dados = { artesaos: Artesao[]; coletivos: Coletivo[]; fretes: OpcaoFrete[]; carregando: boolean; erro: string | null }
-const inicial: Dados = { artesaos: [], coletivos: [], fretes: [], carregando: true, erro: null }
+type Dados = { artesaos: Artesao[]; coletivos: Coletivo[]; fretes: OpcaoFrete[]; carregando: boolean; erro: string | null; erroFretes: string | null }
+const inicial: Dados = { artesaos: [], coletivos: [], fretes: [], carregando: true, erro: null, erroFretes: null }
 const Contexto = createContext<Dados>(inicial)
 
 export function DadosProvider({ children }: { children: ReactNode }) {
@@ -15,7 +15,8 @@ export function DadosProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let vivo = true
     Promise.all([listarArtesaos(), listarColetivos(), listarFretes()]).then(([a, c, f]) => {
-      if (vivo) definirDados({ artesaos: a.dados ?? [], coletivos: c.dados ?? [], fretes: f.dados ?? [], carregando: false, erro: a.erro?.mensagem ?? c.erro?.mensagem ?? f.erro?.mensagem ?? null })
+      if (vivo) definirDados({ artesaos: a.dados ?? [], coletivos: c.dados ?? [], fretes: f.dados ?? [], carregando: false,
+        erro: a.erro?.mensagem ?? c.erro?.mensagem ?? null, erroFretes: f.erro?.mensagem ?? null })
     })
     return () => { vivo = false }
   }, [])
