@@ -66,7 +66,8 @@ Todas com o prefixo `/api/v1`.
 | POST | `/auth/cadastro` | 🌐 | Cria a conta `{ nome, email, senha, perfil }` e já faz login |
 | POST | `/auth/login` | 🌐 | `{ email, senha }` |
 | POST | `/auth/logout` | 🌐 | Encerra a sessão |
-| POST | `/auth/recuperacao` | 🌐 | `{ email }`: registra o pedido de recuperação de senha |
+| POST | `/auth/recuperacao` | 🌐 | `{ email }`: solicita link, sempre `201` e `{ dados: { recebida: true }, erro: null }` para endereço válido, cadastrado ou não |
+| POST | `/auth/redefinicao` | 🌐 | `{ token, novaSenha }`: redefine senha com link de uso único; `200` ou `400 TOKEN_INVALIDO` |
 | GET / PATCH | `/usuario` | 🔑 | Consulta ou altera o usuário logado |
 | POST | `/conta/:id/senha` | 🔑 | `{ senhaAtual, novaSenha }` |
 | GET / POST / PATCH / DELETE | `/usuario/enderecos` | 🔑 | Endereços de entrega |
@@ -119,6 +120,10 @@ Estados do pedido: `confirmado → producao → enviado → entregue`, ou `recus
 | PATCH | `/pedidos/:id/recusar` | 🧑‍🎨 | `{ motivo }` |
 | GET / POST | `/artesao/selo` | 🧑‍🎨 | Consulta ou pede o selo de verificado |
 
+No `catalog-service` real, `POST /pecas` e `PATCH /pecas/:slug` exigem Bearer JWT de artesão e usam o UUID autenticado para determinar a titularidade. O slug público provisório vem de `GET /artesao/me` do profile-service (`artesao-<UUID>`). `POST` retorna 201; `PATCH` retorna 200 e recusa outro dono com 404. Erro de validação pode trazer `erro.campo` além de `codigo` e `mensagem`; o formulário destaca `nome`, `preco` e `prazoProducaoDias`. Fotos novas são data URIs JPG/PNG/WebP de até 5 MB, persistidas no catálogo e devolvidas com URL pública. A Fake API ainda oferece DELETE e inativação pelo PATCH; essas operações não fazem parte desta entrega no catálogo real.
+
+O formulário consulta `GET /referencias` no catálogo real. Se as listas não carregarem, ele exibe o erro e bloqueia o cadastro até uma nova tentativa bem sucedida.
+
 ### Administração
 
 | Método | Rota | Acesso | Descrição |
@@ -140,6 +145,12 @@ Estados do pedido: `confirmado → producao → enviado → entregue`, ou `recus
 ---
 
 ## Exemplos
+
+### Recuperação de senha
+
+`POST /api/v1/auth/recuperacao` recebe `{ "email": "ana@exemplo.com" }`. O resultado é igual para conta existente ou ausente. Para conta existente, o e-mail contém `/login/reset?token=...`; o link expira em 1 hora. `POST /api/v1/auth/redefinicao` recebe `{ "token": "...", "novaSenha": "senha-com-8-ou-mais-caracteres" }` e devolve `{ "dados": { "redefinida": true }, "erro": null }`. Token desconhecido, vencido ou usado devolve `400` com `TOKEN_INVALIDO`. E-mail inválido ou senha curta devolve `400 REQUISICAO_INVALIDA`.
+
+O backend real implementa estas rotas. A Fake API atual só simula a solicitação; a conclusão exige apontar `API_URL` ao backend real. No Compose, use `platform/docker-compose.recovery.yml` para isso. Esse modo é limitado a cadastro, login e recuperação de senha; as demais telas ainda usam a Fake API no Compose padrão.
 
 ### Login
 

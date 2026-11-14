@@ -13,7 +13,9 @@
     "api:reset": "node fake-api/reset.cjs",
     "test:api": "node --test fake-api/server.test.cjs",
     "test:auth": "tsx --test tests/auth.test.ts",
-    "test:e2e:auth": "playwright test"
+    "test:e2e:auth": "playwright test",
+    "test:session": "tsx --test src/proxy.test.ts",
+    "test:orders": "tsx --test src/components/pedido/acaoCancelamentoPedido.test.ts"
   },
   "dependencies": {
     "@types/leaflet": "^1.9.22",

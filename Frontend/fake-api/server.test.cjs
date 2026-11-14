@@ -166,7 +166,7 @@ test('contrato HTTP, filtros, relações, CRUD e persistência', async (t) => {
     const res = await fetch(base + url, opcoes)
     return { status: res.status, cookie: res.headers.get('set-cookie'), ...await res.json() }
   }
-  for (const recurso of ['pecas', 'artesaos', 'coletivos', 'eventos', 'videos', 'pedidos', 'artesao/conversas', 'artesao/pedidos-pendentes', 'admin/mediacoes']) {
+  for (const recurso of ['pecas', 'artesaos', 'coletivos', 'eventos', 'videos', 'pedidos', 'artesao/conversas', 'artesao/pedidos-pendentes', 'artesao/vendas', 'admin/mediacoes']) {
     const res = await request('/' + recurso)
     assert.equal(res.status, 200, recurso)
     assert.equal(res.erro, null, recurso)
@@ -229,27 +229,48 @@ test('contrato HTTP, filtros, relações, CRUD e persistência', async (t) => {
   assert.equal((await request('/eventos/evento-teste')).dados.nome, 'Evento de teste')
   assert.equal((await request('/eventos', { ...evento, slug: 'evento-teste' })).status, 409)
   assert.equal((await request('/eventos/evento-teste', { nome: 'Atualizado' }, 'PATCH')).dados.nome, 'Atualizado')
-  const compra = { itens: [{ slug: primeira.slug, quantidade: 1 }, { slug: todas.dados[1].slug, quantidade: 2 }], freteId: 'padrao', meio: 'pix', endereco: { cep: '52021030', endereco: 'Rua de teste', cidade: 'Recife', estado: 'PE' } }
+  const outraDoNuca = todas.dados.find((item) => item.artesao === primeira.artesao && item.slug !== primeira.slug && item.disponibilidade !== 'unica')
+  const compra = { itens: [{ slug: primeira.slug, quantidade: 1 }, { slug: outraDoNuca.slug, quantidade: 2 }], freteId: 'padrao', meio: 'pix', endereco: { cep: '52021030', endereco: 'Rua de teste', cidade: 'Recife', estado: 'PE' } }
   const cookieComprador = login.cookie.split(';')[0]
+  const pecaDeOutroArtesao = todas.dados.find((item) => item.artesao !== primeira.artesao && item.disponibilidade === 'unica')
+  const compraMista = await request('/checkout', { ...compra, itens: [{ slug: primeira.slug, quantidade: 1 }, { slug: pecaDeOutroArtesao.slug, quantidade: 1 }] }, 'POST', { Cookie: cookieComprador })
+  assert.equal(compraMista.status, 400)
+  assert.ok((await request('/pecas')).dados.some((item) => item.slug === primeira.slug), 'checkout misto não reserva peça de Nuca')
+  assert.ok((await request('/pecas')).dados.some((item) => item.slug === pecaDeOutroArtesao.slug), 'checkout misto não reserva peça única de outro artesão')
   const pedido = await request('/checkout', compra, 'POST', { Cookie: cookieComprador })
   assert.equal(pedido.status, 201)
   assert.equal(pedido.dados.compradorId, login.dados.id)
   assert.equal((await request('/checkout', { ...compra, compradorId: 'ninguem' })).status, 401)
-  assert.equal(pedido.dados.total, Math.round((preco(primeira) + 2 * preco(todas.dados[1]) + 38.9) * 100) / 100)
+  assert.equal(pedido.dados.total, Math.round((preco(primeira) + 2 * preco(outraDoNuca) + 38.9) * 100) / 100)
   assert.equal(pedido.dados.itens.length, 2)
   assert.ok(!(await request('/pecas')).dados.some((item) => item.slug === primeira.slug), 'peça única vendida saiu da vitrine')
   assert.ok((await request('/pedidos', undefined, 'GET', { Cookie: cookieComprador })).dados.some((item) => item.id === pedido.dados.id))
   assert.ok(!(await request('/pedidos', undefined, 'GET', { Cookie: cookieVendedor })).dados.some((item) => item.id === pedido.dados.id))
-  const emProducao = await request(`/pedidos/${pedido.dados.id}/estado`, { estado: 'producao' }, 'PATCH')
+  const demo = await request('/auth/entrar', { email: 'nuca@exemplo.com', senha: 'balaio123' })
+  assert.equal((await request(`/pedidos/${pedido.dados.id}/estado`, { estado: 'producao' }, 'PATCH')).status, 403)
+  const comoNuca = { Cookie: demo.cookie.split(';')[0] }
+  assert.ok((await request(`/artesao/vendas?artesao=${primeira.artesao}`)).dados.some((item) => item.id === pedido.dados.id))
+  assert.ok(!(await request(`/artesao/vendas?artesao=${vendedor.dados.artesaoId}`)).dados.some((item) => item.id === pedido.dados.id))
+  assert.equal((await request(`/pedidos/${pedido.dados.id}/estado`, { estado: 'producao' }, 'PATCH', { Cookie: cookieVendedor })).status, 403)
+  assert.equal((await request(`/pedidos/${pedido.dados.id}/recusar`, { motivo: 'Não posso atender.' }, 'PATCH', { Cookie: cookieVendedor })).status, 403)
+  assert.equal((await request(`/pedidos/${pedido.dados.id}/estado`, { estado: 'entregue' }, 'PATCH', comoNuca)).status, 409)
+  const emProducao = await request(`/pedidos/${pedido.dados.id}/estado`, { estado: 'producao' }, 'PATCH', comoNuca)
   assert.equal(emProducao.dados.estado, 'producao')
   assert.equal(emProducao.dados.etapas.find((etapa) => etapa.estado === 'producao').atual, true)
+  assert.equal((await request(`/pedidos/${pedido.dados.id}/estado`, { estado: 'confirmado' }, 'PATCH', comoNuca)).status, 409)
   assert.equal((await request(`/pedidos/${pedido.dados.id}/cancelar`, {}, 'PATCH', { Cookie: cookieComprador })).status, 409)
   const outraUnica = todas.dados.find((item) => item.disponibilidade === 'unica' && item.slug !== primeira.slug)
   const paraCancelar = await request('/checkout', { ...compra, itens: [{ slug: outraUnica.slug, quantidade: 1 }] }, 'POST', { Cookie: cookieComprador })
   assert.equal(paraCancelar.status, 201)
   const cancelado = await request(`/pedidos/${paraCancelar.dados.id}/cancelar`, {}, 'PATCH', { Cookie: cookieComprador })
   assert.equal(cancelado.dados.estado, 'cancelado')
+  assert.equal((await request(`/pedidos/${paraCancelar.dados.id}/cancelar`, {}, 'PATCH', { Cookie: cookieComprador })).dados.estado, 'cancelado')
   assert.ok((await request('/pecas')).dados.some((item) => item.slug === outraUnica.slug), 'peça única cancelada voltou à vitrine')
+  const reservaPosterior = await request('/checkout', { ...compra, itens: [{ slug: outraUnica.slug, quantidade: 1 }] }, 'POST', { Cookie: cookieComprador })
+  assert.equal(reservaPosterior.status, 201)
+  assert.equal((await request(`/pedidos/${paraCancelar.dados.id}/cancelar`, {}, 'PATCH', { Cookie: cookieComprador })).status, 200)
+  assert.ok(!(await request('/pecas')).dados.some((item) => item.slug === outraUnica.slug), 'replay antigo não libera reserva posterior')
+  assert.equal((await request(`/pedidos/${reservaPosterior.dados.id}/cancelar`, {}, 'PATCH', { Cookie: cookieComprador })).status, 200)
   assert.equal((await request('/checkout', { ...compra, itens: [] }, 'POST', { Cookie: cookieComprador })).status, 400)
   const mensagem = await request(`/pedidos/${pedido.dados.id}/conversa`, { texto: 'Olá!', autor: 'comprador', hora: 'agora' })
   assert.equal(mensagem.status, 201)
@@ -352,7 +373,6 @@ test('contrato HTTP, filtros, relações, CRUD e persistência', async (t) => {
   assert.equal((await request('/eventos?lat=-8&lng=-35')).dados.length, (await request('/eventos')).dados.length)
   assert.equal((await request('/eventos?lat=200&lng=0')).status, 400)
 
-  const demo = await request('/auth/entrar', { email: 'nuca@exemplo.com', senha: 'balaio123' })
   assert.equal(demo.status, 200)
   assert.equal(demo.dados.artesao, 'mestre-nuca')
   assert.equal(demo.dados.senha, undefined)
@@ -361,6 +381,8 @@ test('contrato HTTP, filtros, relações, CRUD e persistência', async (t) => {
   const rejeitado = await request(`/pedidos/${paraRecusar.dados.id}/recusar`, { motivo: 'Não consigo atender dentro do prazo.' }, 'PATCH', { Cookie: demo.cookie.split(';')[0] })
   assert.equal(rejeitado.dados.estado, 'recusado')
   assert.equal(rejeitado.dados.motivoEncerramento, 'Não consigo atender dentro do prazo.')
+  assert.equal((await request(`/pedidos/${paraRecusar.dados.id}/recusar`, { motivo: 'Não consigo atender dentro do prazo.' }, 'PATCH', comoNuca)).status, 200)
+  assert.equal((await request(`/pedidos/${paraRecusar.dados.id}/recusar`, { motivo: 'Outro motivo de recusa.' }, 'PATCH', comoNuca)).status, 409)
   const recusado = await request('/auth/entrar', { email: 'nuca@exemplo.com', senha: 'errada123' })
   assert.equal(recusado.status, 401)
   assert.equal(recusado.erro.codigo, 'CREDENCIAIS_INVALIDAS')
@@ -444,6 +466,43 @@ test('contrato HTTP, filtros, relações, CRUD e persistência', async (t) => {
   assert.equal((await request('/videos/v-001', undefined, 'DELETE', autorizacaoNuca)).status, 200)
   assert.equal((await request('/videos/v-001/comentarios')).status, 404)
   assert.ok(!(await request('/videos')).dados.some((video) => video.id === 'v-001'))
+})
+
+test('pedido misto legado não pode ser alterado por apenas um dos artesãos', async (t) => {
+  process.env.NODE_ENV = 'test'
+  const pasta = mkdtempSync(path.join(tmpdir(), 'balaio-api-'))
+  const arquivo = path.join(pasta, 'db.json')
+  const banco = JSON.parse(readFileSync(path.join(__dirname, 'seed.json'), 'utf8'))
+  const pecaNuca = banco.pecas.find((peca) => peca.artesao === 'mestre-nuca' && peca.disponibilidade === 'unica')
+  const pecaOutro = banco.pecas.find((peca) => peca.artesao !== 'mestre-nuca' && peca.disponibilidade === 'unica')
+  const id = 'PE-misto-legado'
+  banco.pedidos.push({ id, itens: [{ slug: pecaNuca.slug, quantidade: 1 }, { slug: pecaOutro.slug, quantidade: 1 }], estado: 'confirmado', etapas: [] })
+  for (const peca of [pecaNuca, pecaOutro]) {
+    peca.inativadoEm = new Date().toISOString()
+    peca.vendidaEmPedido = id
+  }
+  writeFileSync(arquivo, JSON.stringify(banco))
+  const servidor = criarServidor(arquivo).listen(0, '127.0.0.1')
+  await new Promise((resolve) => servidor.once('listening', resolve))
+  t.after(async () => {
+    await new Promise((resolve) => servidor.close(resolve))
+    rmSync(pasta, { recursive: true, force: true })
+  })
+  const base = `http://127.0.0.1:${servidor.address().port}/api/v1`
+  const login = await fetch(base + '/auth/entrar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: 'nuca@exemplo.com', senha: 'balaio123' }) })
+  assert.equal(login.status, 200)
+  const cookie = login.headers.get('set-cookie').split(';')[0]
+  for (const [rota, body] of [['recusar', { motivo: 'Não posso atender.' }], ['estado', { estado: 'producao' }]]) {
+    const resposta = await fetch(`${base}/pedidos/${id}/${rota}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Cookie: cookie }, body: JSON.stringify(body) })
+    assert.equal(resposta.status, 403, rota)
+  }
+  const salvo = JSON.parse(readFileSync(arquivo, 'utf8'))
+  assert.equal(salvo.pedidos.find((pedido) => pedido.id === id).estado, 'confirmado')
+  for (const peca of [pecaNuca, pecaOutro]) {
+    const atual = salvo.pecas.find((item) => item.slug === peca.slug)
+    assert.equal(atual.vendidaEmPedido, id)
+    assert.ok(atual.inativadoEm)
+  }
 })
 
 test('completa tipo das peças e referências em um banco antigo', async () => {

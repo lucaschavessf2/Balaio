@@ -35,7 +35,7 @@ export default function FormRecuperar() {
       const resposta = await solicitarRecuperacao(email)
       if (!resposta.dados) return avisar.erro('Não foi possível solicitar', resposta.erro?.mensagem)
       definirEnviadoPara(email)
-      avisar.sucesso('Solicitação registrada')
+      avisar.sucesso('Solicitação recebida', 'Se houver uma conta para este e-mail, confira sua caixa de entrada e o spam.')
     } finally {
       envioEmAndamento.current = false
       definirEnviando(false)
@@ -48,9 +48,9 @@ export default function FormRecuperar() {
         <span className="cabeca-auth-icone cabeca-auth-icone-sucesso">
           <IconeCheck tamanho={26} />
         </span>
-        <p className="texto-forte">Solicitação registrada</p>
+        <p className="texto-forte">Solicitação recebida</p>
         <p className="autoria">
-          Recebemos a solicitação para <strong>{enviadoPara}</strong>.
+          Se existir uma conta para <strong>{enviadoPara}</strong>, você receberá um link de recuperação válido por 1 hora.
         </p>
         <Link href="/login" className="botao botao-secundario botao-largo acima-2">
           Voltar para o login

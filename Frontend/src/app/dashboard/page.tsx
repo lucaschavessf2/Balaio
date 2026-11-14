@@ -2,18 +2,18 @@ import Link from 'next/link'
 import { Migalhas } from '@/components/ui/Basicos'
 import PedidosPendentes from '@/components/pedido/PedidosPendentes'
 import { IconeSetaDireita } from '@/components/ui/Icones'
-import { listarPedidos, listarPedidosPendentes, listarConversasArtesao } from '@/services/api/pedidos.servico'
+import { listarVendasArtesao, listarPedidosPendentes, listarConversasArtesao } from '@/services/api/pedidos.servico'
 import { pecasPorArtesao } from '@/services/api/pecas.servico'
 import { exigirArtesao } from '@/services/autenticacao'
 import { ESTADOS_ENCERRADOS, faturamentoNoMes, vendasDoArtesao } from '@/utils/vendas'
 
 export default async function Painel() {
-  const { artesao } = await exigirArtesao()
+  const { artesao, token } = await exigirArtesao()
   const [{ dados: pend }, { dados: conversas }, { dados: pecas }, { dados: pedidos }] = await Promise.all([
-    listarPedidosPendentes(artesao.slug),
+    listarPedidosPendentes(artesao.slug, token),
     listarConversasArtesao(artesao.slug),
-    pecasPorArtesao(artesao.slug),
-    listarPedidos(),
+    pecasPorArtesao(artesao.slug, token),
+    listarVendasArtesao(artesao.slug, token),
   ])
   const mapaPecas = new Map((pecas ?? []).map((p) => [p.slug, p]))
   const conversasArtesao = conversas ?? []
@@ -52,7 +52,7 @@ export default async function Painel() {
     return []
   })
   const agora = new Date()
-  const faturamentoMes = faturamentoNoMes(vendasDoArtesao(pedidos ?? [], pecas ?? []), {
+  const faturamentoMes = faturamentoNoMes(vendasDoArtesao(pedidosDoArtesao, pecas ?? []), {
     ano: agora.getFullYear(),
     mes: agora.getMonth() + 1,
   })

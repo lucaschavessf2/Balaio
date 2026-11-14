@@ -3,9 +3,11 @@ import { Migalhas } from '@/components/ui/Basicos'
 import ListaMediacoes from '@/components/admin/ListaMediacoes'
 import EstadoErro from '@/components/feedback/EstadoErro'
 import { listarMediacoes } from '@/services/api/pedidos.servico'
+import { exigirSessao } from '@/services/autenticacao'
 
 export default async function Mediacoes() {
-  const { dados: mediacoes, erro } = await listarMediacoes()
+  const { token } = await exigirSessao()
+  const { dados: mediacoes, erro } = await listarMediacoes(token)
 
   return (
     <LayoutAdmin ativo="mediacoes">

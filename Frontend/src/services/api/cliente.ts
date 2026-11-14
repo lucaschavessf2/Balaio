@@ -15,7 +15,9 @@ export async function buscar<T>(caminho: string, opcoes?: RequestInit, baseUrl =
     })
     const corpo = await resposta.json().catch(() => null)
     if (!resposta.ok) {
-      const resultado = falha(corpo?.erro?.codigo ?? `HTTP_${resposta.status}`, corpo?.erro?.mensagem ?? 'Não foi possível concluir a solicitação.', corpo?.erro?.campos)
+      const resultado = falha(corpo?.erro?.codigo ?? `HTTP_${resposta.status}`,
+        corpo?.erro?.mensagem ?? 'Não foi possível concluir a solicitação.',
+        corpo?.erro?.campos, corpo?.erro?.campo)
       resultado.erro!.status = resposta.status
       return resultado
     }

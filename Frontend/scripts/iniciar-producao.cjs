@@ -6,7 +6,7 @@ if (chaveInterna.length < 32) throw new Error('BALAIO_FAKE_INTERNAL_KEY precisa 
 const ambiente = { ...process.env, BALAIO_FAKE_INTERNAL_KEY: chaveInterna }
 
 const servicos = [
-  { nome: 'fake-api', script: 'fake-api/server.cjs' },
+  ...(process.env.FAKE_API_ENABLED === 'true' ? [{ nome: 'fake-api', script: 'fake-api/server.cjs' }] : []),
   { nome: 'next', script: 'server.js' },
 ]
 

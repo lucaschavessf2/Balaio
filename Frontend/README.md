@@ -155,7 +155,7 @@ docker build -t balaio-frontend .
 docker run -p 7879:7879 balaio-frontend
 ```
 
-Acesse http://localhost:7879. A imagem sobe o Next.js e a Fake API juntos.
+Acesse http://localhost:7879. A imagem isolada e o Compose padrão sobem o Next.js com a Fake API. Para validar a recuperação de senha no backend real, use `platform/docker-compose.recovery.yml`: ele configura `API_URL=http://api-gateway:8080/api/v1` no build e na execução e desliga a Fake API. Esse modo cobre cadastro/login e recuperação; dados da conta, endereços, painel do artesão e outros fluxos ainda dependem da Fake API e não funcionam pelo gateway real.
 
 ## Variáveis de ambiente
 
@@ -167,6 +167,7 @@ O login exige gateway/profile configurados. Copie `Frontend/.env.example` para
 | `API_URL` | `http://127.0.0.1:3001/api/v1` | API das capacidades ainda simuladas; permanece na Fake API |
 | `API_GATEWAY_URL` | `http://127.0.0.1:8080/api/v1` | Gateway real para cadastro, login, sessão e logout; sem fallback |
 | `FAKE_API_PORT` | `3001` | Porta da Fake API (se mudar, ajuste `API_URL`) |
+| `FAKE_API_ENABLED` | `true` na imagem isolada | Defina `false` quando `API_URL` apontar ao gateway real |
 
 O `.env.example` não contém credenciais.
 
